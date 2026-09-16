@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getAllFarms, getSystemHealth } from '../../api/mockApi'
+import StatCard from '../../components/StatCard'
+import FarmTable from '../../components/FarmTable'
 
 export default function AdminDashboard() {
   const [farms, setFarms] = useState([])
@@ -11,48 +13,40 @@ export default function AdminDashboard() {
   }, [])
 
   return (
-    <div>
-      <h1>Admin Dashboard</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div>
+        <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Admin Monitoring Portal</h1>
+        <p style={{ color: 'var(--color-text-secondary)', margin: '0.25rem 0 0 0' }}>
+          Overview across all registered farm locations.
+        </p>
+      </div>
 
-      <section style={{ marginBottom: '2rem' }}>
-        <h2>System Health</h2>
-        {health ? (
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            <div><strong>Total Farms:</strong> {health.total_farms}</div>
-            <div><strong>Active Alerts:</strong> {health.active_alerts}</div>
-            <div><strong>Last Sync:</strong> {new Date(health.last_sync).toLocaleString()}</div>
-          </div>
-        ) : (
-          <p>Loading system health...</p>
-        )}
+      {/* System Health Cards */}
+      <section style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <StatCard
+          label="Total Managed Farms"
+          value={health ? health.total_farms : '...'}
+          status="neutral"
+          icon="🚜"
+        />
+        <StatCard
+          label="Active Alerts"
+          value={health ? health.active_alerts : '...'}
+          status={health?.active_alerts > 0 ? 'warning' : 'healthy'}
+          icon="🚨"
+        />
+        <StatCard
+          label="Last System Sync"
+          value={health ? new Date(health.last_sync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
+          status="neutral"
+          icon="🔄"
+        />
       </section>
 
+      {/* All Farms Table */}
       <section>
-        <h2>All Managed Farms</h2>
-        {farms.length > 0 ? (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #ccc' }}>
-                <th style={{ padding: '0.5rem' }}>Farm ID</th>
-                <th style={{ padding: '0.5rem' }}>Name</th>
-                <th style={{ padding: '0.5rem' }}>Prediction</th>
-                <th style={{ padding: '0.5rem' }}>Severity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {farms.map(f => (
-                <tr key={f.farm_id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '0.5rem' }}>{f.farm_id}</td>
-                  <td style={{ padding: '0.5rem' }}>{f.name}</td>
-                  <td style={{ padding: '0.5rem' }}>{f.fused_prediction}</td>
-                  <td style={{ padding: '0.5rem' }}>{f.severity_level}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Loading farms...</p>
-        )}
+        <h2 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>All Farms Overview</h2>
+        <FarmTable farms={farms} />
       </section>
     </div>
   )
