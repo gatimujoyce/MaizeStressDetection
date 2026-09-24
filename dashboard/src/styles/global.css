@@ -1,0 +1,62 @@
+:root {
+  /* Editorial / Professional Palette */
+  --color-brand: #A84323;
+  --color-brand-hover: #8A351B;
+
+  --color-bg: #FAF8F5;
+  --color-surface: #FFFFFF;
+  --color-border: #DCD8D0;
+
+  --color-text-primary: #1F1E1D;
+  --color-text-secondary: #5C5A56;
+  --color-text-muted: #8C8880;
+
+  --color-healthy-bg: #E8F3E8;
+  --color-healthy-text: #1E5B1E;
+
+  --color-warning-bg: #FAF0D9;
+  --color-warning-text: #7A4D00;
+
+  --color-critical-bg: #FBE8E6;
+  --color-critical-text: #96281B;
+
+  --color-neutral-bg: #F2F0EB;
+  --color-neutral-text: #4A4844;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+}
+
+h1, h2, h3, h4 {
+  margin-top: 0;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Sharp, rectangular buttons with strict touch targets */
+button {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 2px; /* Rectangular profile, strictly no pill shapes */
+  border: 1px solid transparent;
+}
+
+input, select, textarea {
+  font-size: 16px;
+  min-height: 44px;
+  border-radius: 2px;
+}
