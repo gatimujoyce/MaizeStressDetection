@@ -1,10 +1,13 @@
 import NavBar from './NavBar'
+import { useAuth } from '../auth/AuthContext'
 
 export default function Layout({ children }) {
+  const { isAuthenticated } = useAuth()
+
   return (
-    <div>
-      <NavBar />
-      <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="min-h-screen bg-[var(--color-bg)]">
+      {isAuthenticated && <NavBar />}
+      <main className="max-w-6xl mx-auto px-4 py-8">
         {children}
       </main>
     </div>
