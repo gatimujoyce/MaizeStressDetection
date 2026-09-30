@@ -1,37 +1,42 @@
 import React from 'react'
 import { CheckIcon, WarningIcon, ErrorIcon, InfoIcon } from './Icons'
 
-export default function StatCard({ label, value, status = 'neutral', subtext }) {
+export default function StatCard({ label, value, status = 'neutral', subtext, icon }) {
   const statusStyles = {
-    healthy: { bg: 'var(--color-healthy-bg)', text: 'var(--color-healthy-text)', Icon: CheckIcon },
-    warning: { bg: 'var(--color-warning-bg)', text: 'var(--color-warning-text)', Icon: WarningIcon },
-    critical: { bg: 'var(--color-critical-bg)', text: 'var(--color-critical-text)', Icon: ErrorIcon },
-    neutral: { bg: 'var(--color-neutral-bg)', text: 'var(--color-neutral-text)', Icon: InfoIcon }
+    healthy: {
+      containerClass: 'bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)]',
+      Icon: CheckIcon,
+    },
+    warning: {
+      containerClass: 'bg-[var(--color-warning-bg)] text-[var(--color-warning-text)]',
+      Icon: WarningIcon,
+    },
+    critical: {
+      containerClass: 'bg-[var(--color-critical-bg)] text-[var(--color-critical-text)]',
+      Icon: ErrorIcon,
+    },
+    neutral: {
+      containerClass: 'bg-[var(--color-neutral-bg)] text-[var(--color-neutral-text)]',
+      Icon: InfoIcon,
+    },
   }
 
   const active = statusStyles[status] || statusStyles.neutral
   const IconComponent = active.Icon
 
   return (
-    <div style={{
-      backgroundColor: active.bg,
-      color: active.text,
-      border: '1px solid var(--color-border)',
-      borderRadius: '2px',
-      padding: '1rem 1.25rem',
-      flex: '1 1 200px'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        <IconComponent color={active.text} size={14} />
+    <div className={`${active.containerClass} border border-[var(--color-border)] rounded-sm p-4 flex-1 min-w-[200px]`}>
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider opacity-80">
+        {icon ? (
+          <span>{icon}</span>
+        ) : (
+          <IconComponent size={14} />
+        )}
         <span>{label}</span>
       </div>
-      <div style={{ fontSize: '1.4rem', fontWeight: '700', marginTop: '0.4rem', color: active.text }}>
-        {value}
-      </div>
+      <div className="text-2xl font-bold mt-1.5">{value}</div>
       {subtext && (
-        <div style={{ fontSize: '0.85rem', marginTop: '0.25rem', opacity: 0.9 }}>
-          {subtext}
-        </div>
+        <div className="text-xs mt-1 opacity-80">{subtext}</div>
       )}
     </div>
   )

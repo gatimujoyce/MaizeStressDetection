@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* Editorial / Professional Palette */
   --color-brand: #A84323;
@@ -37,25 +41,30 @@ body {
   background-color: var(--color-bg);
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   margin-top: 0;
   color: var(--color-text-primary);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-/* Sharp, rectangular buttons with strict touch targets */
+
 button {
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 600;
   min-height: 44px;
   min-width: 44px;
-  border-radius: 2px; /* Rectangular profile, strictly no pill shapes */
+  border-radius: 2px;
   border: 1px solid transparent;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   font-size: 16px;
   min-height: 44px;
   border-radius: 2px;
