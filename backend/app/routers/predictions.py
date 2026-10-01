@@ -51,6 +51,14 @@ async def submit_feedback(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
+    # Prediction must exist and belong to one of the current user's farms
+    result = await db.execute(
+        select(Prediction).join(Checkin).join(Farm)
+        .where(Prediction.id == id, Farm.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Prediction not found")
+
     new_feedback = Feedback(
         id=uuid.uuid4(),
         prediction_id=id,
