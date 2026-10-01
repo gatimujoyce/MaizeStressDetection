@@ -6,13 +6,17 @@ import uuid
 
 from app.core.deps import get_db
 from app.schemas.auth import UserCreate, UserResponse, Token
-from app.models import User
+from app.models import User, RoleEnum
 from app.core.security import get_password_hash, verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+    # Public registration must not be able to create admin accounts
+    if user_in.role == RoleEnum.admin:
+        raise HTTPException(status_code=403, detail="Admin accounts cannot be self-registered")
+
     result = await db.execute(select(User).where(User.phone == user_in.phone))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Phone already registered")
