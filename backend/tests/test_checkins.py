@@ -1,3 +1,4 @@
+import io
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import uuid
@@ -65,7 +66,9 @@ async def test_compute_severity_matrix_9():
 async def test_endpoint_predict_flow_high_severity():
     # 10. Test endpoint integration with high severity triggers SMS
     mock_db = AsyncMock()
-    
+    mock_db.add = MagicMock()  # AsyncSession.add is synchronous
+    mock_db.execute.return_value = MagicMock()  # awaited execute() returns a sync Result
+
     # Mock check_farm_access scalar_one_or_none to return a Farm -> authorized
     mock_db.execute.return_value.scalar_one_or_none.side_effect = [
         Farm(id=uuid.uuid4(), user_id=uuid.uuid4(), name="Test Farm", location="Loc", soil_type="loam"), # check_farm_access
@@ -75,6 +78,7 @@ async def test_endpoint_predict_flow_high_severity():
     mock_file = MagicMock(spec=UploadFile)
     mock_file.content_type = "image/jpeg"
     mock_file.filename = "test.jpeg"
+    mock_file.file = io.BytesIO(b"fake image bytes")
     
     mock_user = User(id=uuid.uuid4(), name="Test User", phone="+254700000000", password_hash="hash")
     
