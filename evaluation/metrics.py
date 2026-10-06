@@ -245,31 +245,41 @@ def task_extras(
         oos_idx = _index(out_of_scope_class_name)
         ins_idx = _index(in_scope_class_name)
 
-        # Per non-in-scope class: share predicted as out_of_scope
+        # Per non-in-scope class: share predicted as anything other than in_scope
         per_class_rejection = {}
+        per_class_accepted = {}
         oos_true_total  = 0
         oos_rejected    = 0
+        oos_accepted    = 0
+        
         for i, name in enumerate(class_names):
             if i == ins_idx:
                 continue
             row_sum = int(cm_arr[i].sum())
-            rejected_count = int(cm_arr[i, oos_idx])
+            accepted_count = int(cm_arr[i, ins_idx])
+            rejected_count = row_sum - accepted_count
+            
             per_class_rejection[name] = _safe_div(rejected_count, row_sum)
+            per_class_accepted[name] = accepted_count
+            
             oos_true_total  += row_sum
             oos_rejected    += rejected_count
+            oos_accepted    += accepted_count
 
         aggregate_oos_rejected_rate = _safe_div(oos_rejected, oos_true_total)
 
-        # in-scope wrongly rejected
+        # in-scope wrongly rejected (predicted anything other than in_scope)
         ins_row         = cm_arr[ins_idx]
         total_in_scope  = int(ins_row.sum())
-        wrongly_rejected = int(ins_row[oos_idx])
+        wrongly_rejected = int(total_in_scope - ins_row[ins_idx])
         in_scope_wrongly_rejected_rate = _safe_div(wrongly_rejected, total_in_scope)
 
         return _to_python(
             {
                 "out_of_scope_rejected_rate":        aggregate_oos_rejected_rate,
                 "out_of_scope_rejected_rate_per_class": per_class_rejection,
+                "out_of_scope_accepted_count":       oos_accepted,
+                "out_of_scope_accepted_count_per_class": per_class_accepted,
                 "in_scope_wrongly_rejected_rate":    in_scope_wrongly_rejected_rate,
             }
         )
