@@ -1,0 +1,97 @@
+{
+  "n": 623,
+  "accuracy": 0.9935794542536116,
+  "macro_precision": 0.9867986798679867,
+  "macro_recall": 0.993939393939394,
+  "macro_f1": 0.9902078892904581,
+  "weighted_precision": 0.9938337332930726,
+  "weighted_recall": 0.9935794542536116,
+  "weighted_f1": 0.9936148562063417,
+  "per_class": [
+    {
+      "name": "in_scope",
+      "precision": 1.0,
+      "recall": 0.9818181818181818,
+      "f1": 0.9908256880733946,
+      "support": 220
+    },
+    {
+      "name": "not_leaf",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 306
+    },
+    {
+      "name": "out_of_scope",
+      "precision": 0.9603960396039604,
+      "recall": 1.0,
+      "f1": 0.9797979797979798,
+      "support": 97
+    }
+  ],
+  "confusion_matrix": [
+    [
+      216,
+      0,
+      4
+    ],
+    [
+      0,
+      306,
+      0
+    ],
+    [
+      0,
+      0,
+      97
+    ]
+  ],
+  "confidence_analysis": [
+    {
+      "threshold": 0.5,
+      "coverage": 1.0,
+      "accuracy_on_accepted": 0.9935794542536116,
+      "deferred_share": 0.0
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 0.9983948635634029,
+      "accuracy_on_accepted": 0.9951768488745981,
+      "deferred_share": 0.0016051364365971107
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 0.9967897271268058,
+      "accuracy_on_accepted": 0.9951690821256038,
+      "deferred_share": 0.0032102728731942215
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 0.9919743178170144,
+      "accuracy_on_accepted": 0.9967637540453075,
+      "deferred_share": 0.008025682182985553
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.9775280898876404,
+      "accuracy_on_accepted": 0.9983579638752053,
+      "deferred_share": 0.02247191011235955
+    }
+  ],
+  "mean_confidence_correct": 0.9901429590000282,
+  "mean_confidence_incorrect": 0.7901110798120499,
+  "task_extras": {
+    "out_of_scope_rejected_rate": 1.0,
+    "out_of_scope_rejected_rate_per_class": {
+      "not_leaf": 1.0,
+      "out_of_scope": 1.0
+    },
+    "out_of_scope_accepted_count": 0,
+    "out_of_scope_accepted_count_per_class": {
+      "not_leaf": 0,
+      "out_of_scope": 0
+    },
+    "in_scope_wrongly_rejected_rate": 0.01818181818181818
+  }
+}
