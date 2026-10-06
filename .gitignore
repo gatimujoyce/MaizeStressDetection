@@ -55,3 +55,4 @@ notebooks/**/*.csv
 *.zip
 *.tar.gz
 *.7z
+data/
