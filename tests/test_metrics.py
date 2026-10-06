@@ -143,37 +143,70 @@ def test_accuracy_on_accepted_none_when_no_samples():
 
 
 # ---------------------------------------------------------------------------
-# Test 5 — gate task_extras on a known CM
+# Test 5 — gate task_extras (Regression: rejection correctly counts anything != in_scope)
 # ---------------------------------------------------------------------------
 #
-# classes: ["in_scope", "out_of_scope", "not_leaf"]
+# classes: ["in_scope", "not_leaf", "out_of_scope"]
 # CM:
-#          in_s  oos  not_leaf
-# in_s   [  4     1      0  ]  → wrongly rejected = 1, total in_scope = 5
-# oos    [  0     3      0  ]  → correctly rejected = 3
-# nl     [  0     1      1  ]  → correctly rejected = 1
+#          in_s  not_leaf  oos
+# in_s   [ 216     0        4  ]  → wrongly rejected = 4, total in_scope = 220
+# not_leaf[  0   306        0  ]  → accurately rejected = 306
+# oos    [  0     0       97  ]  → accurately rejected = 97
 #
-# in_scope_wrongly_rejected_rate = 1/5 = 0.2
-# out_of_scope_rejected_rate (aggregate) = (3+1)/(3+2) = 4/5 = 0.8
-# per_class: oos = 3/3 = 1.0, not_leaf = 1/2 = 0.5
+# accepted count (predicted in_scope for not_leaf/oos) = 0
+# out_of_scope_rejected_rate (aggregate) = 403/403 = 1.0
+# per_class: not_leaf = 1.0, oos = 1.0
 
 def test_gate_task_extras():
-    class_names = ["in_scope", "out_of_scope", "not_leaf"]
+    class_names = ["in_scope", "not_leaf", "out_of_scope"]
     cm = [
-        [4, 1, 0],   # true in_scope
-        [0, 3, 0],   # true out_of_scope
-        [0, 1, 1],   # true not_leaf
+        [216, 0, 4],    # true in_scope
+        [0, 306, 0],    # true not_leaf
+        [0, 0, 97],     # true out_of_scope
     ]
     extras = task_extras(
         "gate", cm, class_names,
         out_of_scope_class_name="out_of_scope",
         in_scope_class_name="in_scope",
     )
-    assert extras["in_scope_wrongly_rejected_rate"] == pytest.approx(1 / 5)
-    assert extras["out_of_scope_rejected_rate"]     == pytest.approx(4 / 5)
+    assert extras["in_scope_wrongly_rejected_rate"] == pytest.approx(4 / 220)
+    assert extras["out_of_scope_rejected_rate"]     == pytest.approx(1.0)
     pc = extras["out_of_scope_rejected_rate_per_class"]
+    assert pc["not_leaf"]     == pytest.approx(1.0)
     assert pc["out_of_scope"] == pytest.approx(1.0)
-    assert pc["not_leaf"]     == pytest.approx(0.5)
+    
+    assert extras["out_of_scope_accepted_count"] == 0
+    pc_accepted = extras["out_of_scope_accepted_count_per_class"]
+    assert pc_accepted["not_leaf"] == 0
+    assert pc_accepted["out_of_scope"] == 0
+
+
+def test_gate_task_extras_accepted_samples():
+    class_names = ["in_scope", "not_leaf", "out_of_scope"]
+    cm = [
+        [216, 0, 4],    # true in_scope (4 wrongly rejected)
+        [2, 304, 0],    # true not_leaf (2 wrongly accepted, predicted in_scope)
+        [1, 0, 96],     # true out_of_scope (1 wrongly accepted, predicted in_scope)
+    ]
+    extras = task_extras(
+        "gate", cm, class_names,
+        out_of_scope_class_name="out_of_scope",
+        in_scope_class_name="in_scope",
+    )
+    
+    assert extras["in_scope_wrongly_rejected_rate"] == pytest.approx(4 / 220)
+    
+    # overall accepted = 3, overall true = 403, rejected = 400
+    assert extras["out_of_scope_rejected_rate"] == pytest.approx(400 / 403)
+    
+    pc = extras["out_of_scope_rejected_rate_per_class"]
+    assert pc["not_leaf"]     == pytest.approx(304 / 306)
+    assert pc["out_of_scope"] == pytest.approx(96 / 97)
+    
+    assert extras["out_of_scope_accepted_count"] == 3
+    pc_accepted = extras["out_of_scope_accepted_count_per_class"]
+    assert pc_accepted["not_leaf"] == 2
+    assert pc_accepted["out_of_scope"] == 1
 
 
 # ---------------------------------------------------------------------------

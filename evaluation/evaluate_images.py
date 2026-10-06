@@ -365,7 +365,7 @@ def main() -> None:
     # --- run_info.json -------------------------------------------------------
     run_info = {
         "model_file":   str(model_path),
-        "date":         datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "date":         datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "test_dir":     str(test_dir),
         "n":            n,
         "tf_version":   tf.__version__,
