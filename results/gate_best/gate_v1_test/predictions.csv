@@ -1,0 +1,624 @@
+image_path,true_label,predicted_label,confidence,second_best_label,correct
+in_scope/common_rust__Corn_Common_Rust (10).jpg,in_scope,in_scope,0.974946,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1033).JPG,in_scope,in_scope,0.999759,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (1047).JPG,in_scope,in_scope,0.999916,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1078).JPG,in_scope,in_scope,0.999748,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1100).JPG,in_scope,in_scope,0.999774,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1106).JPG,in_scope,in_scope,0.995749,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (1126).JPG,in_scope,in_scope,0.998852,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (113).JPG,in_scope,in_scope,0.999954,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1169).JPG,in_scope,in_scope,0.996655,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (1170).JPG,in_scope,in_scope,0.999501,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (120).JPG,in_scope,in_scope,0.999074,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (1204).JPG,in_scope,in_scope,0.999943,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (1280).jpg,in_scope,in_scope,0.978895,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1293).jpg,in_scope,in_scope,0.999657,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1296).jpg,in_scope,in_scope,0.737802,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (1299).jpg,in_scope,in_scope,0.838362,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (13).jpg,in_scope,in_scope,0.997104,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (177).JPG,in_scope,in_scope,0.999253,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (19).jpg,in_scope,in_scope,0.929947,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (209).JPG,in_scope,in_scope,0.999627,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (234).JPG,in_scope,in_scope,0.998976,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (237).JPG,in_scope,in_scope,0.986751,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (309).JPG,in_scope,in_scope,0.997867,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (310).JPG,in_scope,in_scope,0.986077,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (336).JPG,in_scope,in_scope,0.999809,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (357).JPG,in_scope,in_scope,0.996729,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (365).JPG,in_scope,in_scope,0.999275,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (405).JPG,in_scope,in_scope,0.974721,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (421).JPG,in_scope,in_scope,0.997171,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (447).JPG,in_scope,in_scope,0.999800,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (458).JPG,in_scope,in_scope,0.977738,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (479).JPG,in_scope,in_scope,0.999857,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (506).JPG,in_scope,in_scope,0.998368,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (521).JPG,in_scope,in_scope,0.998524,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (602).JPG,in_scope,in_scope,0.998621,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (688).JPG,in_scope,in_scope,0.998947,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (700).JPG,in_scope,in_scope,0.999984,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (725).JPG,in_scope,in_scope,0.997643,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (748).JPG,in_scope,in_scope,0.999589,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (798).JPG,in_scope,in_scope,0.995925,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (802).JPG,in_scope,in_scope,0.997835,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (818).JPG,in_scope,in_scope,0.999528,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (86).JPG,in_scope,in_scope,0.999271,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (870).JPG,in_scope,in_scope,0.999917,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (900).JPG,in_scope,in_scope,0.999725,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (910).JPG,in_scope,in_scope,0.995960,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (911).JPG,in_scope,in_scope,0.993587,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (913).JPG,in_scope,in_scope,0.999963,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (927).JPG,in_scope,in_scope,0.999964,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (934).JPG,in_scope,in_scope,0.999893,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (970).JPG,in_scope,in_scope,0.998318,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (978).JPG,in_scope,in_scope,0.999887,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (989).JPG,in_scope,in_scope,0.982928,not_leaf,1
+in_scope/common_rust__Corn_Common_Rust (994).JPG,in_scope,in_scope,0.999994,out_of_scope,1
+in_scope/common_rust__Corn_Common_Rust (996).JPG,in_scope,in_scope,0.999784,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (123).JPG,in_scope,in_scope,0.999767,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (124).JPG,in_scope,in_scope,0.993434,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (126).JPG,in_scope,in_scope,0.999684,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (128).JPG,in_scope,in_scope,0.999884,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (139).JPG,in_scope,in_scope,0.999931,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (140).JPG,in_scope,in_scope,0.994080,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (163).JPG,in_scope,in_scope,0.995872,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (172).JPG,in_scope,in_scope,0.999683,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (18).jpg,in_scope,in_scope,0.627013,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (185).JPG,in_scope,in_scope,0.999809,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (192).JPG,in_scope,in_scope,0.998351,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (193).JPG,in_scope,in_scope,0.998375,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (20).jpg,in_scope,in_scope,0.984953,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (201).JPG,in_scope,in_scope,0.998185,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (204).JPG,in_scope,in_scope,0.999828,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (211).JPG,in_scope,in_scope,0.997622,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (227).JPG,in_scope,in_scope,0.999887,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (242).JPG,in_scope,in_scope,0.995050,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (246).JPG,in_scope,in_scope,0.999482,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (249).JPG,in_scope,in_scope,0.991058,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (284).JPG,in_scope,in_scope,0.999966,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (298).JPG,in_scope,in_scope,0.999556,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (304).JPG,in_scope,in_scope,0.997196,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (309).JPG,in_scope,in_scope,0.974928,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (311).jpg,in_scope,in_scope,0.980184,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (313).JPG,in_scope,in_scope,0.999747,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (324).JPG,in_scope,in_scope,0.999639,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (352).JPG,in_scope,in_scope,0.995992,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (355).JPG,in_scope,in_scope,0.984524,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (366).JPG,in_scope,in_scope,0.999387,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (37).jpg,in_scope,out_of_scope,0.587970,in_scope,0
+in_scope/gray_leaf_spot__Corn_Gray_Spot (394).JPG,in_scope,in_scope,0.999784,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (409).jpg,in_scope,in_scope,0.999596,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (412).JPG,in_scope,in_scope,0.999454,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (414).JPG,in_scope,in_scope,0.999157,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (426).JPG,in_scope,in_scope,0.990145,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (43).jpg,in_scope,in_scope,0.896034,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (432).JPG,in_scope,in_scope,0.999225,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (45).jpg,in_scope,in_scope,0.978731,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (453).JPG,in_scope,in_scope,0.999974,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (470).JPG,in_scope,in_scope,0.996266,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (478).JPG,in_scope,in_scope,0.999492,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (488).JPG,in_scope,in_scope,0.998278,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (489).JPG,in_scope,in_scope,0.999754,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (517).JPG,in_scope,in_scope,0.943401,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (525).JPG,in_scope,in_scope,0.995758,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (561).JPG,in_scope,in_scope,0.998919,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (565).jpg,in_scope,in_scope,0.991633,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (566).jpg,in_scope,in_scope,0.996810,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (67).JPG,in_scope,in_scope,0.989835,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (7).jpg,in_scope,in_scope,0.981372,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (8).jpg,in_scope,in_scope,0.951434,out_of_scope,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (85).JPG,in_scope,in_scope,0.916082,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (92).JPG,in_scope,in_scope,0.999830,not_leaf,1
+in_scope/gray_leaf_spot__Corn_Gray_Spot (93).JPG,in_scope,in_scope,0.994658,not_leaf,1
+in_scope/healthy__Corn_Health (1019).jpg,in_scope,in_scope,0.998257,out_of_scope,1
+in_scope/healthy__Corn_Health (1047).JPG,in_scope,in_scope,0.995500,out_of_scope,1
+in_scope/healthy__Corn_Health (1057).jpg,in_scope,in_scope,0.969936,not_leaf,1
+in_scope/healthy__Corn_Health (1070).jpg,in_scope,in_scope,0.998287,not_leaf,1
+in_scope/healthy__Corn_Health (1077).jpg,in_scope,in_scope,0.999574,not_leaf,1
+in_scope/healthy__Corn_Health (1082).jpg,in_scope,in_scope,0.996040,out_of_scope,1
+in_scope/healthy__Corn_Health (1100).jpg,in_scope,in_scope,0.999737,out_of_scope,1
+in_scope/healthy__Corn_Health (1113).jpg,in_scope,in_scope,0.998960,not_leaf,1
+in_scope/healthy__Corn_Health (1116).jpg,in_scope,in_scope,0.998971,out_of_scope,1
+in_scope/healthy__Corn_Health (1143).jpg,in_scope,in_scope,0.997482,not_leaf,1
+in_scope/healthy__Corn_Health (12).jpg,in_scope,in_scope,0.977196,out_of_scope,1
+in_scope/healthy__Corn_Health (124).jpg,in_scope,in_scope,0.996355,not_leaf,1
+in_scope/healthy__Corn_Health (130).jpg,in_scope,in_scope,0.999529,out_of_scope,1
+in_scope/healthy__Corn_Health (137).jpg,in_scope,in_scope,0.999380,out_of_scope,1
+in_scope/healthy__Corn_Health (140).jpg,in_scope,in_scope,0.997856,out_of_scope,1
+in_scope/healthy__Corn_Health (148).jpg,in_scope,in_scope,0.999845,out_of_scope,1
+in_scope/healthy__Corn_Health (154).jpg,in_scope,in_scope,0.993024,out_of_scope,1
+in_scope/healthy__Corn_Health (197).jpg,in_scope,in_scope,0.999008,out_of_scope,1
+in_scope/healthy__Corn_Health (209).jpg,in_scope,in_scope,0.999308,not_leaf,1
+in_scope/healthy__Corn_Health (247).jpg,in_scope,in_scope,0.999861,out_of_scope,1
+in_scope/healthy__Corn_Health (281).jpg,in_scope,in_scope,0.999903,out_of_scope,1
+in_scope/healthy__Corn_Health (306).jpg,in_scope,in_scope,0.999039,not_leaf,1
+in_scope/healthy__Corn_Health (32).jpg,in_scope,in_scope,0.996118,out_of_scope,1
+in_scope/healthy__Corn_Health (344).jpg,in_scope,in_scope,0.975138,out_of_scope,1
+in_scope/healthy__Corn_Health (355).jpg,in_scope,in_scope,0.988041,out_of_scope,1
+in_scope/healthy__Corn_Health (359).jpg,in_scope,in_scope,0.995864,not_leaf,1
+in_scope/healthy__Corn_Health (364).jpg,in_scope,in_scope,0.991204,out_of_scope,1
+in_scope/healthy__Corn_Health (373).jpg,in_scope,in_scope,0.990134,out_of_scope,1
+in_scope/healthy__Corn_Health (404).jpg,in_scope,in_scope,0.994895,out_of_scope,1
+in_scope/healthy__Corn_Health (416).jpg,in_scope,in_scope,0.999688,out_of_scope,1
+in_scope/healthy__Corn_Health (444).jpg,in_scope,in_scope,0.970385,out_of_scope,1
+in_scope/healthy__Corn_Health (450).jpg,in_scope,in_scope,0.997665,not_leaf,1
+in_scope/healthy__Corn_Health (496).jpg,in_scope,in_scope,0.999447,out_of_scope,1
+in_scope/healthy__Corn_Health (504).jpg,in_scope,in_scope,0.998507,out_of_scope,1
+in_scope/healthy__Corn_Health (513).jpg,in_scope,in_scope,0.998374,not_leaf,1
+in_scope/healthy__Corn_Health (534).jpg,in_scope,in_scope,0.999692,out_of_scope,1
+in_scope/healthy__Corn_Health (562).jpg,in_scope,in_scope,0.999533,out_of_scope,1
+in_scope/healthy__Corn_Health (581).jpg,in_scope,in_scope,0.997312,not_leaf,1
+in_scope/healthy__Corn_Health (590).jpg,in_scope,in_scope,0.952392,not_leaf,1
+in_scope/healthy__Corn_Health (627).jpg,in_scope,in_scope,0.998438,out_of_scope,1
+in_scope/healthy__Corn_Health (643).jpg,in_scope,in_scope,0.981897,out_of_scope,1
+in_scope/healthy__Corn_Health (652).jpg,in_scope,in_scope,0.999289,out_of_scope,1
+in_scope/healthy__Corn_Health (654).jpg,in_scope,in_scope,0.999727,out_of_scope,1
+in_scope/healthy__Corn_Health (655).jpg,in_scope,in_scope,0.999843,out_of_scope,1
+in_scope/healthy__Corn_Health (664).jpg,in_scope,in_scope,0.994148,out_of_scope,1
+in_scope/healthy__Corn_Health (728).jpg,in_scope,in_scope,0.990114,out_of_scope,1
+in_scope/healthy__Corn_Health (759).jpg,in_scope,in_scope,0.998455,out_of_scope,1
+in_scope/healthy__Corn_Health (782).jpg,in_scope,in_scope,0.997404,not_leaf,1
+in_scope/healthy__Corn_Health (791).jpg,in_scope,in_scope,0.913326,out_of_scope,1
+in_scope/healthy__Corn_Health (80).jpg,in_scope,in_scope,0.997624,out_of_scope,1
+in_scope/healthy__Corn_Health (817).jpg,in_scope,in_scope,0.999286,not_leaf,1
+in_scope/healthy__Corn_Health (875).jpg,in_scope,in_scope,0.999822,out_of_scope,1
+in_scope/healthy__Corn_Health (934).jpg,in_scope,in_scope,0.942827,out_of_scope,1
+in_scope/healthy__Corn_Health (949).jpg,in_scope,in_scope,0.999567,not_leaf,1
+in_scope/healthy__Corn_Health (990).jpg,in_scope,in_scope,0.999164,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (1014).JPG,in_scope,in_scope,0.999022,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (1018).jpg,in_scope,in_scope,0.999198,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (1046).JPG,in_scope,in_scope,0.994555,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (1050).JPG,in_scope,in_scope,0.999289,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (1052).JPG,in_scope,in_scope,0.999076,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (107).jpg,in_scope,in_scope,0.988311,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (1077).JPG,in_scope,in_scope,0.994813,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (1084).JPG,in_scope,in_scope,0.910330,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (1095).JPG,in_scope,in_scope,0.888882,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (1114).jpg,in_scope,out_of_scope,0.795794,in_scope,0
+in_scope/northern_leaf_blight__Corn_Blight (1125).jpg,in_scope,in_scope,0.937984,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (130).jpg,in_scope,in_scope,0.995694,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (134).jpg,in_scope,in_scope,0.999427,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (137).JPG,in_scope,in_scope,0.989054,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (15).jpg,in_scope,in_scope,0.998884,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (152).JPG,in_scope,in_scope,0.937805,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (169).JPG,in_scope,in_scope,0.999182,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (178).jpg,in_scope,in_scope,0.997345,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (209).JPG,in_scope,in_scope,0.998422,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (23).jpg,in_scope,in_scope,0.840325,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (300).JPG,in_scope,in_scope,0.998813,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (353).JPG,in_scope,in_scope,0.996226,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (37).jpg,in_scope,out_of_scope,0.907046,in_scope,0
+in_scope/northern_leaf_blight__Corn_Blight (379).JPG,in_scope,in_scope,0.988112,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (396).JPG,in_scope,in_scope,0.988750,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (421).JPG,in_scope,in_scope,0.999750,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (434).JPG,in_scope,in_scope,0.994861,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (454).JPG,in_scope,in_scope,0.973277,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (456).JPG,in_scope,in_scope,0.998839,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (459).JPG,in_scope,in_scope,0.999955,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (519).JPG,in_scope,in_scope,0.994066,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (528).JPG,in_scope,in_scope,0.998707,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (630).JPG,in_scope,in_scope,0.998593,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (641).JPG,in_scope,in_scope,0.993821,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (651).JPG,in_scope,in_scope,0.997993,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (671).JPG,in_scope,in_scope,0.999687,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (672).JPG,in_scope,in_scope,0.999799,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (679).JPG,in_scope,in_scope,0.999925,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (699).JPG,in_scope,in_scope,0.997872,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (720).jpg,in_scope,in_scope,0.941146,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (735).jpg,in_scope,in_scope,0.999652,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (748).JPG,in_scope,in_scope,0.984236,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (771).JPG,in_scope,in_scope,0.995180,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (78).jpg,in_scope,out_of_scope,0.869634,in_scope,0
+in_scope/northern_leaf_blight__Corn_Blight (806).JPG,in_scope,in_scope,0.997169,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (807).JPG,in_scope,in_scope,0.995946,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (820).jpg,in_scope,in_scope,0.952113,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (843).JPG,in_scope,in_scope,0.999801,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (857).JPG,in_scope,in_scope,0.999638,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (891).JPG,in_scope,in_scope,0.989472,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (901).jpg,in_scope,in_scope,0.997228,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (990).jpg,in_scope,in_scope,0.989412,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (993).JPG,in_scope,in_scope,0.996637,out_of_scope,1
+in_scope/northern_leaf_blight__Corn_Blight (994).JPG,in_scope,in_scope,0.999723,not_leaf,1
+in_scope/northern_leaf_blight__Corn_Blight (999).JPG,in_scope,in_scope,0.998716,out_of_scope,1
+not_leaf/Apple___Apple_scab__0a5e9323-dbad-432d-ac58-d291718345d9___FREC_Scab 3417.JPG,not_leaf,not_leaf,0.998349,in_scope,1
+not_leaf/Apple___Apple_scab__13f31401-f65a-4025-823a-4f2738e8bff9___FREC_Scab 3062.JPG,not_leaf,not_leaf,0.997509,in_scope,1
+not_leaf/Apple___Apple_scab__2bc50b52-0d7d-41a3-be8a-8d070341d87f___FREC_Scab 3476.JPG,not_leaf,not_leaf,0.998702,in_scope,1
+not_leaf/Apple___Apple_scab__2c89ceaf-748c-4371-80d0-d01855f04a92___FREC_Scab 2962.JPG,not_leaf,not_leaf,0.997311,in_scope,1
+not_leaf/Apple___Apple_scab__5893bd90-486f-42cf-9fcd-a4dc1e208246___FREC_Scab 3236.JPG,not_leaf,not_leaf,0.998881,in_scope,1
+not_leaf/Apple___Apple_scab__975c76b5-0c9f-4179-bc48-20b37d3113e6___FREC_Scab 3463.JPG,not_leaf,not_leaf,0.997990,in_scope,1
+not_leaf/Apple___Apple_scab__9eab7829-c658-4544-b6ba-f7fb10035aab___FREC_Scab 3382.JPG,not_leaf,not_leaf,0.994269,in_scope,1
+not_leaf/Apple___Apple_scab__dc12e2fd-e41b-43b5-9874-09661913316e___FREC_Scab 3073.JPG,not_leaf,not_leaf,0.997556,in_scope,1
+not_leaf/Apple___Apple_scab__eb3fa649-d717-4769-9f69-57f88c166455___FREC_Scab 3387.JPG,not_leaf,not_leaf,0.998819,in_scope,1
+not_leaf/Apple___Black_rot__0ca16873-eeac-47e9-9a87-1859950daab7___JR_FrgE.S 2835.JPG,not_leaf,not_leaf,0.999626,in_scope,1
+not_leaf/Apple___Black_rot__1ce4ecdf-fe69-42df-a0dc-c90f5495e7a1___JR_FrgE.S 3041.JPG,not_leaf,not_leaf,0.999909,in_scope,1
+not_leaf/Apple___Black_rot__1cf5102a-468b-4410-80bf-af6aeadc780c___JR_FrgE.S 2924.JPG,not_leaf,not_leaf,0.999584,in_scope,1
+not_leaf/Apple___Black_rot__7375bf36-7a8e-4fc5-8ee8-0bee7bfb3574___JR_FrgE.S 2874.JPG,not_leaf,not_leaf,0.999203,in_scope,1
+not_leaf/Apple___Black_rot__977c9b03-47f2-412d-a73d-7e647e973336___JR_FrgE.S 2887.JPG,not_leaf,not_leaf,0.997729,in_scope,1
+not_leaf/Apple___Black_rot__a157b760-a19d-4e6b-a319-29b63106de45___JR_FrgE.S 2751.JPG,not_leaf,not_leaf,0.995757,in_scope,1
+not_leaf/Apple___Black_rot__f0919147-209f-4a73-be01-42a5f160d51b___JR_FrgE.S 3056.JPG,not_leaf,not_leaf,0.999979,out_of_scope,1
+not_leaf/Apple___Black_rot__f872ce63-a162-44bd-84ac-c7d89c485457___JR_FrgE.S 8701.JPG,not_leaf,not_leaf,0.995963,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__025b2b9a-0ec4-4132-96ac-7f2832d0db4a___FREC_C.Rust 3655.JPG,not_leaf,not_leaf,0.996704,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__3e4303ad-6293-4522-821b-ef5dd3b658ce___FREC_C.Rust 3686.JPG,not_leaf,not_leaf,0.996789,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__3f9bd33d-ceeb-49fa-8874-d9cc013ca018___FREC_C.Rust 4183.JPG,not_leaf,not_leaf,0.998512,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__503fa8ad-36cc-41ea-997c-d61727a7677c___FREC_C.Rust 3842.JPG,not_leaf,not_leaf,0.990845,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__5ba35826-8831-4638-a443-5c28f80c4de8___FREC_C.Rust 0212.JPG,not_leaf,not_leaf,0.998462,out_of_scope,1
+not_leaf/Apple___Cedar_apple_rust__7d3aae9a-3fdd-4b83-b41f-7dd3e0400986___FREC_C.Rust 3616.JPG,not_leaf,not_leaf,0.993988,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__7e6e24dd-b8e6-4668-b4ae-a2480441bb78___FREC_C.Rust 3627.JPG,not_leaf,not_leaf,0.991520,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__85b2d11e-4682-4699-9196-fba13b6232d5___FREC_C.Rust 3718.JPG,not_leaf,not_leaf,0.996756,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__85c546e8-0e5c-4d84-9ec8-3ebb53942b98___FREC_C.Rust 9847.JPG,not_leaf,not_leaf,0.998477,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__b2723e0b-7e61-48ae-b50e-0cee5d437cb3___FREC_C.Rust 3823.JPG,not_leaf,not_leaf,0.995439,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__bee59bef-1155-40bd-97a3-8c600c33e6b5___FREC_C.Rust 0082.JPG,not_leaf,not_leaf,0.998397,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__f416a057-5518-4df4-8c12-660cd636166c___FREC_C.Rust 4412.JPG,not_leaf,not_leaf,0.988846,in_scope,1
+not_leaf/Apple___Cedar_apple_rust__fb27b16c-4ac1-45e9-abd2-487a1a528fb0___FREC_C.Rust 0206.JPG,not_leaf,not_leaf,0.999834,in_scope,1
+not_leaf/Apple___healthy__13a06d54-2bd9-4bd0-a260-1c193ac4caa8___RS_HL 6293.JPG,not_leaf,not_leaf,0.998832,in_scope,1
+not_leaf/Apple___healthy__1ab74120-9cfd-47dd-9a80-ee37f2328be6___RS_HL 7667.JPG,not_leaf,not_leaf,0.998506,in_scope,1
+not_leaf/Apple___healthy__211f5e77-fdc9-4d96-9395-bb3647678c43___RS_HL 7364.JPG,not_leaf,not_leaf,0.994877,in_scope,1
+not_leaf/Apple___healthy__42777529-bf54-4134-9bd6-34fbd135575d___RS_HL 8045.JPG,not_leaf,not_leaf,0.998408,in_scope,1
+not_leaf/Apple___healthy__65a6866e-a6ea-46d5-a8ca-413f98cd8b7a___RS_HL 5817.JPG,not_leaf,not_leaf,0.999669,in_scope,1
+not_leaf/Apple___healthy__7b236824-defb-40ae-8f83-76c00cf8b822___RS_HL 6222.JPG,not_leaf,not_leaf,0.996897,in_scope,1
+not_leaf/Apple___healthy__9284bd52-df45-4fc3-aaa6-4323666b41c4___RS_HL 7348.JPG,not_leaf,not_leaf,0.997280,in_scope,1
+not_leaf/Apple___healthy__b85dfb75-f620-427c-9108-02547560a2b4___RS_HL 5913.JPG,not_leaf,not_leaf,0.989397,in_scope,1
+not_leaf/Apple___healthy__ccf86248-4dee-4fa3-8192-fc145a227ff1___RS_HL 8097.JPG,not_leaf,not_leaf,0.999131,in_scope,1
+not_leaf/Apple___healthy__ce2f655a-64d9-44ed-a67c-7e23db612a35___RS_HL 7915.JPG,not_leaf,not_leaf,0.996594,in_scope,1
+not_leaf/Apple___healthy__d4ddb36a-e4cf-41be-b3f6-16c584e62b9a___RS_HL 7994.JPG,not_leaf,not_leaf,0.996975,in_scope,1
+not_leaf/Blueberry___healthy__17b961d3-e008-4c85-ad6b-d85fba0e7f6c___RS_HL 0390.JPG,not_leaf,not_leaf,0.996444,in_scope,1
+not_leaf/Blueberry___healthy__3e373707-a9e5-4c88-8449-b682745314ac___RS_HL 5478.JPG,not_leaf,not_leaf,0.999231,in_scope,1
+not_leaf/Blueberry___healthy__45249be0-22cd-4358-bea9-41f36735f3dd___RS_HL 2387.JPG,not_leaf,not_leaf,0.999418,in_scope,1
+not_leaf/Blueberry___healthy__5590e678-a519-487b-ba7b-90faece22212___RS_HL 5423.JPG,not_leaf,not_leaf,0.996990,in_scope,1
+not_leaf/Blueberry___healthy__ab8549c5-ddd6-4a0b-b26f-c6116e4b1587___RS_HL 5470.JPG,not_leaf,not_leaf,0.997451,in_scope,1
+not_leaf/Blueberry___healthy__ad8a8ab9-0d99-46a4-86fa-7a1bc5046345___RS_HL 0619.JPG,not_leaf,not_leaf,0.999448,in_scope,1
+not_leaf/Blueberry___healthy__cd807874-fb8e-4a8b-a83e-ca22ebc12c36___RS_HL 5073.JPG,not_leaf,not_leaf,0.997235,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__327470f8-b708-4976-b2fa-873da3ef6b39___FREC_Pwd.M 0319.JPG,not_leaf,not_leaf,0.998636,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__41113e0d-2d3c-4f71-bbf7-d9310ed23b5e___FREC_Pwd.M 4775.JPG,not_leaf,not_leaf,0.995644,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__5bdf2bac-34ff-4636-81fa-813a3564e1c6___FREC_Pwd.M 4802.JPG,not_leaf,not_leaf,0.998655,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__67d60449-6625-4372-90fd-452fc9c345cf___FREC_Pwd.M 4550.JPG,not_leaf,not_leaf,0.999203,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__693a442d-fa07-421e-b8f6-b5db6817b604___FREC_Pwd.M 0532.JPG,not_leaf,not_leaf,0.998558,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__7899bce2-cd7e-4f46-b636-a7b350d2c9cb___FREC_Pwd.M 4585.JPG,not_leaf,not_leaf,0.998371,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__839ce381-d6ef-4555-878a-11ceb23302ff___FREC_Pwd.M 4914.JPG,not_leaf,not_leaf,0.997272,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__84ff1c46-5c01-4136-bef5-59cd2d0ed812___FREC_Pwd.M 0572.JPG,not_leaf,not_leaf,0.997391,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__8b8c2681-e75e-452f-babe-04499e8160c5___FREC_Pwd.M 4507.JPG,not_leaf,not_leaf,0.991994,in_scope,1
+not_leaf/Cherry_including_sour___Powdery_mildew__cf98e1fd-1f1b-4f21-b485-d37a7b594965___FREC_Pwd.M 0503.JPG,not_leaf,not_leaf,0.997602,in_scope,1
+not_leaf/Cherry_including_sour___healthy__0de7baec-4dc0-4778-b3be-34820288f09f___JR_HL 3932.JPG,not_leaf,not_leaf,0.996732,in_scope,1
+not_leaf/Cherry_including_sour___healthy__8703335b-e747-4283-b57e-8467f17fa744___JR_HL 9585.JPG,not_leaf,not_leaf,0.999462,in_scope,1
+not_leaf/Cherry_including_sour___healthy__d8d56350-2b4a-49e3-9cad-0e3317777b67___JR_HL 4289.JPG,not_leaf,not_leaf,0.999658,in_scope,1
+not_leaf/Cherry_including_sour___healthy__e4f9ab10-b650-42bb-abcb-e5577ffcc1fe___JR_HL 9629.JPG,not_leaf,not_leaf,0.993936,out_of_scope,1
+not_leaf/Grape___Black_rot__30f1fd47-5562-44a1-8e3d-9339c3c12064___FAM_B.Rot 3022.JPG,not_leaf,not_leaf,0.997767,in_scope,1
+not_leaf/Grape___Black_rot__3b4326e8-734a-4f55-80b4-284e86d9c7c9___FAM_B.Rot 0332.JPG,not_leaf,not_leaf,0.993441,in_scope,1
+not_leaf/Grape___Black_rot__4a73015b-dbd0-417f-98b3-2016561c9bae___FAM_B.Rot 3577.JPG,not_leaf,not_leaf,0.998904,out_of_scope,1
+not_leaf/Grape___Black_rot__55ca1160-9110-416a-b35d-934c94037269___FAM_B.Rot 3484.JPG,not_leaf,not_leaf,0.998495,out_of_scope,1
+not_leaf/Grape___Black_rot__65d7b3e2-5835-45fe-ba18-da9f7a01eff0___FAM_B.Rot 0470.JPG,not_leaf,not_leaf,0.999394,in_scope,1
+not_leaf/Grape___Black_rot__7fca570e-59da-4f97-829d-dec4eeb0f341___FAM_B.Rot 3525.JPG,not_leaf,not_leaf,0.999299,out_of_scope,1
+not_leaf/Grape___Black_rot__86192071-649f-475a-9c25-968bbd2c0770___FAM_B.Rot 3003.JPG,not_leaf,not_leaf,0.997551,out_of_scope,1
+not_leaf/Grape___Black_rot__8af0e9e4-6f60-46ca-8e81-ecf6b8938e27___FAM_B.Rot 5031.JPG,not_leaf,not_leaf,0.992579,out_of_scope,1
+not_leaf/Grape___Black_rot__94ac3bae-ee72-4267-bd14-c111b5b65916___FAM_B.Rot 0685.JPG,not_leaf,not_leaf,0.980074,in_scope,1
+not_leaf/Grape___Black_rot__9d7b70dc-6454-46db-88a5-85cb61c56663___FAM_B.Rot 3095.JPG,not_leaf,not_leaf,0.998137,out_of_scope,1
+not_leaf/Grape___Black_rot__b125ecbb-b697-48e1-bc8b-9448131af894___FAM_B.Rot 0435.JPG,not_leaf,not_leaf,0.997025,in_scope,1
+not_leaf/Grape___Black_rot__bc1eb559-1156-40a0-828b-7a5f21c60e30___FAM_B.Rot 3408.JPG,not_leaf,not_leaf,0.999545,in_scope,1
+not_leaf/Grape___Black_rot__bd154441-20f1-4052-a268-899a73e4b680___FAM_B.Rot 3315.JPG,not_leaf,not_leaf,0.995140,out_of_scope,1
+not_leaf/Grape___Black_rot__c70df019-6020-47a8-9b69-891a4f4d707b___FAM_B.Rot 3571.JPG,not_leaf,not_leaf,0.999665,in_scope,1
+not_leaf/Grape___Black_rot__e4049ecb-7ff1-4bdf-a6e9-d99ad5d4d690___FAM_B.Rot 3492.JPG,not_leaf,not_leaf,0.998686,out_of_scope,1
+not_leaf/Grape___Esca_Black_Measles__2850cff3-e262-49b1-af09-051e76e19fa8___FAM_B.Msls 1336.JPG,not_leaf,not_leaf,0.999474,out_of_scope,1
+not_leaf/Grape___Esca_Black_Measles__40175b4b-929c-4f59-bdc6-157054b2fdce___FAM_B.Msls 3843.JPG,not_leaf,not_leaf,0.999109,out_of_scope,1
+not_leaf/Grape___Esca_Black_Measles__4960660d-51cc-4a8d-947a-1454a6e0a383___FAM_B.Msls 1171.JPG,not_leaf,not_leaf,0.999899,in_scope,1
+not_leaf/Grape___Esca_Black_Measles__6b743092-9607-43f2-af99-8677c82ac3ce___FAM_B.Msls 0853.JPG,not_leaf,not_leaf,0.999401,out_of_scope,1
+not_leaf/Grape___Esca_Black_Measles__74be2700-9949-4a16-9184-249d5868fafb___FAM_B.Msls 4448.JPG,not_leaf,not_leaf,0.999913,in_scope,1
+not_leaf/Grape___Esca_Black_Measles__7e83c4e4-af7c-4b20-b7e4-b9d73ad72c9e___FAM_B.Msls 4375.JPG,not_leaf,not_leaf,0.999700,out_of_scope,1
+not_leaf/Grape___Esca_Black_Measles__a5c19696-e040-4864-941d-74b4cd774ee4___FAM_B.Msls 4363.JPG,not_leaf,not_leaf,0.999793,in_scope,1
+not_leaf/Grape___Esca_Black_Measles__fc98a332-919a-4214-a930-9aeaa8c5d8f1___FAM_B.Msls 4359.JPG,not_leaf,not_leaf,0.999828,in_scope,1
+not_leaf/Grape___Esca_Black_Measles__ff235790-7c8a-4200-81ec-dbc21c0215ca___FAM_B.Msls 3853.JPG,not_leaf,not_leaf,0.999476,out_of_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__0b1c9d42-1c2f-47fa-ad5c-409624f10fbd___FAM_L.Blight 4748.JPG,not_leaf,not_leaf,0.999387,out_of_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__1b296ef6-f30d-4bc6-8b90-bf93ff46d623___FAM_L.Blight 1667.JPG,not_leaf,not_leaf,0.998534,out_of_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__2a4424de-736a-49a4-b501-21a86363f8f1___FAM_L.Blight 4887.JPG,not_leaf,not_leaf,0.999166,out_of_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__40d64d4d-0ea0-4984-b918-aafc09fa88a0___FAM_L.Blight 4789.JPG,not_leaf,not_leaf,0.999849,in_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__4f8f850f-225e-4f66-ac47-ecb430bd4b4a___FAM_L.Blight 4672.JPG,not_leaf,not_leaf,0.999828,out_of_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__76464ce9-433c-468e-a800-1da9e7b54b21___FAM_L.Blight 4890.JPG,not_leaf,not_leaf,0.997832,in_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__9271fd58-a6fd-4e89-a796-47d62016648a___FAM_L.Blight 4523.JPG,not_leaf,not_leaf,0.999689,out_of_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__9da3eef1-ae8c-471b-b21e-6cb2392a18b3___FAM_L.Blight 0800.JPG,not_leaf,not_leaf,0.999080,in_scope,1
+not_leaf/Grape___Leaf_blight_Isariopsis_Leaf_Spot__e632519e-453b-4a90-95be-1e60999b5251___FAM_L.Blight 4935.JPG,not_leaf,not_leaf,0.999665,out_of_scope,1
+not_leaf/Grape___healthy__0708190e-d6a1-4186-8428-1cd816419bfd___Mt.N.V_HL 9017.JPG,not_leaf,not_leaf,0.999906,in_scope,1
+not_leaf/Grape___healthy__07c7232b-5cdb-4bab-9413-e0108a48526f___Mt.N.V_HL 8957.JPG,not_leaf,not_leaf,0.999979,in_scope,1
+not_leaf/Grape___healthy__2483db02-a7f8-4a09-8bd0-76dfcd130671___Mt.N.V_HL 6111.JPG,not_leaf,not_leaf,0.999706,in_scope,1
+not_leaf/Grape___healthy__7276406c-b1ce-4c23-af0a-2c1c38e6e1a2___Mt.N.V_HL 9099.JPG,not_leaf,not_leaf,0.999959,in_scope,1
+not_leaf/Grape___healthy__8d435543-bb52-4a00-a84a-02404010cb33___Mt.N.V_HL 9061.JPG,not_leaf,not_leaf,0.998775,in_scope,1
+not_leaf/Grape___healthy__ac00a5c9-0af6-4543-866a-ef4c476c3410___Mt.N.V_HL 6110.JPG,not_leaf,not_leaf,0.999950,in_scope,1
+not_leaf/Grape___healthy__bed370e7-2f48-4102-81a0-4e960d47d8c9___Mt.N.V_HL 8936.JPG,not_leaf,not_leaf,0.999486,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__1aaca195-9937-4a15-86cd-99c71facd112___CREC_HLB 5113.JPG,not_leaf,not_leaf,0.991816,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__1da25e9c-543e-44ab-8ed7-578cc4c218db___CREC_HLB 6656.JPG,not_leaf,not_leaf,0.998561,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__5490e638-11ff-4b63-b542-b1b6fafea8af___CREC_HLB 6408.JPG,not_leaf,not_leaf,0.988514,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__9595d364-a3c3-473b-bbeb-50355fe8b303___UF.Citrus_HLB_Lab 0524.JPG,not_leaf,not_leaf,0.989175,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__a1cba79f-178d-4738-9aa6-202b32708358___CREC_HLB 7656.JPG,not_leaf,not_leaf,0.986305,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__ae2aaa70-62a0-4430-b84b-53c83a0d09e9___CREC_HLB 5035.JPG,not_leaf,not_leaf,0.996732,in_scope,1
+not_leaf/Orange___Haunglongbing_Citrus_greening__d74eb6a6-2b93-45af-820d-0107c0716d6c___UF.Citrus_HLB_Lab 9916.JPG,not_leaf,not_leaf,0.984062,in_scope,1
+not_leaf/Peach___Bacterial_spot__383e0447-64cb-4700-bb88-7c0a1de8cfee___Rutg._Bact.S 1401.JPG,not_leaf,not_leaf,0.991116,in_scope,1
+not_leaf/Peach___Bacterial_spot__71562388-f248-4c9e-83a6-179abcd9e154___Rutg._Bact.S 1748.JPG,not_leaf,not_leaf,0.953682,in_scope,1
+not_leaf/Peach___Bacterial_spot__7883e8b2-93e9-4849-bfec-0339fe77d64e___Rut._Bact.S 1352.JPG,not_leaf,not_leaf,0.996222,in_scope,1
+not_leaf/Peach___Bacterial_spot__7e43be7d-6c60-4b3f-af20-82ac41706ccc___Rutg._Bact.S 1941.JPG,not_leaf,not_leaf,0.996819,in_scope,1
+not_leaf/Peach___Bacterial_spot__813b3380-aeb5-47c8-b086-a495a465c207___Rutg._Bact.S 1415.JPG,not_leaf,not_leaf,0.993584,in_scope,1
+not_leaf/Peach___Bacterial_spot__8fa85b82-300b-4403-9b6e-22662bac799b___Rutg._Bact.S 1573.JPG,not_leaf,not_leaf,0.976830,in_scope,1
+not_leaf/Peach___Bacterial_spot__aa780835-08e8-4664-8ead-403aa266e663___Rutg._Bact.S 2257.JPG,not_leaf,not_leaf,0.994426,out_of_scope,1
+not_leaf/Peach___Bacterial_spot__cbc599b0-7286-447c-8f0b-ad88ae8ce64c___Rut._Bact.S 3376.JPG,not_leaf,not_leaf,0.984179,in_scope,1
+not_leaf/Peach___Bacterial_spot__ccc34f0c-c5ed-479d-89b3-0b621e84b34a___Rutg._Bact.S 1502.JPG,not_leaf,not_leaf,0.998017,in_scope,1
+not_leaf/Peach___Bacterial_spot__f4507d8f-946b-4bcc-a179-67936f4d3eb0___Rutg._Bact.S 1790.JPG,not_leaf,not_leaf,0.998089,in_scope,1
+not_leaf/Peach___Bacterial_spot__fdb6f19d-ebf5-46ce-96aa-595329a91869___Rutg._Bact.S 2314.JPG,not_leaf,not_leaf,0.985724,in_scope,1
+not_leaf/Peach___Bacterial_spot__fe4de6f6-e446-479e-bdba-a320dbdb8fc6___Rut._Bact.S 0953.JPG,not_leaf,not_leaf,0.986503,in_scope,1
+not_leaf/Peach___healthy__03913ec4-36a4-4591-a3f5-33b1cc1a53a0___Rutg._HL 3663.JPG,not_leaf,not_leaf,0.998222,in_scope,1
+not_leaf/Peach___healthy__20bc6354-137f-4418-ad54-37cd28ee80b5___Rutg._HL 3554.JPG,not_leaf,not_leaf,0.999344,in_scope,1
+not_leaf/Peach___healthy__682e8658-0a23-48fb-a3d6-6c920d0943da___Rutg._HL 3547.JPG,not_leaf,not_leaf,0.999469,in_scope,1
+not_leaf/Peach___healthy__987e0ba5-46c4-45ff-bf11-4553365e217c___Rutg._HL 3703.JPG,not_leaf,not_leaf,0.999373,in_scope,1
+not_leaf/Peach___healthy__aed39419-1163-4470-a0c4-d6f4e1a7ee66___Rutg._HL 3615.JPG,not_leaf,not_leaf,0.999903,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__423247c0-70c3-4d41-b22f-33071ee36a7a___JR_B.Spot 3246.JPG,not_leaf,not_leaf,0.988617,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__4b5d5cc8-6df9-4963-8e68-1aaf3e8f2363___JR_B.Spot 3358.JPG,not_leaf,not_leaf,0.998534,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__66078e98-f5db-446d-8d34-f6268d8703e0___JR_B.Spot 3285.JPG,not_leaf,not_leaf,0.997072,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__6b70a53a-c5b9-47bc-8cb6-5b848a01af0b___NREC_B.Spot 1929.JPG,not_leaf,not_leaf,0.998340,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__9b962d06-896a-4b66-8688-89e5024f8f84___JR_B.Spot 8878.JPG,not_leaf,not_leaf,0.992854,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__cd7b99bc-2c7f-48ac-b799-bc04f5c78277___NREC_B.Spot 1863.JPG,not_leaf,not_leaf,0.999394,in_scope,1
+not_leaf/Pepper_bell___Bacterial_spot__f2e21841-962e-4044-bb5d-efd8af95df74___NREC_B.Spot 1893.JPG,not_leaf,not_leaf,0.926703,in_scope,1
+not_leaf/Pepper_bell___healthy__647d9500-2864-4b98-bbd2-b4ac4b42abbf___JR_HL 7917.JPG,not_leaf,not_leaf,0.996886,in_scope,1
+not_leaf/Pepper_bell___healthy__763f79d6-2b20-479c-9237-8b69c60482fe___JR_HL 5968.JPG,not_leaf,not_leaf,0.997598,in_scope,1
+not_leaf/Pepper_bell___healthy__7ff5acb3-8ef2-41f4-a7cf-795192bf4d37___JR_HL 8332.JPG,not_leaf,not_leaf,0.999837,in_scope,1
+not_leaf/Pepper_bell___healthy__921b966f-3d23-4036-bfbb-cba500aeca08___JR_HL 8523.JPG,not_leaf,not_leaf,0.998647,in_scope,1
+not_leaf/Pepper_bell___healthy__a78a9a04-3ff9-44b2-bf18-58d5dc301014___JR_HL 8633.JPG,not_leaf,not_leaf,0.999818,in_scope,1
+not_leaf/Pepper_bell___healthy__af86218b-d013-4cf3-93ac-d4d57b769f84___JR_HL 8440.JPG,not_leaf,not_leaf,0.996676,in_scope,1
+not_leaf/Pepper_bell___healthy__cdbba6b5-85c8-420c-af58-f5885809f9a3___JR_HL 8192.JPG,not_leaf,not_leaf,0.999011,in_scope,1
+not_leaf/Pepper_bell___healthy__f47373b3-ed1e-42b0-988b-b2724cc89782___JR_HL 5903.JPG,not_leaf,not_leaf,0.997326,in_scope,1
+not_leaf/Potato___Early_blight__41f4502c-34aa-45a5-b593-7191f7a62f96___RS_Early.B 8774.JPG,not_leaf,not_leaf,0.992029,in_scope,1
+not_leaf/Potato___Early_blight__91721448-8786-49f6-a66d-d410fe714676___RS_Early.B 7725.JPG,not_leaf,not_leaf,0.990652,in_scope,1
+not_leaf/Potato___Early_blight__a938ba0c-780a-41e0-b26c-3c6b87047ac6___RS_Early.B 6878.JPG,not_leaf,not_leaf,0.999205,in_scope,1
+not_leaf/Potato___Early_blight__d32f991e-d1da-44a3-b3e0-2f99cc038900___RS_Early.B 6994.JPG,not_leaf,not_leaf,0.999376,in_scope,1
+not_leaf/Potato___Late_blight__1a68ab56-2000-4d7a-ad4a-88d300104b7d___RS_LB 2594.JPG,not_leaf,not_leaf,0.999932,in_scope,1
+not_leaf/Potato___Late_blight__2572d994-464a-461e-a0c8-597dc2229c09___RS_LB 2763.JPG,not_leaf,not_leaf,0.999252,in_scope,1
+not_leaf/Potato___Late_blight__49835c13-105d-4afb-95dd-b4ee15f3d287___RS_LB 4099.JPG,not_leaf,not_leaf,0.999896,in_scope,1
+not_leaf/Potato___Late_blight__67001c81-d182-4bc6-b9b8-f25ddb0a2db4___RS_LB 5231.JPG,not_leaf,not_leaf,0.999824,in_scope,1
+not_leaf/Potato___Late_blight__793aaf75-3085-4bbb-bace-33a9593c3c94___RS_LB 4847.JPG,not_leaf,not_leaf,0.996119,in_scope,1
+not_leaf/Potato___Late_blight__954d36cb-4a20-4889-83dd-4cba7e7180f8___RS_LB 4536.JPG,not_leaf,not_leaf,0.999278,in_scope,1
+not_leaf/Potato___Late_blight__bc53f0fd-df00-42c6-ad50-aef25d2c6f7a___RS_LB 2954.JPG,not_leaf,not_leaf,0.998722,out_of_scope,1
+not_leaf/Potato___healthy__03da9931-e514-4cc7-b04a-8f474a133ce5___RS_HL 1830.JPG,not_leaf,not_leaf,0.999753,in_scope,1
+not_leaf/Potato___healthy__14484ea5-9c34-427c-abe4-2743265aced0___RS_HL 4204.JPG,not_leaf,not_leaf,0.960191,in_scope,1
+not_leaf/Potato___healthy__1f9870b3-899e-46fb-98c9-cfc2ce92895b___RS_HL 1816.JPG,not_leaf,not_leaf,0.999448,in_scope,1
+not_leaf/Potato___healthy__414f6249-9f78-4af5-9593-9d5a7e7d979f___RS_HL 1918.JPG,not_leaf,not_leaf,0.999487,in_scope,1
+not_leaf/Potato___healthy__4bbccfb6-5720-4c80-9b37-0c3ed8999c9f___RS_HL 1791.JPG,not_leaf,not_leaf,0.999757,in_scope,1
+not_leaf/Potato___healthy__5cb360dd-5c17-4c57-b31d-97cd8dd8d0bd___RS_HL 1797.JPG,not_leaf,not_leaf,0.999888,in_scope,1
+not_leaf/Potato___healthy__5d505af8-3f73-4781-980c-a4a696a04550___RS_HL 1934.JPG,not_leaf,not_leaf,0.999901,in_scope,1
+not_leaf/Potato___healthy__683b04ad-7941-4819-9965-ba32c725eb22___RS_HL 1861.JPG,not_leaf,not_leaf,0.999653,in_scope,1
+not_leaf/Potato___healthy__6f4b9acd-f34d-4771-a6bc-2001de2dd1d3___RS_HL 1898.JPG,not_leaf,not_leaf,0.999157,in_scope,1
+not_leaf/Potato___healthy__a02b6205-b40a-4178-8b34-3494f84b9d1f___RS_HL 1958.JPG,not_leaf,not_leaf,0.998569,in_scope,1
+not_leaf/Potato___healthy__bb04f738-1848-4dda-8834-384a48b335cd___RS_HL 1765.JPG,not_leaf,not_leaf,0.999951,in_scope,1
+not_leaf/Potato___healthy__c9ad5c9a-c9b0-4e07-9e03-9e9edfd58a19___RS_HL 1755.JPG,not_leaf,not_leaf,0.999606,in_scope,1
+not_leaf/Potato___healthy__e34e563f-7a4a-4b44-bdf2-b6f96cbcd929___RS_HL 5370.JPG,not_leaf,not_leaf,0.999693,in_scope,1
+not_leaf/Potato___healthy__e693354a-053c-4093-8642-cc8f5f9eb2cc___RS_HL 1746.JPG,not_leaf,not_leaf,0.999506,in_scope,1
+not_leaf/Raspberry___healthy__05a9ae7e-468f-4cb6-add5-860ace895d3a___Mary_HL 6359.JPG,not_leaf,not_leaf,0.999885,in_scope,1
+not_leaf/Raspberry___healthy__1de5d074-f5a0-4706-993f-9f21b3fe94fd___Mary_HL 9281.JPG,not_leaf,not_leaf,0.999614,in_scope,1
+not_leaf/Raspberry___healthy__57cdc3ce-f08d-4082-bad2-819a8f3489ca___Mary_HL 9293.JPG,not_leaf,not_leaf,0.999909,out_of_scope,1
+not_leaf/Raspberry___healthy__b8a96dea-8442-4855-9fdf-c29c9d4eca5a___Mary_HL 6398.JPG,not_leaf,not_leaf,0.999851,in_scope,1
+not_leaf/Raspberry___healthy__e9a17bb8-bf48-41b4-b106-0b1dae3456d5___Mary_HL 9168.JPG,not_leaf,not_leaf,0.999498,in_scope,1
+not_leaf/Raspberry___healthy__ecd85c83-4675-4657-9c48-ca9ef7bdd1ef___Mary_HL 9157.JPG,not_leaf,not_leaf,0.999976,in_scope,1
+not_leaf/Soybean___healthy__14f1a5c2-eb4a-47be-b20f-d2eed297c3b9___RS_HL 5908.JPG,not_leaf,not_leaf,0.999301,in_scope,1
+not_leaf/Soybean___healthy__1fcc16d8-f1c7-446f-9a47-ca9ec9b8ff4d___RS_HL 4269.JPG,not_leaf,not_leaf,0.998993,in_scope,1
+not_leaf/Soybean___healthy__26a74ee7-6f28-4909-bc69-5c7102618401___RS_HL 6125.JPG,not_leaf,not_leaf,0.998650,in_scope,1
+not_leaf/Soybean___healthy__2fc61ead-735b-4925-911f-efc43309e5d4___RS_HL 4704.JPG,not_leaf,not_leaf,0.999529,in_scope,1
+not_leaf/Soybean___healthy__5da7f5c6-4942-4108-9048-352f3815836a___RS_HL 5274.JPG,not_leaf,not_leaf,0.999797,in_scope,1
+not_leaf/Soybean___healthy__60269266-5340-4321-a4c6-81b3705275d2___RS_HL 4100.JPG,not_leaf,not_leaf,0.997562,in_scope,1
+not_leaf/Soybean___healthy__71d34686-d60b-4049-8b47-88695b6186e9___RS_HL 3881.JPG,not_leaf,not_leaf,0.999878,in_scope,1
+not_leaf/Soybean___healthy__7c8a3f30-52d9-49cb-a694-531861b20abd___RS_HL 7178.JPG,not_leaf,not_leaf,0.999087,in_scope,1
+not_leaf/Soybean___healthy__9181a07b-a2a1-4425-83aa-a5cd8c4ab130___RS_HL 4196.JPG,not_leaf,not_leaf,0.993835,in_scope,1
+not_leaf/Soybean___healthy__a45a59c9-cf6a-4614-8fa4-c59d9e95804f___RS_HL 3950.JPG,not_leaf,not_leaf,0.998638,in_scope,1
+not_leaf/Soybean___healthy__c76932dc-65cd-40b9-b2fa-4d2d440efc64___RS_HL 3321.JPG,not_leaf,not_leaf,0.999045,in_scope,1
+not_leaf/Squash___Powdery_mildew__1f963e14-3072-43de-8bf9-2e91944d5b21___MD_Powd.M 1046.JPG,not_leaf,not_leaf,0.980517,in_scope,1
+not_leaf/Squash___Powdery_mildew__61ea25c2-c499-434a-b98e-3820a3a54a4c___MD_Powd.M 0536.JPG,not_leaf,not_leaf,0.755062,in_scope,1
+not_leaf/Squash___Powdery_mildew__73a22fe5-1ae4-48b2-a83a-3cff1cef5034___MD_Powd.M 0935.JPG,not_leaf,not_leaf,0.899342,in_scope,1
+not_leaf/Squash___Powdery_mildew__76aac31f-f6ae-4d1b-b232-aef8f051ead4___UMD_Powd.M 9885.JPG,not_leaf,not_leaf,0.918432,in_scope,1
+not_leaf/Squash___Powdery_mildew__9378bd4e-c101-48d3-abb3-44670fd72a4e___UMD_Powd.M 0617.JPG,not_leaf,not_leaf,0.988504,in_scope,1
+not_leaf/Squash___Powdery_mildew__b939b3ea-0718-482d-9d95-d2b27a3733e2___UMD_Powd.M 0542.JPG,not_leaf,not_leaf,0.948157,in_scope,1
+not_leaf/Squash___Powdery_mildew__b99cca69-f805-4bed-9fbe-d3857cf904a1___MD_Powd.M 0993.JPG,not_leaf,not_leaf,0.955258,in_scope,1
+not_leaf/Squash___Powdery_mildew__c5ff39e3-8251-47f1-bad3-ef4f3af7819b___UMD_Powd.M 9640.JPG,not_leaf,not_leaf,0.997660,in_scope,1
+not_leaf/Squash___Powdery_mildew__cbff4e22-ecee-4824-89d0-df895fa544cd___MD_Powd.M 1002.JPG,not_leaf,not_leaf,0.985952,in_scope,1
+not_leaf/Squash___Powdery_mildew__d1affe90-49df-45c6-98ab-d4acc8333056___UMD_Powd.M 0032.JPG,not_leaf,not_leaf,0.989856,in_scope,1
+not_leaf/Squash___Powdery_mildew__e4b4d5b3-9def-4686-a049-c99bc40e98cd___UMD_Powd.M 9965.JPG,not_leaf,not_leaf,0.896023,in_scope,1
+not_leaf/Squash___Powdery_mildew__f1ff82a8-d397-4ce2-b961-cbecc68ed3f8___MD_Powd.M 9916.JPG,not_leaf,not_leaf,0.985099,in_scope,1
+not_leaf/Strawberry___Leaf_scorch__1be23894-5bb2-4e82-9e65-216fe9a33c3b___RS_L.Scorch 0077.JPG,not_leaf,not_leaf,0.904031,in_scope,1
+not_leaf/Strawberry___Leaf_scorch__2ca86722-3dd1-41ae-adcd-cc7b7c62f7b3___RS_L.Scorch 0043.JPG,not_leaf,not_leaf,0.977941,out_of_scope,1
+not_leaf/Strawberry___Leaf_scorch__53fb0029-fa9c-4d81-9a35-b032faa02939___RS_L.Scorch 1357.JPG,not_leaf,not_leaf,0.998802,out_of_scope,1
+not_leaf/Strawberry___Leaf_scorch__733ce22c-b11a-41c7-91ba-82837d5beec6___RS_L.Scorch 1166.JPG,not_leaf,not_leaf,0.985070,in_scope,1
+not_leaf/Strawberry___Leaf_scorch__79e0bffd-64f8-4197-953e-4b22e46aeb2c___RS_L.Scorch 1298.JPG,not_leaf,not_leaf,0.993465,in_scope,1
+not_leaf/Strawberry___Leaf_scorch__c509f71c-89c1-42a3-81e4-efb7958d6911___RS_L.Scorch 0813.JPG,not_leaf,not_leaf,0.991018,out_of_scope,1
+not_leaf/Strawberry___Leaf_scorch__d60c8dd2-7fe1-4329-b3b6-5dc2dbd67d47___RS_L.Scorch 1503.JPG,not_leaf,not_leaf,0.996458,in_scope,1
+not_leaf/Strawberry___healthy__15b5d300-a3f7-4e46-9f33-47f99c5d8364___RS_HL 4832.JPG,not_leaf,not_leaf,0.999930,in_scope,1
+not_leaf/Strawberry___healthy__5275777b-d89b-47b1-9dc6-15c832167a41___RS_HL 4408.JPG,not_leaf,not_leaf,0.999818,in_scope,1
+not_leaf/Strawberry___healthy__61c8f6ba-9074-44c7-852b-4f34032a6b5e___RS_HL 1721.JPG,not_leaf,not_leaf,0.999627,in_scope,1
+not_leaf/Strawberry___healthy__6e8627f0-d19e-46c2-876a-d36c5c57c25a___RS_HL 4503.JPG,not_leaf,not_leaf,0.999694,in_scope,1
+not_leaf/Strawberry___healthy__786744bd-7252-4dec-b86a-b2ecfaa0b33f___RS_HL 4874.JPG,not_leaf,not_leaf,0.999548,in_scope,1
+not_leaf/Strawberry___healthy__8a540a98-3e4e-44a9-b1c3-990772c57985___RS_HL 4597.JPG,not_leaf,not_leaf,0.998690,in_scope,1
+not_leaf/Strawberry___healthy__93e51b7e-3a41-40e3-9790-c5eeb86a4d61___RS_HL 4706.JPG,not_leaf,not_leaf,0.999927,in_scope,1
+not_leaf/Strawberry___healthy__c3d65977-d35a-4f0f-9e36-bf36f4dbdee8___RS_HL 2214.JPG,not_leaf,not_leaf,0.999713,in_scope,1
+not_leaf/Strawberry___healthy__e5c27a76-cadf-4595-927f-c9a097a06587___RS_HL 1950.JPG,not_leaf,not_leaf,0.999504,in_scope,1
+not_leaf/Strawberry___healthy__f5c2a553-b9af-4141-a6ba-5a4af090db7d___RS_HL 2068.JPG,not_leaf,not_leaf,0.999781,in_scope,1
+not_leaf/Tomato___Bacterial_spot__0f4ce5ef-5ecf-4c5d-b301-3b5a44e3a1c8___UF.GRC_BS_Lab Leaf 0408.JPG,not_leaf,not_leaf,0.995665,out_of_scope,1
+not_leaf/Tomato___Bacterial_spot__30479f05-421c-4598-8e91-4e2c6722c450___UF.GRC_BS_Lab Leaf 0538.JPG,not_leaf,not_leaf,0.963298,in_scope,1
+not_leaf/Tomato___Bacterial_spot__5cc48c5c-f74c-4e20-820f-e03f8bff3e3e___GCREC_Bact.Sp 6008.JPG,not_leaf,not_leaf,0.999260,out_of_scope,1
+not_leaf/Tomato___Bacterial_spot__762e1022-3ed8-4d96-9f05-e22c0757c8ba___UF.GRC_BS_Lab Leaf 0774.JPG,not_leaf,not_leaf,0.996710,out_of_scope,1
+not_leaf/Tomato___Bacterial_spot__8dee1c17-ae17-4392-92c5-acee82c83c86___GCREC_Bact.Sp 3747.JPG,not_leaf,not_leaf,0.998707,in_scope,1
+not_leaf/Tomato___Bacterial_spot__9e748aef-42d5-429b-b2c6-c95dfa581331___GCREC_Bact.Sp 3363.JPG,not_leaf,not_leaf,0.976182,out_of_scope,1
+not_leaf/Tomato___Bacterial_spot__a9045c2f-df74-4d31-8e2f-f3ce3d6753e2___GCREC_Bact.Sp 3026.JPG,not_leaf,not_leaf,0.999237,in_scope,1
+not_leaf/Tomato___Bacterial_spot__af321f84-057e-4580-a096-5b86b379e0c6___UF.GRC_BS_Lab Leaf 0321.JPG,not_leaf,not_leaf,0.996527,in_scope,1
+not_leaf/Tomato___Bacterial_spot__d8218386-5974-4ab6-b453-6d628317d82d___GCREC_Bact.Sp 6232.JPG,not_leaf,not_leaf,0.997890,in_scope,1
+not_leaf/Tomato___Bacterial_spot__d8d99dae-78a8-46f4-b7ad-600e0685d592___GCREC_Bact.Sp 6136.JPG,not_leaf,not_leaf,0.994889,in_scope,1
+not_leaf/Tomato___Bacterial_spot__efce769f-3228-490a-b442-58a67d2ce349___GCREC_Bact.Sp 5868.JPG,not_leaf,not_leaf,0.998643,in_scope,1
+not_leaf/Tomato___Early_blight__1873e09f-31fd-4612-920a-861fac1af687___RS_Erly.B 7797.JPG,not_leaf,not_leaf,0.999740,out_of_scope,1
+not_leaf/Tomato___Early_blight__347120f8-e92d-43f7-9ace-196890cec04d___RS_Erly.B 9421.JPG,not_leaf,not_leaf,0.995679,out_of_scope,1
+not_leaf/Tomato___Early_blight__4283992b-ab8a-41aa-baeb-17a5b0f75af1___RS_Erly.B 7621.JPG,not_leaf,not_leaf,0.994085,in_scope,1
+not_leaf/Tomato___Early_blight__5ad16a00-4f2d-4872-a45c-80250b507ecc___RS_Erly.B 9378.JPG,not_leaf,not_leaf,0.998571,out_of_scope,1
+not_leaf/Tomato___Early_blight__65bcbda1-eee5-4bab-ab07-128c2a2f8ed4___RS_Erly.B 7461.JPG,not_leaf,not_leaf,0.998687,in_scope,1
+not_leaf/Tomato___Early_blight__815fb4d0-7902-45a2-a7c7-2ee400a2e25a___RS_Erly.B 7646.JPG,not_leaf,not_leaf,0.996051,out_of_scope,1
+not_leaf/Tomato___Early_blight__a48e8b60-3636-4f7e-8ce2-d6625d866720___RS_Erly.B 7458.JPG,not_leaf,not_leaf,0.994684,in_scope,1
+not_leaf/Tomato___Early_blight__abb2b25f-a1a8-49c7-8bc9-a66dc224481d___RS_Erly.B 9573.JPG,not_leaf,not_leaf,0.997332,in_scope,1
+not_leaf/Tomato___Early_blight__c5b268b2-80e3-45b2-8ba8-2412df3d6444___RS_Erly.B 7364.JPG,not_leaf,not_leaf,0.999371,in_scope,1
+not_leaf/Tomato___Early_blight__e803b217-d9a9-4b0d-9ea1-679145625159___RS_Erly.B 9571.JPG,not_leaf,not_leaf,0.998623,in_scope,1
+not_leaf/Tomato___Late_blight__01cd2d73-c741-45a5-9610-a2cea2266b80___GHLB2 Leaf 121.JPG,not_leaf,not_leaf,0.978826,in_scope,1
+not_leaf/Tomato___Late_blight__0406a9d1-1b4e-42e2-814b-e03e525a51b2___RS_Late.B 5224.JPG,not_leaf,not_leaf,0.998628,out_of_scope,1
+not_leaf/Tomato___Late_blight__08c1db4d-e947-4499-beff-ed2d8025d725___RS_Late.B 6113.JPG,not_leaf,not_leaf,0.995385,in_scope,1
+not_leaf/Tomato___Late_blight__1c0bc46f-d72f-4826-9cb4-8879d80cac73___GHLB2 Leaf 9012.JPG,not_leaf,not_leaf,0.998630,out_of_scope,1
+not_leaf/Tomato___Late_blight__2d649ade-8085-44b7-ba6c-ec5d70f1d051___RS_Late.B 5604.JPG,not_leaf,not_leaf,0.998909,in_scope,1
+not_leaf/Tomato___Late_blight__3943d2dd-ffb8-43db-a59d-db7af654aecf___GHLB_PS Leaf 51.1 Day 18.jpg,not_leaf,not_leaf,0.989896,in_scope,1
+not_leaf/Tomato___Late_blight__63bd9158-43c2-4b8f-b4ee-a8935f8e3096___GHLB Leaf 1 Day 6.JPG,not_leaf,not_leaf,0.987063,out_of_scope,1
+not_leaf/Tomato___Late_blight__78863d29-72bb-494d-8f05-c5648130283f___GHLB2 Leaf 9112.JPG,not_leaf,not_leaf,0.996434,in_scope,1
+not_leaf/Tomato___Late_blight__8047006e-1d4a-43cb-9637-037ca85855ba___RS_Late.B 7132.JPG,not_leaf,not_leaf,0.980305,in_scope,1
+not_leaf/Tomato___Leaf_Mold__16b806ef-3637-4c15-ae52-4f433cb4d433___Crnl_L.Mold 6865.JPG,not_leaf,not_leaf,0.999918,in_scope,1
+not_leaf/Tomato___Leaf_Mold__8f917e44-0e93-4d5a-9274-6be0fc201f31___Crnl_L.Mold 6770.JPG,not_leaf,not_leaf,0.998641,in_scope,1
+not_leaf/Tomato___Leaf_Mold__962f3d89-f439-46ee-b4bb-65409ee76fe1___Crnl_L.Mold 6914.JPG,not_leaf,not_leaf,0.998774,in_scope,1
+not_leaf/Tomato___Leaf_Mold__9f84db3d-5dc1-461e-a922-e6d93e72d3fd___Crnl_L.Mold 8966.JPG,not_leaf,not_leaf,0.999306,in_scope,1
+not_leaf/Tomato___Leaf_Mold__ae6c81b2-412e-417e-8448-e18214edc049___Crnl_L.Mold 6895.JPG,not_leaf,not_leaf,0.997047,in_scope,1
+not_leaf/Tomato___Leaf_Mold__d51c5c7e-feb1-46b2-b5c9-05b9b742bf16___Crnl_L.Mold 6505.JPG,not_leaf,not_leaf,0.998194,out_of_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__145dca9b-2a53-42a9-bc14-5089ff8cd5ed___JR_Sept.L.S 2643.JPG,not_leaf,not_leaf,0.999340,in_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__62983399-98ab-4972-905b-85582d226b03___Matt.S_CG 7823.JPG,not_leaf,not_leaf,0.998032,in_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__75766b07-f03c-4c54-bd34-05fecb240dbf___Matt.S_CG 7466.JPG,not_leaf,not_leaf,0.999739,out_of_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__8c5a5ad2-1ac9-4a19-a5ea-26ae87e0f4c4___JR_Sept.L.S 2538.JPG,not_leaf,not_leaf,0.998471,out_of_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__b9f908ad-b621-476a-9d0f-bc7ca4f0f7da___JR_Sept.L.S 2584.JPG,not_leaf,not_leaf,0.998360,in_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__bfc3baa5-29f8-43c0-bc0a-79becd72135f___Matt.S_CG 6153.JPG,not_leaf,not_leaf,0.999476,in_scope,1
+not_leaf/Tomato___Septoria_leaf_spot__f2a0cc58-48f3-4e1f-84b9-1dfb88181118___JR_Sept.L.S 8395.JPG,not_leaf,not_leaf,0.999345,out_of_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__1f100e65-f5ab-4991-8665-f9fb28f5c0e2___Com.G_SpM_FL 1179.JPG,not_leaf,not_leaf,0.999621,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__4da271e5-a4db-458a-b09c-caa83f8c6eb9___Com.G_SpM_FL 9364.JPG,not_leaf,not_leaf,0.999738,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__706d4ada-aabd-482f-87c1-5112720d86a4___Com.G_SpM_FL 8448.JPG,not_leaf,not_leaf,0.999466,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__74888991-5de0-4851-affd-dd93d6fba9ce___Com.G_SpM_FL 1658.JPG,not_leaf,not_leaf,0.999804,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__773d6169-0f79-4d2d-b10a-f0b40c936e40___Com.G_SpM_FL 9448.JPG,not_leaf,not_leaf,0.998705,out_of_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__b129abcf-f10f-49b0-8dc3-d5c3d4dbde16___Com.G_SpM_FL 8855.JPG,not_leaf,not_leaf,0.997528,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__c20016fd-1168-4ed8-85ee-4ceca04c2b21___Com.G_SpM_FL 8651.JPG,not_leaf,not_leaf,0.999270,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__cc086b05-5f96-4777-85c7-ccbc823d94c7___Com.G_SpM_FL 1573.JPG,not_leaf,not_leaf,0.996603,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__e04a7859-4644-4d86-93de-d595431f1677___Com.G_SpM_FL 8763.JPG,not_leaf,not_leaf,0.999362,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__e0a5a6b3-85f0-4d3c-89f6-b3680f8e7378___Com.G_SpM_FL 8561.JPG,not_leaf,not_leaf,0.999445,in_scope,1
+not_leaf/Tomato___Spider_mites_Two-spotted_spider_mite__fee1de1c-c369-4535-baec-d6104df9a05d___Com.G_SpM_FL 9396.JPG,not_leaf,not_leaf,0.999581,in_scope,1
+not_leaf/Tomato___Target_Spot__3de056ef-8524-434c-865a-a0ebb5c9b566___Com.G_TgS_FL 8214.JPG,not_leaf,not_leaf,0.998738,in_scope,1
+not_leaf/Tomato___Target_Spot__42e1947e-7fb4-42f3-9199-0489ce02289c___Com.G_TgS_FL 9724.JPG,not_leaf,not_leaf,0.996786,in_scope,1
+not_leaf/Tomato___Target_Spot__4930dce4-8e0b-49ea-9f8c-dd5d0bcda1a1___Com.G_TgS_FL 1018.JPG,not_leaf,not_leaf,0.998871,in_scope,1
+not_leaf/Tomato___Target_Spot__4986da32-0e00-4837-966a-0c4e0643ef16___Com.G_TgS_FL 9995.JPG,not_leaf,not_leaf,0.997803,in_scope,1
+not_leaf/Tomato___Target_Spot__7427608f-e981-4d2a-8683-c6ff0d0be911___Com.G_TgS_FL 1030.JPG,not_leaf,not_leaf,0.995877,in_scope,1
+not_leaf/Tomato___Target_Spot__8493ccf9-30c9-4fa9-8162-9933b8682db8___Com.G_TgS_FL 7882.JPG,not_leaf,not_leaf,0.999341,in_scope,1
+not_leaf/Tomato___Target_Spot__aaad08ef-d75b-434a-83e2-d8b1cc519636___Com.G_TgS_FL 1109.JPG,not_leaf,not_leaf,0.998853,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__02affd71-1fe6-48f7-bef4-3d5a59ec7814___UF.GRC_YLCV_Lab 01517.JPG,not_leaf,not_leaf,0.998163,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__0efb26b8-d292-4a54-ac93-32e5abb09d82___UF.GRC_YLCV_Lab 02715.JPG,not_leaf,not_leaf,0.985092,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__22c0cc7e-1468-4c3c-9069-384017441735___YLCV_GCREC 5441.JPG,not_leaf,not_leaf,0.988908,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__279a9e3a-016a-41bf-bf15-495cb384f657___YLCV_NREC 0182.JPG,not_leaf,not_leaf,0.996786,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__357c7d95-3093-4cbf-abfa-c45a061db7a4___UF.GRC_YLCV_Lab 01440.JPG,not_leaf,not_leaf,0.989155,out_of_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__61600503-7bb9-4592-88df-2aa4b888bff8___YLCV_NREC 2107.JPG,not_leaf,not_leaf,0.998924,out_of_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__63895f94-ec9c-4c23-b367-d516d424e7ab___UF.GRC_YLCV_Lab 02766.JPG,not_leaf,not_leaf,0.990560,out_of_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__8df54a61-7be4-42cc-9b55-3a2f7632b2bc___UF.GRC_YLCV_Lab 02085.JPG,not_leaf,not_leaf,0.988969,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__a04cd262-ad83-468f-94c1-6142da11a28c___UF.GRC_YLCV_Lab 02876.JPG,not_leaf,not_leaf,0.997475,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__f1722ff1-0955-480f-a7ff-b5c4c49aea73___YLCV_NREC 2953.JPG,not_leaf,not_leaf,0.998375,in_scope,1
+not_leaf/Tomato___Tomato_Yellow_Leaf_Curl_Virus__fadfba88-e351-4541-ac19-686387f371e7___YLCV_GCREC 5216.JPG,not_leaf,not_leaf,0.998827,in_scope,1
+not_leaf/Tomato___Tomato_mosaic_virus__29bbbfcc-76ef-4506-9c1b-1a749646856e___PSU_CG 2184.JPG,not_leaf,not_leaf,0.999135,in_scope,1
+not_leaf/Tomato___Tomato_mosaic_virus__5b09c1a9-f5ca-4c26-a627-a6ac6b2045cb___PSU_CG 2247.JPG,not_leaf,not_leaf,0.999903,in_scope,1
+not_leaf/Tomato___Tomato_mosaic_virus__b5987570-3fbe-4a4c-9790-1d55bcfd2c61___PSU_CG 2288.JPG,not_leaf,not_leaf,0.999898,in_scope,1
+not_leaf/Tomato___Tomato_mosaic_virus__d9812306-9ab7-4c41-8c08-0aaaa0a9db5f___PSU_CG 2056.JPG,not_leaf,not_leaf,0.999301,in_scope,1
+not_leaf/Tomato___Tomato_mosaic_virus__ebfce9c7-8727-4218-9e7b-cd4f2ff50177___PSU_CG 2112.JPG,not_leaf,not_leaf,0.999874,in_scope,1
+not_leaf/Tomato___Tomato_mosaic_virus__fb199918-5c7f-4285-993b-3ed212140456___PSU_CG 2124.JPG,not_leaf,not_leaf,0.997287,in_scope,1
+not_leaf/Tomato___healthy__1a0b9a32-3993-44e4-879f-338cd6e45a09___GH_HL Leaf 178.JPG,not_leaf,not_leaf,0.999447,in_scope,1
+not_leaf/Tomato___healthy__3e4f86b3-55d1-4efc-bd8a-f13af318b181___GH_HL Leaf 492.JPG,not_leaf,not_leaf,0.999099,in_scope,1
+not_leaf/Tomato___healthy__40b7eb94-3f47-47b2-9734-2a95f6acd44e___RS_HL 0408.JPG,not_leaf,not_leaf,0.999116,in_scope,1
+not_leaf/Tomato___healthy__6555b55c-78bc-4391-88ed-65b596fc7e76___GH_HL Leaf 441.JPG,not_leaf,not_leaf,0.999279,in_scope,1
+not_leaf/Tomato___healthy__70e2244d-152b-4dc7-b002-5991e1a195db___RS_HL 9948.JPG,not_leaf,not_leaf,0.998218,in_scope,1
+not_leaf/Tomato___healthy__80c566ba-6754-4abb-a61e-986b92cfc4fd___RS_HL 0436.JPG,not_leaf,not_leaf,0.994217,in_scope,1
+not_leaf/Tomato___healthy__883b7c13-7aef-4ae9-bd70-065a16226e9d___GH_HL Leaf 170.1.JPG,not_leaf,not_leaf,0.998579,in_scope,1
+not_leaf/Tomato___healthy__89e63d70-677a-41e3-a5fe-c38d6b98abbc___RS_HL 9902.JPG,not_leaf,not_leaf,0.996678,in_scope,1
+not_leaf/Tomato___healthy__958b8eb8-7004-434a-ad02-e62ff64dded0___RS_HL 0276.JPG,not_leaf,not_leaf,0.997940,in_scope,1
+not_leaf/Tomato___healthy__a06cd500-b782-4be6-8f7a-377c9ed5ceab___RS_HL 9648.JPG,not_leaf,not_leaf,0.997261,in_scope,1
+not_leaf/Tomato___healthy__a8fffa7c-14eb-4b8c-8628-7349dd2a4561___RS_HL 9925.JPG,not_leaf,not_leaf,0.998664,in_scope,1
+not_leaf/Tomato___healthy__b48b9ce8-56ae-4ada-b90d-148b253d8a74___GH_HL Leaf 184.JPG,not_leaf,not_leaf,0.999738,in_scope,1
+not_leaf/Tomato___healthy__d382d5de-6608-4492-a1eb-e4c525f8b3e4___GH_HL Leaf 461.JPG,not_leaf,not_leaf,0.999299,in_scope,1
+not_leaf/Tomato___healthy__e0587774-746c-41af-a876-b3d083756a23___RS_HL 0588.JPG,not_leaf,not_leaf,0.996316,in_scope,1
+not_leaf/Tomato___healthy__e28f30cb-755a-459b-b653-96d44b3b01b5___RS_HL 9926.JPG,not_leaf,not_leaf,0.998739,in_scope,1
+not_leaf/Tomato___healthy__f62d9b06-1625-4277-9347-0f3097c41fcf___GH_HL Leaf 518.2.JPG,not_leaf,not_leaf,0.998521,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523114926.jpg,out_of_scope,out_of_scope,0.999687,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121518.jpg,out_of_scope,out_of_scope,0.977919,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121550.jpg,out_of_scope,out_of_scope,0.998108,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121610.jpg,out_of_scope,out_of_scope,0.993275,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121636.jpg,out_of_scope,out_of_scope,0.997100,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121840_01.jpg,out_of_scope,out_of_scope,0.997377,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121842.jpg,out_of_scope,out_of_scope,0.991834,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523121951.jpg,out_of_scope,out_of_scope,0.999681,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523124740.jpg,out_of_scope,out_of_scope,0.912156,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523125801.jpg,out_of_scope,out_of_scope,0.925247,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523125812.jpg,out_of_scope,out_of_scope,0.979381,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523130024.jpg,out_of_scope,out_of_scope,0.971602,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523130029.jpg,out_of_scope,out_of_scope,0.966582,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523130154.jpg,out_of_scope,out_of_scope,0.986806,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523131059.jpg,out_of_scope,out_of_scope,0.994319,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523131106.jpg,out_of_scope,out_of_scope,0.984412,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523131126.jpg,out_of_scope,out_of_scope,0.994927,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523132950.jpg,out_of_scope,out_of_scope,0.994313,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523132952.jpg,out_of_scope,out_of_scope,0.994404,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523133034 - Copy.jpg,out_of_scope,out_of_scope,0.993293,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523133145.jpg,out_of_scope,out_of_scope,0.996965,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523133531.jpg,out_of_scope,out_of_scope,0.990998,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523134010.jpg,out_of_scope,out_of_scope,0.999263,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523134613.jpg,out_of_scope,out_of_scope,0.998626,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523134706.jpg,out_of_scope,out_of_scope,0.995293,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523134721.jpg,out_of_scope,out_of_scope,0.985588,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523134722.jpg,out_of_scope,out_of_scope,0.997720,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523134746.jpg,out_of_scope,out_of_scope,0.989723,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135031.jpg,out_of_scope,out_of_scope,0.874124,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135123.jpg,out_of_scope,out_of_scope,0.999867,not_leaf,1
+out_of_scope/fall_army_worm__IMG20190523135233.jpg,out_of_scope,out_of_scope,0.999875,not_leaf,1
+out_of_scope/fall_army_worm__IMG20190523135239.jpg,out_of_scope,out_of_scope,0.998889,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135306.jpg,out_of_scope,out_of_scope,0.999187,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135321.jpg,out_of_scope,out_of_scope,0.998113,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135357.jpg,out_of_scope,out_of_scope,0.998597,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135400.jpg,out_of_scope,out_of_scope,0.999826,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135426.jpg,out_of_scope,out_of_scope,0.995838,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523135523.jpg,out_of_scope,out_of_scope,0.998953,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523140450.jpg,out_of_scope,out_of_scope,0.980933,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523140533.jpg,out_of_scope,out_of_scope,0.970111,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141432.jpg,out_of_scope,out_of_scope,0.997635,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141600.jpg,out_of_scope,out_of_scope,0.995430,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141619.jpg,out_of_scope,out_of_scope,0.997256,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141725_01.jpg,out_of_scope,out_of_scope,0.998990,not_leaf,1
+out_of_scope/fall_army_worm__IMG20190523141726.jpg,out_of_scope,out_of_scope,0.998290,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141733.jpg,out_of_scope,out_of_scope,0.997659,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141747 (2).jpg,out_of_scope,out_of_scope,0.977744,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141748 (2).jpg,out_of_scope,out_of_scope,0.997532,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141752 (2).jpg,out_of_scope,out_of_scope,0.997454,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141816.jpg,out_of_scope,out_of_scope,0.993253,in_scope,1
+out_of_scope/fall_army_worm__IMG20190523141836.jpg,out_of_scope,out_of_scope,0.999644,not_leaf,1
+out_of_scope/fall_army_worm__IMG20190523142001.jpg,out_of_scope,out_of_scope,0.901919,not_leaf,1
+out_of_scope/fall_army_worm__IMG20190523142023.jpg,out_of_scope,out_of_scope,0.996039,in_scope,1
+out_of_scope/fall_army_worm__IMG_1123.JPG,out_of_scope,out_of_scope,0.989461,in_scope,1
+out_of_scope/fall_army_worm__IMG_1124.JPG,out_of_scope,out_of_scope,0.986363,in_scope,1
+out_of_scope/fall_army_worm__IMG_1155.JPG,out_of_scope,out_of_scope,0.987909,in_scope,1
+out_of_scope/fall_army_worm__IMG_1268.JPG,out_of_scope,out_of_scope,0.999217,in_scope,1
+out_of_scope/fall_army_worm__IMG_1308.JPG,out_of_scope,out_of_scope,0.995285,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_114911_1.jpg,out_of_scope,out_of_scope,0.976929,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_115603_1.jpg,out_of_scope,out_of_scope,0.984592,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_115658_6.jpg,out_of_scope,out_of_scope,0.992211,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_115811_2.jpg,out_of_scope,out_of_scope,0.990902,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_115923_8.jpg,out_of_scope,out_of_scope,0.991908,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_120045_1.jpg,out_of_scope,out_of_scope,0.989570,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_120823_6.jpg,out_of_scope,out_of_scope,0.987729,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_120831_0.jpg,out_of_scope,out_of_scope,0.966665,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_120839_7.jpg,out_of_scope,out_of_scope,0.996791,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_121708_2.jpg,out_of_scope,out_of_scope,0.996801,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_124113_1.jpg,out_of_scope,out_of_scope,0.999829,not_leaf,1
+out_of_scope/fall_army_worm__IMG_20190523_125127_5.jpg,out_of_scope,out_of_scope,0.984085,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_125731_4.jpg,out_of_scope,out_of_scope,0.997127,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_130110_9.jpg,out_of_scope,out_of_scope,0.962489,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_133657_0.jpg,out_of_scope,out_of_scope,0.994011,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_133831_0.jpg,out_of_scope,out_of_scope,0.999707,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_133948_1.jpg,out_of_scope,out_of_scope,0.998623,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_133949_1.jpg,out_of_scope,out_of_scope,0.999066,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_133953_6.jpg,out_of_scope,out_of_scope,0.998324,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_134959_1.jpg,out_of_scope,out_of_scope,0.979937,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_135044_3.jpg,out_of_scope,out_of_scope,0.970805,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_135521_0.jpg,out_of_scope,out_of_scope,0.938003,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_135600_7.jpg,out_of_scope,out_of_scope,0.959185,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_140211_8.jpg,out_of_scope,out_of_scope,0.996843,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_140409_2.jpg,out_of_scope,out_of_scope,0.992436,in_scope,1
+out_of_scope/fall_army_worm__IMG_20190523_141351_5.jpg,out_of_scope,out_of_scope,0.998977,in_scope,1
+out_of_scope/herbicide_burn__IMG_20190523_130526_0.jpg,out_of_scope,out_of_scope,0.973267,in_scope,1
+out_of_scope/herbicide_burn__IMG_20190523_134457_0.jpg,out_of_scope,out_of_scope,0.990003,in_scope,1
+out_of_scope/herbicide_burn__IMG_20190523_135141_5.jpg,out_of_scope,out_of_scope,0.969864,in_scope,1
+out_of_scope/herbicide_burn__IMG_20190523_135205_9.jpg,out_of_scope,out_of_scope,0.883967,in_scope,1
+out_of_scope/herbicide_burn__IMG_20190523_140602_8.jpg,out_of_scope,out_of_scope,0.939751,in_scope,1
+out_of_scope/herbicide_burn__IMG_20190523_140622_1.jpg,out_of_scope,out_of_scope,0.979938,in_scope,1
+out_of_scope/maize_streak__IMG_20190523_134751_5.jpg,out_of_scope,out_of_scope,0.996376,in_scope,1
+out_of_scope/maize_streak__IMG_20190523_134758_3.jpg,out_of_scope,out_of_scope,0.989610,in_scope,1
+out_of_scope/maize_streak__IMG_20190523_135617_8.jpg,out_of_scope,out_of_scope,0.989671,in_scope,1
+out_of_scope/maize_streak__IMG_20190523_135624_8.jpg,out_of_scope,out_of_scope,0.996180,in_scope,1
+out_of_scope/stalk_borer__IMG20190523130142.jpg,out_of_scope,out_of_scope,0.974319,in_scope,1
+out_of_scope/stalk_borer__IMG20190523130144.jpg,out_of_scope,out_of_scope,0.972259,in_scope,1
+out_of_scope/stalk_borer__IMG20190523130147.jpg,out_of_scope,out_of_scope,0.987403,in_scope,1

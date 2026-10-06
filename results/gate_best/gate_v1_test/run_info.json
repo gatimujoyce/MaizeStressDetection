@@ -1,0 +1,16 @@
+{
+  "model_file": "/content/drive/MyDrive/maize-project/models/gate/checkpoints/gate_best.keras",
+  "date": "2026-10-06T06:35:23Z",
+  "test_dir": "/content/data/triage_gate/test",
+  "n": 623,
+  "tf_version": "2.21.0",
+  "class_names": [
+    "in_scope",
+    "not_leaf",
+    "out_of_scope"
+  ],
+  "task": "gate",
+  "preprocess": "efficientnet",
+  "img_size": 224,
+  "run_name": "gate_v1_test"
+}
