@@ -49,3 +49,31 @@ async def update_farm(
     await db.commit()
     await db.refresh(farm)
     return farm
+
+@router.get("/{id}", response_model=FarmResponse)
+async def read_farm(
+    id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    return farm
+
+@router.delete("/{id}", response_model=dict)
+async def delete_farm(
+    id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+        
+    await db.delete(farm)
+    await db.commit()
+    
+    return {"status": "success", "message": "Farm deleted"}
