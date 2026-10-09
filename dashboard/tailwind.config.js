@@ -5,33 +5,41 @@ export default {
         extend: {
             colors: {
                 brand: {
-                    DEFAULT: '#A84323',
-                    hover: '#8A351B',
+                    DEFAULT: 'var(--color-brand)',
+                    hover: 'var(--color-brand-hover)',
                 },
-                surface: '#FFFFFF',
-                'app-bg': '#FAF8F5',
-                border: '#DCD8D0',
+                surface: 'var(--color-surface)',
+                'app-bg': 'var(--color-bg)',
+                border: 'var(--color-border)',
                 healthy: {
-                    bg: '#E8F3E8',
-                    text: '#1E5B1E',
+                    bg: 'var(--color-healthy-bg)',
+                    text: 'var(--color-healthy-text)',
                 },
                 warning: {
-                    bg: '#FAF0D9',
-                    text: '#7A4D00',
+                    bg: 'var(--color-warning-bg)',
+                    text: 'var(--color-warning-text)',
                 },
                 critical: {
-                    bg: '#FBE8E6',
-                    text: '#96281B',
+                    bg: 'var(--color-critical-bg)',
+                    text: 'var(--color-critical-text)',
                 },
                 neutral: {
-                    bg: '#F2F0EB',
-                    text: '#4A4844',
+                    bg: 'var(--color-neutral-bg)',
+                    text: 'var(--color-neutral-text)',
                 },
+                ink: {
+                    DEFAULT: 'var(--color-text-primary)',
+                    secondary: 'var(--color-text-secondary)',
+                    muted: 'var(--color-text-muted)',
+                },
+                'brand-tint': 'var(--color-primary-tint)',
+                control: 'var(--color-control-border)',
             },
             fontFamily: {
                 sans: [
+                    '"Atkinson Hyperlegible"',
+                    'system-ui',
                     '-apple-system',
-                    'BlinkMacSystemFont',
                     '"Segoe UI"',
                     'Roboto',
                     'Helvetica',

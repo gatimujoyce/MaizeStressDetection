@@ -1,6 +1,7 @@
 import { useParams, useLocation, Link } from 'react-router-dom'
 import { usePrediction } from '../../api/hooks'
 import FeedbackControl from '../../components/FeedbackControl'
+import { useFarm } from '../../farm/FarmContext'
 
 const SEVERITY_STYLES = {
     healthy: { classes: 'bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)]', icon: '✓', label: 'Healthy' },
@@ -36,6 +37,7 @@ export default function Result() {
     const uploadedImageUrl = location.state?.uploadedImageUrl
     const uploadedImage = uploadedImageUrl && <UploadedImage imageUrl={uploadedImageUrl} />
     const { data: prediction, isLoading, isError } = usePrediction(predictionId)
+    const { farms } = useFarm()
 
     if (isLoading) {
         return <div className="flex justify-center py-20 text-[var(--color-text-secondary)]">Loading result…</div>
@@ -50,6 +52,7 @@ export default function Result() {
     }
 
     const { status, disease_label, disease_confidence, severity_level, sensor_conditions, recommendation, nutrient_status, nutrient_confidence } = prediction
+    const predictionFarm = farms.find((farm) => farm.farm_id === prediction.farm_id)
 
     // Three status states
     if (status === 'uncertain') {
@@ -93,6 +96,9 @@ export default function Result() {
         <div className="max-w-xl mx-auto py-8 flex flex-col gap-6">
             <div>
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Analysis Result</h1>
+                {predictionFarm && (
+                    <p className="mt-1 text-[15px] text-ink-secondary">Plot: {predictionFarm.farm_name}</p>
+                )}
                 <p className="text-xs text-[var(--color-text-secondary)] mt-1 uppercase tracking-wide">ID: {predictionId}</p>
             </div>
 

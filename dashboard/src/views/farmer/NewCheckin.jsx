@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSubmitCheckinMutation } from '../../api/hooks'
+import PlotSwitcher from '../../components/PlotSwitcher'
+import PhotoTips from '../../components/PhotoTips'
+import { useFarm } from '../../farm/FarmContext'
 
 const GUIDANCE_TEXT = 'For best results: photograph a single leaf in full daylight. Hold the camera steady and fill the frame with the leaf; no shadows, no blurring.'
 
@@ -14,12 +17,27 @@ export default function NewCheckin() {
     const previewTransferred = useRef(false)
     const navigate = useNavigate()
     const submitMutation = useSubmitCheckinMutation()
+    const { selectedFarmId, selectedFarm } = useFarm()
 
     useEffect(() => () => {
         if (previewRef.current && !previewTransferred.current) {
             URL.revokeObjectURL(previewRef.current)
         }
     }, [])
+
+    if (!selectedFarmId) {
+        return (
+            <div className="max-w-md mx-auto py-8">
+                <p className="text-base text-ink">Add a plot before your first check.</p>
+                <Link
+                    to="/plots/new"
+                    className="mt-4 inline-flex min-h-[52px] items-center justify-center rounded-xl bg-brand px-5 text-base font-bold text-white hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                >
+                    Add a plot
+                </Link>
+            </div>
+        )
+    }
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0]
@@ -47,6 +65,7 @@ export default function NewCheckin() {
         setErrorState(null)
         const fd = new FormData()
         fd.append('image', imageFile)
+        fd.append('farm_id', selectedFarmId)
         try {
             const result = await submitMutation.mutateAsync(fd)
             if (result.status === 'uncertain') {
@@ -69,6 +88,10 @@ export default function NewCheckin() {
         <div className="max-w-md mx-auto py-8">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">New Photo Check-in</h1>
+                <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    <p className="m-0 font-bold text-ink">Checking: {selectedFarm?.farm_name || 'Selected plot'}</p>
+                    <PlotSwitcher />
+                </div>
                 <p className="text-[var(--color-text-secondary)] mt-1 text-sm">{GUIDANCE_TEXT}</p>
             </div>
 
@@ -112,6 +135,8 @@ export default function NewCheckin() {
                     </button>
                 </div>
             )}
+
+            <PhotoTips />
 
             {/* Photo capture / preview */}
             {!preview ? (

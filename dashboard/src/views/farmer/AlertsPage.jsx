@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../auth/AuthContext'
 import { useAlerts } from '../../api/hooks'
 import { WarningIcon, InfoIcon, ErrorIcon } from '../../components/Icons'
+import { useFarm } from '../../farm/FarmContext'
 
 const formatDate = (iso) =>
     new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 export default function AlertsPage() {
-    const { farmId } = useAuth()
-    const { data: alerts = [], isLoading } = useAlerts(farmId || 'mock-farm-1')
+    const { selectedFarmId, selectedFarm } = useFarm()
+    const { data: alerts = [], isLoading } = useAlerts(selectedFarmId)
 
     // Sort newest first
     const sorted = [...alerts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -53,6 +53,7 @@ export default function AlertsPage() {
         <div className="max-w-2xl mx-auto py-8">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">All Alerts</h1>
+                <p className="mt-1 text-[15px] text-ink-secondary">Plot: {selectedFarm?.farm_name || 'Your field'}</p>
                 <p className="text-[var(--color-text-secondary)] mt-1 text-sm">Your full alert history, newest first.</p>
             </div>
 

@@ -20,11 +20,23 @@ export function useFarmerFarm(farmerId) {
     })
 }
 
+export function useFarmerFarms(farmerId) {
+    return useQuery({
+        queryKey: ['farmerFarms', farmerId],
+        queryFn: () => client.getFarmerFarms(farmerId),
+        enabled: !!farmerId,
+        retry: false,
+    })
+}
+
 export function useCreateFarmMutation() {
     const qc = useQueryClient()
     return useMutation({
         mutationFn: (data) => client.createFarm(data),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['farmerFarm'] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['farmerFarm'] })
+            qc.invalidateQueries({ queryKey: ['farmerFarms'] })
+        },
     })
 }
 
@@ -32,6 +44,14 @@ export function useFarmStatus(farmId) {
     return useQuery({
         queryKey: ['farmStatus', farmId],
         queryFn: () => client.getFarmStatus(farmId),
+        enabled: !!farmId,
+    })
+}
+
+export function useLatestReadings(farmId) {
+    return useQuery({
+        queryKey: ['latestReadings', farmId],
+        queryFn: () => client.getLatestReadings(farmId),
         enabled: !!farmId,
     })
 }
@@ -56,6 +76,8 @@ export function useSubmitCheckinMutation() {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['alerts'] })
             qc.invalidateQueries({ queryKey: ['farmStatus'] })
+            qc.invalidateQueries({ queryKey: ['farmHistory'] })
+            qc.invalidateQueries({ queryKey: ['latestReadings'] })
         },
     })
 }
