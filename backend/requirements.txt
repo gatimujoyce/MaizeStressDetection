@@ -16,3 +16,5 @@ africastalking~=1.2.2
 pytest
 pytest-asyncio
 httpx
+
+aiosqlite

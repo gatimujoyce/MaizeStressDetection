@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 import uuid
 import os
 import shutil
+import asyncio
 from datetime import datetime, timezone
 
 from app.core.deps import get_db, require_farmer
@@ -126,8 +127,15 @@ async def checkin_and_predict(
         
         if severity == "High":
             msg = f"MaizeStress Alert: {severity} severity for {disease_label} on {farm.name[:20]}. {recommendation}"
-            result = send_sms(current_user.phone, msg)
-            if result:
+            try:
+                sms_success = await asyncio.wait_for(
+                    asyncio.to_thread(send_sms, current_user.phone, msg),
+                    timeout=10.0
+                )
+            except (asyncio.TimeoutError, Exception):
+                sms_success = False
+
+            if sms_success:
                 new_alert.status = "sent"
                 new_alert.sent_at = datetime.now(timezone.utc)
                 alert_status = "sent"
