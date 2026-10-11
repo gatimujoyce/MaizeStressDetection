@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
 import uuid
 from typing import List
+from datetime import datetime, timezone
 
 from app.core.deps import get_db, require_farmer
 from app.models import Farm, User
@@ -18,7 +20,11 @@ async def create_farm(
 ):
     new_farm = Farm(id=uuid.uuid4(), user_id=current_user.id, **farm_in.model_dump())
     db.add(new_farm)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Farm name already exists for this user")
     await db.refresh(new_farm)
     return new_farm
 
@@ -27,7 +33,7 @@ async def read_farms(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Farm).where(Farm.user_id == current_user.id))
+    result = await db.execute(select(Farm).where(Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     return result.scalars().all()
 
 @router.patch("/{id}", response_model=FarmResponse)
@@ -37,7 +43,7 @@ async def update_farm(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id))
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     farm = result.scalar_one_or_none()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
@@ -46,7 +52,11 @@ async def update_farm(
     for k, v in update_data.items():
         setattr(farm, k, v)
     
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Farm name already exists for this user")
     await db.refresh(farm)
     return farm
 
@@ -56,7 +66,7 @@ async def read_farm(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id))
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     farm = result.scalar_one_or_none()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
@@ -68,12 +78,12 @@ async def delete_farm(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id))
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     farm = result.scalar_one_or_none()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
         
-    await db.delete(farm)
+    farm.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     
     return {"status": "success", "message": "Farm deleted"}
