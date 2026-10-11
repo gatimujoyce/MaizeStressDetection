@@ -1,7 +1,7 @@
 import uuid
 import enum
-from datetime import datetime
-from sqlalchemy import String, Float, Boolean, ForeignKey, DateTime, Enum as SAEnum, Text
+from datetime import datetime, date
+from sqlalchemy import String, Float, Boolean, ForeignKey, DateTime, Enum as SAEnum, Text, Date, Index, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.db import Base
@@ -47,6 +47,23 @@ class Farm(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     location: Mapped[str] = mapped_column(String, nullable=False)
     soil_type: Mapped[SoilTypeEnum] = mapped_column(SAEnum(SoilTypeEnum), nullable=False)
+    
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    size_acres: Mapped[float | None] = mapped_column(Float, nullable=True)
+    planting_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    
+    __table_args__ = (
+        Index(
+            "ix_farm_user_name_unique",
+            "user_id",
+            "name",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+            sqlite_where=text("deleted_at IS NULL")
+        ),
+    )
     
     user = relationship("User", back_populates="farms")
     readings = relationship("SensorReading", back_populates="farm", cascade="all, delete-orphan")
