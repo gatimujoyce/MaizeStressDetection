@@ -13,9 +13,11 @@ from app.schemas.readings import SensorReadingCreate, SensorReadingResponse
 router = APIRouter(prefix="/farms/{farm_id}/readings", tags=["readings"])
 
 async def check_farm_access(farm_id: uuid.UUID, user_id: uuid.UUID, db: AsyncSession):
-    result = await db.execute(select(Farm).where(Farm.id == farm_id, Farm.user_id == user_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=403, detail="Not authorized for this farm")
+    result = await db.execute(select(Farm).where(Farm.id == farm_id, Farm.user_id == user_id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    return farm
 
 @router.post("", response_model=SensorReadingResponse)
 async def create_reading(

@@ -19,8 +19,15 @@ async def admin_users(current_admin: User = Depends(require_admin), db: AsyncSes
     return res.scalars().all()
 
 @router.get("/farms", response_model=List[FarmResponse])
-async def admin_farms(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    res = await db.execute(select(Farm))
+async def admin_farms(
+    include_deleted: bool = False,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Farm)
+    if not include_deleted:
+        query = query.where(Farm.deleted_at.is_(None))
+    res = await db.execute(query)
     return res.scalars().all()
 
 @router.get("/feedback", response_model=List[FeedbackResponse])
