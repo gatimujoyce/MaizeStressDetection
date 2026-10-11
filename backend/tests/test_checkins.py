@@ -1,5 +1,6 @@
 import io
 import pytest
+import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
 import uuid
 from app.services.fusion import compute_severity
@@ -62,30 +63,29 @@ async def test_compute_severity_matrix_9():
     res = compute_severity("Gray Leaf Spot", 0.9, "Normal", 0.8, 3.0, "in_scope")
     assert res == "Medium"
 
-@pytest.mark.asyncio
-async def test_endpoint_predict_flow_high_severity():
-    # 10. Test endpoint integration with high severity triggers SMS
+def _create_mock_checkin_context():
     mock_db = AsyncMock()
-    mock_db.add = MagicMock()  # AsyncSession.add is synchronous
-    mock_db.execute.return_value = MagicMock()  # awaited execute() returns a sync Result
-
-    # Mock check_farm_access scalar_one_or_none to return a Farm -> authorized
+    mock_db.add = MagicMock()
+    mock_db.execute.return_value = MagicMock()
     mock_db.execute.return_value.scalar_one_or_none.side_effect = [
-        Farm(id=uuid.uuid4(), user_id=uuid.uuid4(), name="Test Farm", location="Loc", soil_type="loam"), # check_farm_access
-        SensorReading(id=uuid.uuid4(), farm_id=uuid.uuid4(), leaf_wetness=2.0) # sensor reading -> lw=2.0 -> "Normal" -> NLB + <3 -> High
+        Farm(id=uuid.uuid4(), user_id=uuid.uuid4(), name="Test Farm", location="Loc", soil_type="loam"),
+        SensorReading(id=uuid.uuid4(), farm_id=uuid.uuid4(), leaf_wetness=2.0)
     ]
-    
     mock_file = MagicMock(spec=UploadFile)
     mock_file.content_type = "image/jpeg"
     mock_file.filename = "test.jpeg"
     mock_file.file = io.BytesIO(b"fake image bytes")
-    
     mock_user = User(id=uuid.uuid4(), name="Test User", phone="+254700000000", password_hash="hash")
+    return mock_db, mock_file, mock_user
+
+@pytest.mark.asyncio
+async def test_endpoint_predict_flow_high_severity_sms_success():
+    mock_db, mock_file, mock_user = _create_mock_checkin_context()
     
     with patch("app.routers.checkins.shutil.copyfileobj"), \
          patch("app.routers.checkins.os.path.join", return_value="fake/path.jpg"), \
          patch("app.routers.checkins.open"), \
-         patch("app.routers.checkins.send_sms", return_value={"SMSMessageData": {"Message": "SentTo1"}}) as mock_send_sms:
+         patch("app.routers.checkins.send_sms", return_value=True) as mock_send_sms:
         
         result = await checkin_and_predict(uuid.uuid4(), mock_file, mock_user, mock_db)
         
@@ -93,3 +93,86 @@ async def test_endpoint_predict_flow_high_severity():
         assert result.recommendation is not None
         mock_send_sms.assert_called_once()
         assert "+254700000000" in mock_send_sms.call_args[0]
+        
+        # Verify prediction is saved and alert status is "sent"
+        added_objects = [call.args[0] for call in mock_db.add.call_args_list]
+        alerts = [obj for obj in added_objects if hasattr(obj, "channel") and hasattr(obj, "status")]
+        assert len(alerts) == 1
+        assert alerts[0].status == "sent"
+        assert alerts[0].sent_at is not None
+
+@pytest.mark.asyncio
+async def test_endpoint_predict_flow_high_severity_sms_invalid_phone():
+    mock_db, mock_file, mock_user = _create_mock_checkin_context()
+    
+    with patch("app.routers.checkins.shutil.copyfileobj"), \
+         patch("app.routers.checkins.os.path.join", return_value="fake/path.jpg"), \
+         patch("app.routers.checkins.open"), \
+         patch("app.routers.checkins.send_sms", return_value=False) as mock_send_sms:
+        
+        result = await checkin_and_predict(uuid.uuid4(), mock_file, mock_user, mock_db)
+        
+        assert result.severity == "High"
+        assert result.recommendation is not None
+        mock_send_sms.assert_called_once()
+        
+        # Verify prediction is still saved and alert status is "failed"
+        added_objects = [call.args[0] for call in mock_db.add.call_args_list]
+        alerts = [obj for obj in added_objects if hasattr(obj, "channel") and hasattr(obj, "status")]
+        assert len(alerts) == 1
+        assert alerts[0].status == "failed"
+        assert alerts[0].sent_at is None
+
+@pytest.mark.asyncio
+async def test_endpoint_predict_flow_high_severity_sms_exception():
+    mock_db, mock_file, mock_user = _create_mock_checkin_context()
+    
+    with patch("app.routers.checkins.shutil.copyfileobj"), \
+         patch("app.routers.checkins.os.path.join", return_value="fake/path.jpg"), \
+         patch("app.routers.checkins.open"), \
+         patch("app.routers.checkins.send_sms", side_effect=RuntimeError("SMS Gateway down")):
+        
+        result = await checkin_and_predict(uuid.uuid4(), mock_file, mock_user, mock_db)
+        
+        assert result.severity == "High"
+        assert result.recommendation is not None
+        
+        # Verify prediction is still saved and alert status is "failed"
+        added_objects = [call.args[0] for call in mock_db.add.call_args_list]
+        alerts = [obj for obj in added_objects if hasattr(obj, "channel") and hasattr(obj, "status")]
+        assert len(alerts) == 1
+        assert alerts[0].status == "failed"
+        assert alerts[0].sent_at is None
+
+@pytest.mark.asyncio
+async def test_endpoint_predict_flow_high_severity_sms_timeout():
+    import time
+    mock_db, mock_file, mock_user = _create_mock_checkin_context()
+    
+    def slow_send_sms(*args, **kwargs):
+        time.sleep(0.1)
+        return True
+
+    real_wait_for = asyncio.wait_for
+
+    async def fast_wait_for(fut, timeout=None):
+        return await real_wait_for(fut, timeout=0.001)
+
+    with patch("app.routers.checkins.shutil.copyfileobj"), \
+         patch("app.routers.checkins.os.path.join", return_value="fake/path.jpg"), \
+         patch("app.routers.checkins.open"), \
+         patch("app.routers.checkins.send_sms", side_effect=slow_send_sms), \
+         patch("app.routers.checkins.asyncio.wait_for", side_effect=fast_wait_for):
+        
+        result = await checkin_and_predict(uuid.uuid4(), mock_file, mock_user, mock_db)
+        
+        assert result.severity == "High"
+        assert result.recommendation is not None
+        
+        # Verify prediction is still saved and alert status is "failed"
+        added_objects = [call.args[0] for call in mock_db.add.call_args_list]
+        alerts = [obj for obj in added_objects if hasattr(obj, "channel") and hasattr(obj, "status")]
+        assert len(alerts) == 1
+        assert alerts[0].status == "failed"
+        assert alerts[0].sent_at is None
+
