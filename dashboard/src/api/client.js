@@ -8,10 +8,16 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const login = (credentials) =>
-    USE_MOCK ? mock.login(credentials) : httpClient.post('/auth/login', credentials)
+    httpClient.post(
+        '/auth/login',
+        new URLSearchParams({ username: credentials.phone, password: credentials.password }),
+    )
 
 export const register = (data) =>
-    USE_MOCK ? mock.register(data) : httpClient.post('/auth/register', data)
+    httpClient.post('/auth/register', data)
+
+export const getCurrentUser = () =>
+    httpClient.get('/auth/me')
 
 // ── Farms ─────────────────────────────────────────────────────────────────────
 export const getFarmerFarm = (farmerId) =>

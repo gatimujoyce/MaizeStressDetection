@@ -94,6 +94,27 @@ async def test_two_farm_isolation():
         assert len(r.json()) == 0
 
 @pytest.mark.asyncio
+async def test_get_current_user_profile_with_valid_token():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        headers = await create_user(ac, "Profile User", "0712345678")
+
+        response = await ac.get("/auth/me", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Profile User"
+    assert response.json()["phone"] == "+254712345678"
+    assert response.json()["role"] == "farmer"
+    assert set(response.json()) == {"id", "name", "phone", "role"}
+    assert "password_hash" not in response.json()
+
+@pytest.mark.asyncio
+async def test_get_current_user_profile_without_token():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/auth/me")
+
+    assert response.status_code == 401
+
+@pytest.mark.asyncio
 async def test_patch_user_id_ignored():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         headers = await create_user(ac, "A", "0744444444")
@@ -306,4 +327,3 @@ async def test_admin_farms_include_deleted():
         # The soft-deleted farm entry must expose a non-null deleted_at
         deleted_entry = next(f for f in r.json() if f["id"] == farm_id)
         assert deleted_entry["deleted_at"] is not None, "deleted_at must be non-null for the deleted farm"
-
