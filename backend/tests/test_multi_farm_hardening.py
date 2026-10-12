@@ -94,6 +94,44 @@ async def test_two_farm_isolation():
         assert len(r.json()) == 0
 
 @pytest.mark.asyncio
+async def test_create_farm_with_optional_water_and_seed_fields():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        headers = await create_user(ac, "Farm Fields User", "0712345680")
+        created = await ac.post("/farms", json={
+            "name": "Fields Included",
+            "location": "Nakuru",
+            "soil_type": "loam",
+            "water_source": "irrigated",
+            "seed_variety": "SC Duma 43",
+        }, headers=headers)
+
+        assert created.status_code == 200
+        farm_id = created.json()["id"]
+        read_back = await ac.get(f"/farms/{farm_id}", headers=headers)
+
+    assert read_back.status_code == 200
+    assert read_back.json()["water_source"] == "irrigated"
+    assert read_back.json()["seed_variety"] == "SC Duma 43"
+
+@pytest.mark.asyncio
+async def test_create_farm_without_optional_water_and_seed_fields():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        headers = await create_user(ac, "Farm Fields Optional", "0712345681")
+        created = await ac.post("/farms", json={
+            "name": "Fields Omitted",
+            "location": "Nakuru",
+            "soil_type": "loam",
+        }, headers=headers)
+
+        assert created.status_code == 200
+        farm_id = created.json()["id"]
+        read_back = await ac.get(f"/farms/{farm_id}", headers=headers)
+
+    assert read_back.status_code == 200
+    assert read_back.json()["water_source"] is None
+    assert read_back.json()["seed_variety"] is None
+
+@pytest.mark.asyncio
 async def test_get_current_user_profile_with_valid_token():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         headers = await create_user(ac, "Profile User", "0712345678")
