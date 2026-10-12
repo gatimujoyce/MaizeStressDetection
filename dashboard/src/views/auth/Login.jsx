@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useLoginMutation } from '../../api/hooks'
 import { useAuth } from '../../auth/AuthContext'
-import { jwtDecode } from 'jwt-decode'
 import { EyeIcon, EyeOffIcon } from '../../components/Icons'
 import AuthLayout from '../../components/AuthLayout'
 
@@ -27,9 +26,8 @@ export default function Login() {
             }
             const data = await loginMutation.mutateAsync({ phone: `+254${phone}`, password })
             const token = data.access_token
-            login(token)
-            const { role } = jwtDecode(token)
-            navigate(role === 'admin' ? '/admin' : '/', { replace: true })
+            const profile = await login(token)
+            navigate(profile?.role === 'admin' ? '/admin' : '/', { replace: true })
         } catch (err) {
             setError(err.message || 'Phone number or password is incorrect')
         }

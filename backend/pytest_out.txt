@@ -1,0 +1,30 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend
+configfile: pytest.ini
+plugins: anyio-4.15.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 25 items
+
+tests\test_auth.py ...                                                   [ 12%]
+tests\test_checkins.py ..........                                        [ 52%]
+tests\test_farms.py ...                                                  [ 64%]
+tests\test_migration.py .                                                [ 68%]
+tests\test_multi_farm_hardening.py ......                                [ 92%]
+tests\test_utils.py ..                                                   [100%]
+
+============================== warnings summary ===============================
+app\core\config.py:5
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\app\core\config.py:5: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+
+app\core\config.py:6
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\app\core\config.py:6: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+
+tests/test_utils.py::test_normalize_ke_phone_rejections
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\tests\test_utils.py:39: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    normalize_ke_phone(case)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 25 passed, 3 warnings in 16.49s =======================

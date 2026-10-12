@@ -170,6 +170,7 @@ export default function PlotWizard({ mode = 'onboarding' }) {
     const nextErrors = {}
     if (stepToValidate === 0) {
       if (!answers.farmName.trim()) nextErrors.farmName = 'Enter a name for this plot.'
+      if (!answers.county) nextErrors.county = 'Choose a county for this plot.'
       if (answers.sizeChoice === 'more') {
         const acres = Number(answers.sizeAcres)
         if (!answers.sizeAcres || !Number.isFinite(acres) || acres < 0.1) {
@@ -392,16 +393,20 @@ export default function PlotWizard({ mode = 'onboarding' }) {
               </fieldset>
 
               <div>
-                <label htmlFor="county" className="mb-2 block text-base font-semibold">County <span className="font-normal text-ink-secondary">(optional)</span></label>
+                <label htmlFor="county" className="mb-2 block text-base font-semibold">County</label>
                 <select
+                  ref={(element) => { fieldRefs.current.county = element }}
                   id="county"
                   value={answers.county}
                   onChange={(event) => setAnswer('county', event.target.value)}
+                  aria-invalid={!!errors.county}
+                  aria-describedby={errors.county ? 'county-error' : undefined}
                   className="min-h-12 w-full rounded-xl border-[1.5px] border-control bg-surface px-4 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                   <option value="">Choose county</option>
                   {COUNTIES.map((county) => <option key={county} value={county}>{county}</option>)}
                 </select>
+                {errors.county && <p id="county-error" className="mt-1 text-base text-critical-text">{errors.county}</p>}
               </div>
             </div>
           )}

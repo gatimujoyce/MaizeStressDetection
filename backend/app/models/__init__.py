@@ -51,6 +51,8 @@ class Farm(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     size_acres: Mapped[float | None] = mapped_column(Float, nullable=True)
     planting_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    water_source: Mapped[str | None] = mapped_column(String, nullable=True)
+    seed_variety: Mapped[str | None] = mapped_column(String, nullable=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     
