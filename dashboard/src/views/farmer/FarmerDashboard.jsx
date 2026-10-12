@@ -11,6 +11,101 @@ import { getFusedPredictionCopy } from '../../content/farmerCopy'
 import { humidityScale, moistureScale, SOIL_PROFILES, temperatureScale, zoneFor } from '../../content/sensorModel'
 import { useFarm } from '../../farm/FarmContext'
 
+function getDisplayValue(value) {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : null
+  const text = String(value).trim()
+  return !text || /^(null|undefined)$/i.test(text) ? null : text
+}
+
+function formatSoilType(value) {
+  const soilType = getDisplayValue(value)
+  if (!soilType) return null
+  const label = SOIL_PROFILES[soilType]?.label ?? soilType.replace(/[_-]+/g, ' ')
+  return label.replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+function parsePlantingDate(value) {
+  const dateText = getDisplayValue(value)
+  if (!dateText) return null
+  const datePart = dateText.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  let date
+  if (datePart) {
+    const [, year, month, day] = datePart
+    date = new Date(Number(year), Number(month) - 1, Number(day))
+    if (
+      date.getFullYear() !== Number(year)
+      || date.getMonth() !== Number(month) - 1
+      || date.getDate() !== Number(day)
+    ) return null
+  } else {
+    date = new Date(dateText)
+  }
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function getDaysSince(date) {
+  const today = new Date()
+  const todayStart = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+  const plantingDay = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  return Math.max(0, Math.floor((todayStart - plantingDay) / 86400000))
+}
+
+function PlotDetailsCard({ farm }) {
+  if (!farm) return null
+
+  const farmName = getDisplayValue(farm.farm_name)
+  const county = getDisplayValue(farm.county)
+  const soilType = formatSoilType(farm.soil_type)
+  const size = getDisplayValue(farm.sizeAcres)
+  const plantingDate = parsePlantingDate(farm.plantingDate)
+  const waterSource = getDisplayValue(farm.waterSource)
+  const seedVariety = getDisplayValue(farm.seedVariety)
+  const rows = [
+    farmName && { label: 'Plot name', value: farmName },
+    county && { label: 'County', value: county },
+    soilType && { label: 'Soil type', value: soilType },
+    size && {
+      label: 'Size',
+      value: `${size} ${Number(size) === 1 ? 'acre' : 'acres'}`,
+    },
+    plantingDate && {
+      label: 'Planting date',
+      value: (
+        <span className="flex flex-wrap items-baseline gap-x-2">
+          <span>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(plantingDate)}</span>
+          <span className="text-sm font-normal text-ink-secondary">
+            {getDaysSince(plantingDate)} days since planting
+          </span>
+        </span>
+      ),
+    },
+    waterSource && { label: 'Water source', value: waterSource },
+    seedVariety && { label: 'Seed variety', value: seedVariety },
+  ].filter(Boolean)
+
+  if (!rows.length) return null
+
+  return (
+    <section
+      aria-labelledby="plot-details-title"
+      className="rounded-2xl border border-border bg-surface p-4"
+    >
+      <h2 id="plot-details-title" className="mb-3 text-[17px] font-bold text-ink">
+        Plot details
+      </h2>
+      <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-3 text-left sm:grid-cols-2 lg:grid-cols-3">
+        {rows.map(({ label, value }) => (
+          <div key={label} className="min-w-0">
+            <dt className="text-sm text-ink-secondary">{label}</dt>
+            <dd className="m-0 break-words text-base font-semibold text-ink">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
 export default function FarmerDashboard() {
   const { selectedFarmId, selectedFarm, isLoading: farmsLoading, hasFarms } = useFarm()
   const { data: status = null } = useFarmStatus(selectedFarmId)
@@ -53,6 +148,8 @@ export default function FarmerDashboard() {
         </h1>
         <PlotSwitcher />
       </header>
+
+      <PlotDetailsCard farm={selectedFarm} />
 
       {status?.has_data === false ? (
         <EmptyPlotState plotName={selectedFarm?.farm_name || status?.farm_name || 'this plot'} />
