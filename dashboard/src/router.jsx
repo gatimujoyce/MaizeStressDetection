@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import FarmerDashboard from './views/farmer/FarmerDashboard'
 import AdminDashboard from './views/admin/AdminDashboard'
 import AlertsPage from './views/farmer/AlertsPage'
+import AddPlot from './views/farmer/AddPlot'
 import NewCheckin from './views/farmer/NewCheckin'
 import Onboarding from './views/farmer/Onboarding'
 import Result from './views/farmer/Result'
@@ -31,6 +32,14 @@ export default function AppRouter() {
             element={
               <RoleGuard allowedRole="farmer">
                 <Onboarding />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/plots/new"
+            element={
+              <RoleGuard allowedRole="farmer">
+                <AddPlot />
               </RoleGuard>
             }
           />

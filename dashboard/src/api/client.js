@@ -17,11 +17,23 @@ export const register = (data) =>
 export const getFarmerFarm = (farmerId) =>
     USE_MOCK ? mock.getFarmerFarm(farmerId) : httpClient.get(`/farms/farmer/${farmerId}`)
 
+export const getFarmerFarms = (farmerId) =>
+    USE_MOCK
+        ? mock.getFarmerFarms(farmerId)
+        // backend will return a list after the multi-farm change; confirm at integration
+        : httpClient.get(`/farms/farmer/${farmerId}`)
+
 export const createFarm = (data) =>
     USE_MOCK ? mock.createFarm(data) : httpClient.post('/farms', data)
 
 export const getFarmStatus = (farmId) =>
     USE_MOCK ? mock.getFarmStatus(farmId) : httpClient.get(`/farms/${farmId}/status`)
+
+export const getLatestReadings = (farmId) =>
+    USE_MOCK
+        ? mock.getLatestReadings(farmId)
+        // path to confirm at integration
+        : httpClient.get(`/farms/${farmId}/readings/latest`)
 
 export const getFarmHistory = (farmId, days = 30) =>
     USE_MOCK ? mock.getFarmHistory(farmId, days) : httpClient.get(`/farms/${farmId}/history?days=${days}`)
