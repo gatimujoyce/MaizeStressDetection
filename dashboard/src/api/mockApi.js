@@ -1,20 +1,168 @@
 // Mock data shapes mirror db/schema.sql field names exactly
+import { mockReading, SOIL_PROFILES } from '../content/sensorModel'
+
+const SEEDED_FARMER_ID = 'farmer-1'
+const FIRST_FARM_ID = 'mock-farm-1'
+const SECOND_FARM_ID = 'mock-farm-2'
+const PERSISTED_FARMS_KEY = 'msm_mock_farms'
+const PERSISTED_CHECKINS_KEY = 'msm_mock_checkins'
+
+const seededFarms = {
+  [SEEDED_FARMER_ID]: [
+    {
+      farm_id: FIRST_FARM_ID,
+      farmer_id: SEEDED_FARMER_ID,
+      farm_name: 'Plot 1 - North Field',
+      location: 'Eldoret, Kenya',
+      soil_type: 'sandy_loam'
+    },
+    {
+      farm_id: SECOND_FARM_ID,
+      farmer_id: SEEDED_FARMER_ID,
+      farm_name: 'Plot 2 - South Field',
+      location: 'Eldoret, Kenya',
+      soil_type: 'loam'
+    }
+  ]
+}
+
+function readPersistedFarms() {
+  try {
+    const stored = localStorage.getItem(PERSISTED_FARMS_KEY)
+    if (!stored) return []
+    const farms = JSON.parse(stored)
+    return Array.isArray(farms) ? farms : []
+  } catch (error) {
+    console.error('Unable to read saved mock farms', error)
+    return []
+  }
+}
+
+function persistFarms(farms) {
+  try {
+    localStorage.setItem(PERSISTED_FARMS_KEY, JSON.stringify(farms))
+  } catch (error) {
+    throw new Error('Unable to save mock farms to local storage', { cause: error })
+  }
+}
+
+function readSavedCheckins() {
+  try {
+    const saved = localStorage.getItem(PERSISTED_CHECKINS_KEY)
+    if (!saved) return {}
+    const checkins = JSON.parse(saved)
+    return checkins && typeof checkins === 'object' && !Array.isArray(checkins) ? checkins : {}
+  } catch (error) {
+    console.error('Unable to read saved mock check-ins', error)
+    return {}
+  }
+}
+
+function persistCheckins(checkins) {
+  try {
+    localStorage.setItem(PERSISTED_CHECKINS_KEY, JSON.stringify(checkins))
+  } catch (error) {
+    throw new Error('Unable to save mock check-in to local storage', { cause: error })
+  }
+}
+
+function farmsForFarmer(farmerId) {
+  const seeded = seededFarms[farmerId] ?? []
+  const persisted = readPersistedFarms().filter((farm) => farm?.farmer_id === farmerId)
+  const byId = new Map(seeded.map((farm) => [farm.farm_id, farm]))
+  for (const farm of persisted) {
+    if (farm?.farm_id && !byId.has(farm.farm_id)) byId.set(farm.farm_id, farm)
+  }
+  return [...byId.values()]
+}
 
 export function getFarmStatus(farmId) {
+  if (farmId === FIRST_FARM_ID) {
+    return Promise.resolve({
+      farm_id: farmId,
+      farm_name: 'Plot 1 - North Field',
+      fused_prediction: 'waterlogging_risk',
+      disease_prediction: 'healthy',
+      sensor_prediction: 'waterlogging_risk',
+      severity_level: 'warning', // 'healthy' | 'warning' | 'critical'
+      status: 'confirmed', // 'confirmed' | 'uncertain' | 'out_of_scope'
+      nutrient_status: 'nitrogen_deficiency', // Separate prediction pathway
+      has_data: true,
+      created_at: new Date().toISOString()
+    })
+  }
+
+  if (farmId === SECOND_FARM_ID) {
+    return Promise.resolve({
+      farm_id: farmId,
+      farm_name: 'Plot 2 - South Field',
+      fused_prediction: 'healthy',
+      disease_prediction: 'healthy',
+      sensor_prediction: 'healthy',
+      severity_level: 'healthy',
+      status: 'confirmed',
+      nutrient_status: 'healthy',
+      has_data: true,
+      created_at: new Date().toISOString()
+    })
+  }
+
+  const farm = farmsForFarmer(SEEDED_FARMER_ID).find((item) => item?.farm_id === farmId)
+  const checkin = readSavedCheckins()[farmId]
+  if (checkin?.prediction) {
+    const prediction = checkin.prediction
+    return Promise.resolve({
+      farm_id: farmId,
+      farm_name: farm?.farm_name ?? 'Your field',
+      has_data: true,
+      fused_prediction: prediction.fused_prediction,
+      sensor_prediction: prediction.sensor_prediction,
+      severity_level: prediction.severity_level,
+      nutrient_status: prediction.nutrient_status,
+      created_at: checkin.created_at ?? prediction.created_at,
+    })
+  }
+
   return Promise.resolve({
     farm_id: farmId,
-    farm_name: 'Plot 1 - North Field',
-    fused_prediction: 'drought_stress',
-    disease_prediction: 'healthy',
-    sensor_prediction: 'drought_stress',
-    severity_level: 'warning', // 'healthy' | 'warning' | 'critical'
-    status: 'confirmed', // 'confirmed' | 'uncertain' | 'out_of_scope'
-    nutrient_status: 'nitrogen_deficiency', // Separate prediction pathway
-    created_at: new Date().toISOString()
+    farm_name: farm?.farm_name ?? 'Your field',
+    has_data: false
   })
 }
 
+export async function getLatestReadings(farmId) {
+  const status = await getFarmStatus(farmId)
+  if (status.has_data === false) return null
+
+  const farm = farmsForFarmer(SEEDED_FARMER_ID).find((item) => item?.farm_id === farmId)
+  const soilType = SOIL_PROFILES[farm?.soil_type] ? farm.soil_type : 'loam'
+  const stressClasses = ['normal', 'drought_stress', 'heat_stress', 'waterlogging_risk']
+  const sensorClass = stressClasses.includes(status.sensor_prediction)
+    ? status.sensor_prediction
+    : 'normal'
+
+  return {
+    ...mockReading(soilType, sensorClass),
+    recorded_at: status.created_at,
+  }
+}
+
 export function getAlerts(farmId) {
+  if (farmId !== FIRST_FARM_ID) {
+    if (farmId === SECOND_FARM_ID) return Promise.resolve([])
+    const prediction = readSavedCheckins()[farmId]?.prediction
+    if (!prediction || prediction.severity_level === 'healthy') return Promise.resolve([])
+    return Promise.resolve([{
+      alert_id: prediction.prediction_id,
+      farm_id: farmId,
+      severity: prediction.severity_level,
+      status: prediction.status,
+      message: prediction.recommendation,
+      plain_summary: `${prediction.disease_label?.replace(/_/g, ' ') || prediction.fused_prediction?.replace(/_/g, ' ') || 'Stress'} detected.`,
+      created_at: prediction.created_at
+    }])
+  }
+
   return Promise.resolve([
     {
       alert_id: 'mock-alert-1',
@@ -57,7 +205,26 @@ export function confirmPrediction(alertId, farmerId, confirmed, comment = '') {
   })
 }
 
-export function getFarmHistory(farmId, days = 30) {
+export function getFarmHistory(farmId) {
+  if (farmId === SECOND_FARM_ID) {
+    return Promise.resolve([
+      { date: 'Wk 1', severity: 'healthy', score: 1, stage: 'Vegetative (V3)' },
+      { date: 'Wk 2', severity: 'healthy', score: 1, stage: 'Vegetative (V6)' },
+      { date: 'Wk 3', severity: 'healthy', score: 1, stage: 'Tasseling (VT)' },
+      { date: 'Wk 4', severity: 'healthy', score: 1, stage: 'Silking (R1)' }
+    ])
+  }
+  if (farmId !== FIRST_FARM_ID) {
+    const prediction = readSavedCheckins()[farmId]?.prediction
+    if (!prediction) return Promise.resolve([])
+    return Promise.resolve([{
+      date: new Date(prediction.created_at).toLocaleDateString(),
+      severity: prediction.severity_level,
+      score: prediction.severity_level === 'healthy' ? 1 : prediction.severity_level === 'critical' ? 3 : 2,
+      stage: 'Most recent check-in'
+    }])
+  }
+
   const history = [
     { date: 'Wk 1', severity: 'healthy', score: 1, stage: 'Vegetative (V3)' },
     { date: 'Wk 2', severity: 'healthy', score: 1, stage: 'Vegetative (V6)' },
@@ -108,57 +275,105 @@ export function register({ name, phone, password }) {
 }
 
 export function getFarmerFarm(farmerId) {
-  if (farmerId === 'farmer-1') {
-    return Promise.resolve({
-      farm_id: 'mock-farm-1',
-      farmer_id: 'farmer-1',
-      farm_name: 'Plot 1 - North Field',
-      location: 'Eldoret, Kenya',
-      soil_type: 'sandy_loam'
-    })
-  }
-  // No farm found → return null (used to detect onboarding needed)
-  return Promise.resolve(null)
+  return getFarmerFarms(farmerId).then((farms) => farms[0] ?? null)
 }
 
-export function createFarm({ farmerId, farmName, location, soilType }) {
-  return Promise.resolve({
-    farm_id: `farm-${Date.now()}`,
+export function getFarmerFarms(farmerId) {
+  try {
+    return Promise.resolve(farmsForFarmer(farmerId))
+  } catch (error) {
+    console.error('Unable to load mock farms for farmer', error)
+    return Promise.resolve([])
+  }
+}
+
+export function createFarm({
+  farmerId,
+  farmName,
+  location,
+  soilType,
+  sizeAcres,
+  county,
+  waterSource,
+  plantingDate,
+  seedVariety
+}) {
+  const farmId = `farm-${Date.now()}`
+  const farm = {
+    id: farmId,
+    farm_id: farmId,
     farmer_id: farmerId,
     farm_name: farmName,
     location,
     soil_type: soilType,
+    sizeAcres,
+    county,
+    waterSource,
+    plantingDate,
+    seedVariety,
     created_at: new Date().toISOString()
-  })
+  }
+  const farms = farmsForFarmer(farmerId)
+  farms.push(farm)
+  const createdFarms = farms.filter(
+    (item) => !seededFarms[farmerId]?.some((seed) => seed.farm_id === item.farm_id)
+  )
+  persistFarms([
+    ...readPersistedFarms().filter((item) => item?.farmer_id !== farmerId),
+    ...createdFarms
+  ])
+  return Promise.resolve(farm)
 }
 
-export function submitCheckin(formData) {
+export function submitCheckin(input) {
   // Simulates the multi-model inference pipeline
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
-      resolve({
+      const farmId = input instanceof FormData
+        ? input.get('farm_id') || FIRST_FARM_ID
+        : input?.farm_id || FIRST_FARM_ID
+      const farm = farmsForFarmer(SEEDED_FARMER_ID).find((item) => item?.farm_id === farmId)
+      const sensorPrediction = farmId === FIRST_FARM_ID ? 'waterlogging_risk' : 'normal'
+      const reading = mockReading(farm?.soil_type, sensorPrediction)
+      const createdAt = new Date().toISOString()
+      const prediction = {
         prediction_id: `pred-${Date.now()}`,
-        farm_id: 'mock-farm-1',
+        farm_id: farmId,
         status: 'confirmed',
         disease_label: 'northern_leaf_blight',
         disease_confidence: 0.87,
         severity_level: 'warning',
         fused_prediction: 'northern_leaf_blight',
         nutrient_status: 'nitrogen_deficiency',
+        sensor_prediction: sensorPrediction,
         sensor_conditions: {
-          temperature_c: 24.5,
-          humidity_pct: 68,
-          soil_moisture_pct: 42,
-          leaf_wetness: false
+          temperature_c: reading.temperature,
+          humidity_pct: reading.humidity,
+          soil_moisture_pct: reading.soil_moisture,
+          leaf_wetness: reading.leaf_wetness < 3,
         },
         recommendation: 'Apply a foliar fungicide containing propiconazole. Improve field drainage to reduce humidity around the canopy.',
-        created_at: new Date().toISOString()
-      })
+        created_at: createdAt
+      }
+      try {
+        persistCheckins({
+          ...readSavedCheckins(),
+          [farmId]: { prediction, created_at: createdAt }
+        })
+        resolve(prediction)
+      } catch (error) {
+        reject(error)
+      }
     }, 1200)
   })
 }
 
 export function getPredictionById(predictionId) {
+  const savedPrediction = Object.values(readSavedCheckins())
+    .map((checkin) => checkin?.prediction)
+    .find((prediction) => prediction?.prediction_id === predictionId)
+  if (savedPrediction) return Promise.resolve(savedPrediction)
+
   return Promise.resolve({
     prediction_id: predictionId,
     farm_id: 'mock-farm-1',
@@ -169,11 +384,12 @@ export function getPredictionById(predictionId) {
     fused_prediction: 'northern_leaf_blight',
     nutrient_status: 'nitrogen_deficiency',
     nutrient_confidence: 0.76,
+    sensor_prediction: 'waterlogging_risk',
     sensor_conditions: {
-      temperature_c: 24.5,
-      humidity_pct: 68,
-      soil_moisture_pct: 42,
-      leaf_wetness: false
+      temperature_c: 22,
+      humidity_pct: 85,
+      soil_moisture_pct: 25,
+      leaf_wetness: true,
     },
     recommendation: 'Apply a foliar fungicide containing propiconazole. Improve field drainage to reduce humidity around the canopy.',
     created_at: new Date(Date.now() - 600000).toISOString()

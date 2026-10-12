@@ -1,21 +1,29 @@
-import React, { useEffect, useState } from 'react'
-import { getFarmStatus, getAlerts, getFarmHistory } from '../../api/mockApi'
-import StatCard from '../../components/StatCard'
-import FeedbackControl from '../../components/FeedbackControl'
+import { useEffect, useState } from 'react'
+import { Link, Navigate } from 'react-router-dom'
+import { useAlerts, useFarmHistory, useFarmStatus, useLatestReadings } from '../../api/hooks'
+import AlertCard from '../../components/AlertCard'
+import EmptyPlotState from '../../components/EmptyPlotState'
+import PlotSwitcher from '../../components/PlotSwitcher'
+import ReadingTile from '../../components/ReadingTile'
 import TrendChart from '../../components/TrendChart'
-import { WarningIcon, InfoIcon, ErrorIcon } from '../../components/Icons'
+import VerdictPanel from '../../components/VerdictPanel'
+import { getFusedPredictionCopy } from '../../content/farmerCopy'
+import { humidityScale, moistureScale, SOIL_PROFILES, temperatureScale, zoneFor } from '../../content/sensorModel'
+import { useFarm } from '../../farm/FarmContext'
 
 export default function FarmerDashboard() {
-  const [status, setStatus] = useState(null)
-  const [alerts, setAlerts] = useState([])
-  const [history, setHistory] = useState([])
+  const { selectedFarmId, selectedFarm, isLoading: farmsLoading, hasFarms } = useFarm()
+  const { data: status = null } = useFarmStatus(selectedFarmId)
+  const { data: readings, isLoading: readingsLoading } = useLatestReadings(selectedFarmId)
+  const { data: alerts = [] } = useAlerts(selectedFarmId)
+  const { data: history = [] } = useFarmHistory(selectedFarmId)
+  const soilType = SOIL_PROFILES[selectedFarm?.soil_type] ? selectedFarm.soil_type : 'loam'
+  const soilProfile = SOIL_PROFILES[soilType]
+  const soilScale = moistureScale(soilType)
+  const humidityZone = readings ? zoneFor(humidityScale(), readings.humidity) : null
   const [isOffline, setIsOffline] = useState(!navigator.onLine)
 
   useEffect(() => {
-    getFarmStatus('mock-farm-1').then(setStatus)
-    getAlerts('mock-farm-1').then(setAlerts)
-    getFarmHistory('mock-farm-1').then(setHistory)
-
     const handleOnline = () => setIsOffline(false)
     const handleOffline = () => setIsOffline(true)
     window.addEventListener('online', handleOnline)
@@ -26,114 +34,105 @@ export default function FarmerDashboard() {
     }
   }, [])
 
-  const renderAlertCard = (alert) => {
-    if (alert.status === 'uncertain') {
-      return (
-        <div key={alert.alert_id} style={{
-          backgroundColor: 'var(--color-neutral-bg)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '2px',
-          padding: '1rem',
-          marginBottom: '0.75rem'
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', color: 'var(--color-neutral-text)', fontWeight: '600' }}>
-            <InfoIcon color="var(--color-neutral-text)" size={16} />
-            <span>Inconclusive Image Analysis</span>
-          </div>
-          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-            Image resolution or lighting was insufficient to determine leaf condition. Upload a high-resolution photo taken in daylight.
-          </p>
-        </div>
-      )
-    }
-
-    if (alert.status === 'out_of_scope') {
-      return (
-        <div key={alert.alert_id} style={{
-          backgroundColor: 'var(--color-neutral-bg)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '2px',
-          padding: '1rem',
-          marginBottom: '0.75rem'
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', color: 'var(--color-neutral-text)', fontWeight: '600' }}>
-            <InfoIcon color="var(--color-neutral-text)" size={16} />
-            <span>Unrecognized Pattern</span>
-          </div>
-          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-            Detected symptom parameters do not match registered models. Consult local agronomic extension services.
-          </p>
-        </div>
-      )
-    }
-
-    const isCritical = alert.severity === 'critical'
-    return (
-      <div key={alert.alert_id} style={{
-        backgroundColor: isCritical ? 'var(--color-critical-bg)' : 'var(--color-warning-bg)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '2px',
-        padding: '1rem',
-        marginBottom: '0.75rem'
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center',
-          color: isCritical ? 'var(--color-critical-text)' : 'var(--color-warning-text)',
-          fontWeight: '600'
-        }}>
-          {isCritical ? <ErrorIcon color="var(--color-critical-text)" /> : <WarningIcon color="var(--color-warning-text)" />}
-          <span>{alert.plain_summary}</span>
-        </div>
-        <p style={{ margin: '0.5rem 0', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{alert.message}</p>
-        <FeedbackControl alertId={alert.alert_id} />
-      </div>
-    )
-  }
+  if (!farmsLoading && !hasFarms) return <Navigate to="/onboarding" replace />
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="flex flex-col gap-6">
       {isOffline && (
-        <div style={{
-          backgroundColor: 'var(--color-neutral-text)',
-          color: '#FFFFFF',
-          padding: '0.5rem 1rem',
-          borderRadius: '2px',
-          fontSize: '0.85rem'
-        }}>
-          Offline mode. Displaying cached field data.
+        <div
+          role="status"
+          className="rounded-xl bg-neutral-bg p-4 text-[15px] text-neutral-text"
+        >
+          You are offline. Showing the last data saved on your phone.
         </div>
       )}
 
-      <div>
-        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {status?.farm_name || 'Plot Status'}
-        </span>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Field Monitoring Dashboard</h1>
-      </div>
+      <header className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="m-0 text-[30px] font-bold text-ink">
+          {selectedFarm?.farm_name || status?.farm_name || 'Your field'}
+        </h1>
+        <PlotSwitcher />
+      </header>
 
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <StatCard
-          label="Crop Stress"
-          value={status ? status.fused_prediction.replace('_', ' ') : 'Loading'}
-          status={status?.severity_level || 'neutral'}
-          subtext="Derived from leaf imagery and soil telemetry."
+      {status?.has_data === false ? (
+        <EmptyPlotState plotName={selectedFarm?.farm_name || status?.farm_name || 'this plot'} />
+      ) : (
+        <VerdictPanel
+          status={status}
+          action={getFusedPredictionCopy(status?.fused_prediction).action}
         />
-        <StatCard
-          label="Nutrient Level"
-          value={status ? status.nutrient_status.replace('_', ' ') : 'Loading'}
-          status="neutral"
-          subtext="Assessed via specialized classification model."
-        />
+      )}
+
+      {status?.has_data !== false && (
+        <Link
+          to="/check-in"
+          className="flex min-h-[52px] w-full items-center justify-center rounded-xl bg-brand px-5 py-3 text-center text-[17px] font-bold text-white hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:w-auto sm:self-start sm:px-8"
+        >
+          Check my maize
+        </Link>
+      )}
+
+      {readings && (
+        <section aria-labelledby="field-readings-title" className="flex flex-col gap-3">
+          <h2 id="field-readings-title" className="m-0 text-[21px] font-bold text-ink">
+            Field readings
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <ReadingTile
+              title="Soil moisture"
+              value={readings.soil_moisture}
+              unit="%"
+              scale={soilScale}
+              caption={`Good for ${soilProfile.label}: ${soilScale.goodRange[0]}-${soilScale.goodRange[1]}%`}
+            />
+            <ReadingTile
+              title="Temperature"
+              value={readings.temperature}
+              unit="°C"
+              scale={temperatureScale()}
+              caption="Comfortable: 18-29°C. Heat stress from 32°C."
+            />
+            <ReadingTile
+              title="Air humidity"
+              value={readings.humidity}
+              unit="%"
+              scale={humidityScale()}
+              caption="Usual range: 30-80%."
+              note={humidityZone?.label === 'Humid' ? 'Humid air helps leaf diseases spread.' : undefined}
+            />
+          </div>
+        </section>
+      )}
+      {!readings && readingsLoading && status?.has_data === true && (
+        <section aria-label="Loading field readings" aria-busy="true" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[1, 2, 3].map((card) => (
+            <div key={card} className="h-40 animate-pulse rounded-2xl border border-border bg-neutral-bg" />
+          ))}
+        </section>
+      )}
+
+      {status?.has_data !== false && (
+        <section className="flex flex-col gap-3" aria-labelledby="alerts-title">
+          <h2 id="alerts-title" className="m-0 text-[21px] font-bold text-ink">
+            Alerts
+          </h2>
+          {alerts.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {alerts.map((alert) => (
+                <AlertCard key={alert.alert_id} alert={alert} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-[17px] text-ink-secondary">
+              No alerts right now. Your maize looks fine.
+            </p>
+          )}
+        </section>
+      )}
+
+      <div className="[&_button]:min-h-12 [&_button]:text-[15px] [&_h3]:text-[17px] [&_p]:text-[15px] [&_span]:text-[15px] [&_strong]:text-[15px]">
+        <TrendChart history={history} />
       </div>
-
-      <section>
-        <h2 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>System Alerts</h2>
-        {alerts.length > 0 ? alerts.map(renderAlertCard) : <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>No active alerts recorded.</p>}
-      </section>
-
-      <TrendChart history={history} />
     </div>
   )
 }
