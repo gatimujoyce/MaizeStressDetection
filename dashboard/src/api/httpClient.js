@@ -7,8 +7,10 @@ function getToken() {
 
 async function request(path, options = {}) {
     const token = getToken()
+    const isFormData = options.body instanceof FormData
+    const isUrlEncoded = options.body instanceof URLSearchParams
     const headers = {
-        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(!isFormData && !isUrlEncoded ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
     }
@@ -16,14 +18,24 @@ async function request(path, options = {}) {
     const res = await fetch(`${BASE_URL}${path}`, { ...options, headers })
 
     if (!res.ok) {
-        let message = `HTTP ${res.status}`
+        let data
         try {
-            const data = await res.json()
-            message = data.detail || data.message || message
+            data = await res.json()
         } catch {
-            // response body not JSON — keep the status code message
+            // Use the status code below when the response body is not JSON.
         }
-        throw new Error(message)
+
+        const detail = data?.detail ?? data?.message
+        const message = typeof detail === 'string'
+            ? detail
+            : Array.isArray(detail)
+                ? detail.map((item) => item?.msg || item?.message || item).join('; ')
+                : detail
+                    ? JSON.stringify(detail)
+                    : `Request failed (HTTP ${res.status})`
+        const error = new Error(message)
+        error.status = res.status
+        throw error
     }
 
     // 204 No Content — nothing to parse
@@ -36,7 +48,9 @@ export const httpClient = {
     post: (path, body) =>
         request(path, {
             method: 'POST',
-            body: body instanceof FormData ? body : JSON.stringify(body),
+            body: body instanceof FormData || body instanceof URLSearchParams
+                ? body
+                : JSON.stringify(body),
         }),
     patch: (path, body) =>
         request(path, { method: 'PATCH', body: JSON.stringify(body) }),
