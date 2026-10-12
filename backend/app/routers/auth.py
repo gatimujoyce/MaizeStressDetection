@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from fastapi.security import OAuth2PasswordRequestForm
 import uuid
 
-from app.core.deps import get_db, require_farmer
+from app.core.deps import get_db, get_current_user, require_farmer
 from app.schemas.auth import UserCreate, UserResponse, Token, UserUpdate
 from app.models import User, RoleEnum
 from app.core.security import get_password_hash, verify_password, create_access_token
@@ -46,6 +46,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     
     access_token = create_access_token(subject=str(user.id))
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserResponse)
+async def read_profile(current_user: User = Depends(get_current_user)):
+    return current_user
 
 @router.patch("/me", response_model=UserResponse)
 async def update_profile(

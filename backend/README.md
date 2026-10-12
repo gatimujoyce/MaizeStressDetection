@@ -89,6 +89,7 @@ pytest
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `SECRET_KEY` | Signing key for JWT tokens |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API |
 
 ## Current status
 

@@ -1,0 +1,46 @@
+============================= test session starts =============================
+collecting ... collected 27 items
+
+tests/test_auth.py::test_register_duplicate_phone_across_formats PASSED  [  3%]
+tests/test_auth.py::test_login_cross_format PASSED                       [  7%]
+tests/test_auth.py::test_update_profile_duplicate_phone PASSED           [ 11%]
+tests/test_checkins.py::test_compute_severity_matrix_1 PASSED            [ 14%]
+tests/test_checkins.py::test_compute_severity_matrix_2 PASSED            [ 18%]
+tests/test_checkins.py::test_compute_severity_matrix_3 PASSED            [ 22%]
+tests/test_checkins.py::test_compute_severity_matrix_4 PASSED            [ 25%]
+tests/test_checkins.py::test_compute_severity_matrix_5 PASSED            [ 29%]
+tests/test_checkins.py::test_compute_severity_matrix_6 PASSED            [ 33%]
+tests/test_checkins.py::test_compute_severity_matrix_7 PASSED            [ 37%]
+tests/test_checkins.py::test_compute_severity_matrix_8 PASSED            [ 40%]
+tests/test_checkins.py::test_compute_severity_matrix_9 PASSED            [ 44%]
+tests/test_checkins.py::test_endpoint_predict_flow_high_severity PASSED  [ 48%]
+tests/test_farms.py::test_read_farms_only_own PASSED                     [ 51%]
+tests/test_farms.py::test_user_a_cannot_read_user_b_farm PASSED          [ 55%]
+tests/test_farms.py::test_user_a_cannot_delete_user_b_farm PASSED        [ 59%]
+tests/test_migration.py::test_migration_upgrade_and_downgrade PASSED     [ 62%]
+tests/test_migration.py::test_normalize_phones_migration PASSED          [ 66%]
+tests/test_multi_farm_hardening.py::test_cross_user_404_nested_routes PASSED [ 70%]
+tests/test_multi_farm_hardening.py::test_two_farm_isolation PASSED       [ 74%]
+tests/test_multi_farm_hardening.py::test_patch_user_id_ignored PASSED    [ 77%]
+tests/test_multi_farm_hardening.py::test_soft_delete_retains_children PASSED [ 81%]
+tests/test_multi_farm_hardening.py::test_duplicate_farm_names PASSED     [ 85%]
+tests/test_multi_farm_hardening.py::test_farm_isolation_integration PASSED [ 88%]
+tests/test_multi_farm_hardening.py::test_admin_farms_include_deleted PASSED [ 92%]
+tests/test_utils.py::test_normalize_ke_phone_accepted_formats PASSED     [ 96%]
+tests/test_utils.py::test_normalize_ke_phone_rejections PASSED           [100%]
+
+============================== warnings summary ===============================
+app\core\config.py:5
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\app\core\config.py:5: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+
+app\core\config.py:6
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\app\core\config.py:6: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+
+tests/test_utils.py::test_normalize_ke_phone_rejections
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\tests\test_utils.py:39: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    normalize_ke_phone(case)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 27 passed, 3 warnings in 16.32s =======================

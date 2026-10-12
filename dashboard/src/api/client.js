@@ -8,23 +8,46 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const login = (credentials) =>
-    USE_MOCK ? mock.login(credentials) : httpClient.post('/auth/login', credentials)
+    httpClient.post(
+        '/auth/login',
+        new URLSearchParams({ username: credentials.phone, password: credentials.password }),
+    )
 
 export const register = (data) =>
-    USE_MOCK ? mock.register(data) : httpClient.post('/auth/register', data)
+    httpClient.post('/auth/register', data)
+
+export const getCurrentUser = () =>
+    httpClient.get('/auth/me')
 
 // ── Farms ─────────────────────────────────────────────────────────────────────
 export const getFarmerFarm = (farmerId) =>
     USE_MOCK ? mock.getFarmerFarm(farmerId) : httpClient.get(`/farms/farmer/${farmerId}`)
 
-export const getFarmerFarms = (farmerId) =>
-    USE_MOCK
-        ? mock.getFarmerFarms(farmerId)
-        // backend will return a list after the multi-farm change; confirm at integration
-        : httpClient.get(`/farms/farmer/${farmerId}`)
+const mapFarmResponse = (farm) => ({
+    ...farm,
+    farm_id: farm.id,
+    farmer_id: farm.user_id,
+    farm_name: farm.name,
+    sizeAcres: farm.size_acres,
+    county: farm.location,
+    plantingDate: farm.planting_date,
+    waterSource: farm.water_source,
+    seedVariety: farm.seed_variety,
+})
+
+export const getFarmerFarms = () =>
+    httpClient.get('/farms').then((farms) => farms.map(mapFarmResponse))
 
 export const createFarm = (data) =>
-    USE_MOCK ? mock.createFarm(data) : httpClient.post('/farms', data)
+    httpClient.post('/farms', {
+        name: data.farmName,
+        location: data.county,
+        soil_type: data.soilType,
+        size_acres: data.sizeAcres,
+        planting_date: data.plantingDate,
+        water_source: data.waterSource,
+        seed_variety: data.seedVariety,
+    }).then(mapFarmResponse)
 
 export const getFarmStatus = (farmId) =>
     USE_MOCK ? mock.getFarmStatus(farmId) : httpClient.get(`/farms/${farmId}/status`)

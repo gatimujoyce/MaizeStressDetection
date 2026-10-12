@@ -1,0 +1,41 @@
+============================= test session starts =============================
+collecting ... collected 19 items / 1 error
+
+=================================== ERRORS ====================================
+_____________ ERROR collecting tests/test_multi_farm_hardening.py _____________
+ImportError while importing test module 'C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\tests\test_multi_farm_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Program Files\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_multi_farm_hardening.py:25: in <module>
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:126: in create_async_engine
+    sync_engine = _create_engine(url, **kw)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\deprecations.py:281: in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\engine\create.py:602: in create_engine
+    dbapi = dbapi_meth(**dbapi_args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:328: in import_dbapi
+    __import__("aiosqlite"), __import__("sqlite3")
+    ^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'aiosqlite'
+============================== warnings summary ===============================
+app\core\config.py:5
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\app\core\config.py:5: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+
+app\core\config.py:6
+  C:\Users\USER\OneDrive\Documents\Desktop\Final project\Development\backend\app\core\config.py:6: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'env'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_multi_farm_hardening.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+======================== 2 warnings, 1 error in 2.92s =========================

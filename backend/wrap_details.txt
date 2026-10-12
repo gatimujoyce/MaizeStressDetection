@@ -1,0 +1,6 @@
+sock: <socket.socket fd=600, family=2, type=1, proto=0, laddr=('192.168.100.12', 62323), raddr=('18.169.96.158', 443)>
+peer: ('18.169.96.158', 443)
+server_hostname: api.sandbox.africastalking.com
+options: 2186428496
+protocol: 16
+verify_mode: 2
