@@ -117,21 +117,7 @@ def _collect_predictions(model: tf.keras.Model, ds: tf.data.Dataset):
     return y_true, y_pred, probs
 
 
-def _collect_image_paths(test_dir: Path, class_names: list[str]) -> list[str]:
-    """Return relative image paths in the same order as image_dataset_from_directory
-    (sorted by class then filename, matching shuffle=False)."""
-    paths = []
-    for cls in class_names:
-        cls_dir = test_dir / cls
-        if not cls_dir.exists():
-            continue
-        img_files = sorted(
-            p for p in cls_dir.rglob("*")
-            if p.suffix.lower() in {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
-        )
-        paths.extend(str(p.relative_to(test_dir)) for p in img_files)
-    return paths
-
+# _collect_image_paths removed – image paths are now captured directly from the TensorFlow dataset.
 
 def _plot_confusion_matrix(
     cm: list[list[int]],
@@ -185,22 +171,27 @@ def _write_predictions_csv(
 ) -> None:
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(
-            ["image_path", "true_label", "predicted_label",
-             "confidence", "second_best_label", "correct"]
-        )
+        # Header includes per‑class probability columns
+        header = ["image_path", "true_label", "predicted_label",
+                  "confidence", "second_best_label", "correct"]
+        # Append prob_<class> columns in order of class_names
+        header.extend([f"prob_{name}" for name in class_names])
+        writer.writerow(header)
         for path, yt, yp, prob in zip(image_paths, y_true, y_pred, probs):
-            sorted_idx  = prob.argsort()[::-1]
-            top_idx     = sorted_idx[0]
-            second_idx  = sorted_idx[1] if len(sorted_idx) > 1 else top_idx
-            writer.writerow([
+            sorted_idx = prob.argsort()[::-1]
+            top_idx = sorted_idx[0]
+            second_idx = sorted_idx[1] if len(sorted_idx) > 1 else top_idx
+            row = [
                 path,
                 class_names[yt],
                 class_names[yp],
                 f"{prob[top_idx]:.6f}",
                 class_names[second_idx],
                 int(yt == yp),
-            ])
+            ]
+            # Append probabilities for each class formatted to 6 decimals
+            row.extend([f"{p:.6f}" for p in prob])
+            writer.writerow(row)
 
 
 def _subfolder_breakdown(
@@ -268,6 +259,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--out",        default="results", help="Root output directory.")
     p.add_argument("--breakdown-by-subfolder", action="store_true",
                    help="Also report per second-level-subfolder accuracy.")
+    p.add_argument("--healthy-class", default="healthy",
+                   help="Name of the healthy class for disease task (default: healthy).")
     return p.parse_args()
 
 
@@ -293,6 +286,22 @@ def main() -> None:
     class_names = _load_class_names(class_names_path)
     print(f"Class names ({len(class_names)}): {class_names}")
 
+    # --- Early validation of class names ------------------------------------
+    if args.task == "disease":
+        if args.healthy_class not in class_names:
+            raise SystemExit(
+                f"ERROR: healthy class '{args.healthy_class}' not found in class_names {class_names}."
+            )
+    if args.task == "gate":
+        missing = []
+        for required in ["in_scope", "out_of_scope"]:
+            if required not in class_names:
+                missing.append(required)
+        if missing:
+            raise SystemExit(
+                f"ERROR: required class(es) {missing} not found in class_names {class_names}."
+            )
+
     # --- Validate test dir ---------------------------------------------------
     if not test_dir.is_dir():
         raise SystemExit(f"ERROR: test directory not found: {test_dir}")
@@ -304,12 +313,14 @@ def main() -> None:
 
     # --- Build dataset -------------------------------------------------------
     ds = _build_dataset(test_dir, class_names, args.img_size)
+    # Capture image paths before any mapping modifies the dataset
+    image_paths = [str(Path(p).relative_to(test_dir)) for p in ds.file_paths]
     ds = _apply_preprocess(ds, args.preprocess)
 
     # --- Inference -----------------------------------------------------------
     print("Running inference …")
     y_true, y_pred, probs = _collect_predictions(model, ds)
-    image_paths = _collect_image_paths(test_dir, class_names)
+    # image_paths already captured above
 
     n = len(y_true)
     print(f"Evaluated {n} images.")
@@ -317,7 +328,7 @@ def main() -> None:
     # --- Metrics -------------------------------------------------------------
     metrics = compute_metrics(y_true, y_pred, probs, class_names)
     cm      = metrics["confusion_matrix"]
-    extras  = task_extras(args.task, cm, class_names)
+    extras  = task_extras(args.task, cm, class_names, healthy_class_name=args.healthy_class)
     metrics["task_extras"] = extras
 
     # --- Output directory ----------------------------------------------------
