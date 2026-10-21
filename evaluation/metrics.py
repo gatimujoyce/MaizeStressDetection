@@ -284,14 +284,10 @@ def task_extras(
             }
         )
 
+
+
     # -----------------------------------------------------------------------
     if task == "nutrient":
-        _, per_r, _, _ = precision_recall_fscore_support(
-            # reconstruct y_true / y_pred implied by cm for this summary
-            # We work directly from cm rows: recall[i] = cm[i,i] / sum(cm[i])
-            np.zeros(1), np.zeros(1),   # dummy — we compute manually from cm
-            average=None, zero_division=0
-        )
         # Compute recall directly from the CM to avoid needing raw arrays
         recalls = []
         for i in range(len(class_names)):
