@@ -56,3 +56,8 @@ notebooks/**/*.csv
 *.tar.gz
 *.7z
 data/
+
+
+*.safetensors
+*.tflite
+*.keras
