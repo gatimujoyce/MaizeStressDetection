@@ -1,0 +1,9 @@
+              precision    recall  f1-score   support
+
+    in_scope       1.00      0.98      0.99       220
+    not_leaf       1.00      1.00      1.00       306
+out_of_scope       0.96      1.00      0.98        97
+
+    accuracy                           0.99       623
+   macro avg       0.99      0.99      0.99       623
+weighted avg       0.99      0.99      0.99       623
