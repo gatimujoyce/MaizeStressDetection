@@ -98,8 +98,29 @@ export function useAlerts(farmId) {
     })
 }
 
-export function useAllAlerts() {
-    return useQuery({ queryKey: ['allAlerts'], queryFn: client.getAllAlerts })
+export function useAcknowledgeAlertMutation(farmId) {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: (alertId) => client.acknowledgeAlert(farmId, alertId),
+        onMutate: async (alertId) => {
+            await qc.cancelQueries({ queryKey: ['alerts', farmId] })
+            const previousAlerts = qc.getQueryData(['alerts', farmId])
+            qc.setQueryData(['alerts', farmId], (alerts = []) =>
+                alerts.map((alert) =>
+                    alert.alert_id === alertId
+                        ? { ...alert, status: 'acknowledged' }
+                        : alert,
+                ),
+            )
+            return { previousAlerts }
+        },
+        onError: (_error, _alertId, context) => {
+            if (context?.previousAlerts) {
+                qc.setQueryData(['alerts', farmId], context.previousAlerts)
+            }
+        },
+        onSettled: () => qc.invalidateQueries({ queryKey: ['alerts', farmId] }),
+    })
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────

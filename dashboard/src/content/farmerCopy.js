@@ -4,7 +4,36 @@ export function humanizeLabel(value) {
   return `${label[0].toUpperCase()}${label.slice(1)}`
 }
 
+export const alertCopy = {
+  uncertain: {
+    title: 'The photo was unclear',
+    advice: 'Retake the photo in daylight with one leaf held flat.',
+  },
+  out_of_scope: {
+    title: 'We do not recognise this',
+    advice: 'Show a leaf to your extension officer.',
+  },
+}
+
 export const fusedPredictionCopy = {
+  inconclusive: {
+    headline: alertCopy.uncertain.title,
+    support: alertCopy.uncertain.advice,
+    action: alertCopy.uncertain.advice,
+    chipLabel: 'Not confirmed',
+  },
+  out_of_scope: {
+    headline: alertCopy.out_of_scope.title,
+    support: alertCopy.out_of_scope.advice,
+    action: alertCopy.out_of_scope.advice,
+    chipLabel: 'Not recognised',
+  },
+  nutrient_deficiency: {
+    headline: 'Your maize may need nutrients',
+    support: 'The latest check suggests a possible nutrient deficiency.',
+    action: 'Ask your local agricultural extension officer to confirm nutrient needs before applying fertiliser.',
+    chipLabel: 'Nutrient deficiency',
+  },
   healthy: {
     headline: 'Your maize looks healthy',
     support: 'No stress found in your latest check.',
@@ -60,17 +89,6 @@ export const nutrientStatusLabels = {
   phosphorus_deficiency: 'Low phosphorus',
   potassium_deficiency: 'Low potassium',
   zinc_deficiency: 'Low zinc',
-}
-
-export const alertCopy = {
-  uncertain: {
-    title: 'The photo was unclear',
-    advice: 'Retake the photo in daylight with one leaf held flat.',
-  },
-  out_of_scope: {
-    title: 'We do not recognise this',
-    advice: 'Show a leaf to your extension officer.',
-  },
 }
 
 export function getFusedPredictionCopy(value) {

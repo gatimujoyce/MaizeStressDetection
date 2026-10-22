@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { BellIcon, CameraIcon, ChartIcon, HomeIcon } from './NavIcons'
+import { useAlerts } from '../api/hooks'
+import { useFarm } from '../farm/FarmContext'
 
 const navItems = [
   { label: 'Home', to: '/', icon: HomeIcon, end: true },
@@ -9,6 +11,10 @@ const navItems = [
 ]
 
 export default function BottomNav() {
+  const { selectedFarmId } = useFarm()
+  const { data: alerts = [] } = useAlerts(selectedFarmId)
+  const unreadCount = alerts.filter((alert) => alert.status !== 'acknowledged').length
+
   return (
     <nav
       aria-label="Primary"
@@ -32,7 +38,14 @@ export default function BottomNav() {
                 <Icon className="h-6 w-6" />
               </span>
             ) : (
-              <Icon className="h-6 w-6" />
+              <span className="relative">
+                <Icon className="h-6 w-6" />
+                {label === 'Alerts' && unreadCount > 0 && (
+                  <span aria-label={`${unreadCount} unread alerts`} className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-critical-text px-1 text-[11px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </span>
             )}
             <span>{label}</span>
           </NavLink>
