@@ -5,10 +5,15 @@ class mapping, output interpretation, and artifact-loading behavior. This
 module intentionally does not guess those details or load ML frameworks.
 """
 
+import logging
+import os
+import random
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 InferenceMode = Literal["demo", "real"]
 
@@ -120,14 +125,156 @@ class DemoCheckinInferencePipeline:
         )
 
 
+@dataclass(frozen=True)
+class StubScenario:
+    disease_label: str
+    disease_confidence: float
+    sensor_label: str
+    nutrient_label: str
+    triage_result: str = "in_scope"
+    leaf_wetness_proxy: float = 4.0
+
+
+STUB_SCENARIOS = {
+    "healthy": StubScenario(
+        disease_label="Healthy",
+        disease_confidence=0.99,
+        sensor_label="Normal",
+        nutrient_label="No Deficiency",
+    ),
+    "common_rust": StubScenario(
+        disease_label="Common Rust",
+        disease_confidence=0.94,
+        sensor_label="Waterlogging Risk",
+        nutrient_label="No Deficiency",
+    ),
+    "northern_leaf_blight": StubScenario(
+        disease_label="Northern Leaf Blight",
+        disease_confidence=0.94,
+        sensor_label="Waterlogging Risk",
+        nutrient_label="No Deficiency",
+    ),
+    "gray_leaf_spot": StubScenario(
+        disease_label="Gray Leaf Spot",
+        disease_confidence=0.94,
+        sensor_label="Heat Stress",
+        nutrient_label="No Deficiency",
+    ),
+    "drought_stress": StubScenario(
+        disease_label="Healthy",
+        disease_confidence=0.99,
+        sensor_label="Drought Stress",
+        nutrient_label="No Deficiency",
+    ),
+    "heat_stress": StubScenario(
+        disease_label="Healthy",
+        disease_confidence=0.99,
+        sensor_label="Heat Stress",
+        nutrient_label="No Deficiency",
+    ),
+    "waterlogging_risk": StubScenario(
+        disease_label="Healthy",
+        disease_confidence=0.99,
+        sensor_label="Waterlogging Risk",
+        nutrient_label="No Deficiency",
+    ),
+    "nutrient_deficiency": StubScenario(
+        disease_label="Healthy",
+        disease_confidence=0.99,
+        sensor_label="Normal",
+        nutrient_label="Nitrogen Deficiency",
+    ),
+    "out_of_scope": StubScenario(
+        disease_label="Healthy",
+        disease_confidence=0.99,
+        sensor_label="Normal",
+        nutrient_label="No Deficiency",
+        triage_result="out_of_scope",
+    ),
+    "inconclusive": StubScenario(
+        disease_label="Common Rust",
+        disease_confidence=0.5,
+        sensor_label="Normal",
+        nutrient_label="No Deficiency",
+        leaf_wetness_proxy=4.0,
+    ),
+}
+_last_random_scenario: str | None = None
+
+
+def _get_stub_scenario() -> StubScenario:
+    global _last_random_scenario
+
+    requested = os.getenv("STUB_SCENARIO", "random").strip().lower()
+    if requested == "random":
+        choices = [name for name in STUB_SCENARIOS if name != _last_random_scenario]
+        selected = random.choice(choices)
+        _last_random_scenario = selected
+        return STUB_SCENARIOS[selected]
+    try:
+        return STUB_SCENARIOS[requested]
+    except KeyError as exc:
+        allowed = ", ".join(("random", *STUB_SCENARIOS.keys()))
+        raise ValueError(
+            f"Invalid STUB_SCENARIO {requested!r}; allowed values: {allowed}"
+        ) from exc
+
+
+class StubCheckinInferencePipeline:
+    """Scenario-driven stand-in used until real model artifacts are available."""
+
+    async def predict(
+        self,
+        image: ImageInput,
+        reading: SensorInput | None,
+    ) -> CheckinInference:
+        del image
+        scenario = _get_stub_scenario()
+        if reading is None:
+            sensor_label = scenario.sensor_label
+            leaf_wetness_proxy = scenario.leaf_wetness_proxy
+        else:
+            leaf_wetness_proxy = reading.leaf_wetness
+            sensor_label = (
+                "Waterlogging Risk"
+                if leaf_wetness_proxy > 3
+                else "Normal"
+                if leaf_wetness_proxy > 1
+                else "Heat Stress"
+            )
+
+        return CheckinInference(
+            triage=ModelOutput(scenario.triage_result, 1.0),
+            disease=ModelOutput(
+                scenario.disease_label,
+                scenario.disease_confidence,
+            ),
+            sensor=ModelOutput(sensor_label, 0.88),
+            nutrient=ModelOutput(scenario.nutrient_label, 0.9),
+            leaf_wetness_proxy=leaf_wetness_proxy,
+            model_versions={
+                "inference_mode": "stub",
+                "triage": "stub",
+                "disease": "stub",
+                "sensor": "stub",
+                "nutrient": "stub",
+            },
+        )
+
+
 def get_checkin_inference_pipeline(
     mode: InferenceMode | None = None,
 ) -> CheckinInferencePipeline:
-    """Return the configured pipeline, failing closed when real inference is absent."""
+    """Select real inference when available, otherwise use the scenario stub."""
     selected_mode = mode or settings.CHECKIN_INFERENCE_MODE
     if selected_mode == "demo":
-        return DemoCheckinInferencePipeline()
-    raise InferenceUnavailableError(
+        return StubCheckinInferencePipeline()
+    unavailable = InferenceUnavailableError(
         "Real check-in inference is not available: trained model artifacts and "
         "verified inference implementations are not configured."
     )
+    if mode is not None:
+        raise unavailable
+
+    logger.warning("Real inference is unavailable; using the configured stub scenario")
+    return StubCheckinInferencePipeline()

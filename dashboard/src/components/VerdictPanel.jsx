@@ -51,10 +51,12 @@ export default function VerdictPanel({ status, action }) {
           </div>
           <div className="flex flex-wrap gap-3">
             <StatusChip status={severity} label={copy.chipLabel} />
-            <StatusChip
-              status={getNutrientStatusLabel(status.nutrient_status) === 'Nutrients look fine' ? 'healthy' : 'neutral'}
-              label={getNutrientStatusLabel(status.nutrient_status)}
-            />
+            {status.nutrient_status != null && (
+              <StatusChip
+                status={getNutrientStatusLabel(status.nutrient_status) === 'Nutrients look fine' ? 'healthy' : 'neutral'}
+                label={getNutrientStatusLabel(status.nutrient_status)}
+              />
+            )}
           </div>
           <div className="rounded-2xl bg-surface p-4 text-ink">
             <LeafRule className="text-brand" />
