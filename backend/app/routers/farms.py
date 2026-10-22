@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import desc
 import uuid
 from typing import List
+from datetime import datetime, timezone
 
 from app.core.deps import get_db, require_farmer
 from app.models import Farm, User, RoleEnum, Checkin, Prediction, SensorReading
@@ -14,9 +16,6 @@ from app.schemas.farms import (
     FarmStatusResponse,
     FarmHistoryResponse,
 )
-from app.schemas.checkins import CheckinResponse
-from app.schemas.predictions import PredictionResponse
-from app.schemas.readings import SensorReadingResponse
 
 router = APIRouter(prefix="/farms", tags=["farms"])
 
@@ -28,7 +27,11 @@ async def create_farm(
 ):
     new_farm = Farm(id=uuid.uuid4(), user_id=current_user.id, **farm_in.model_dump())
     db.add(new_farm)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Farm name already exists for this user")
     await db.refresh(new_farm)
     return new_farm
 
@@ -37,7 +40,7 @@ async def read_farms(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Farm).where(Farm.user_id == current_user.id))
+    result = await db.execute(select(Farm).where(Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     return result.scalars().all()
 
 @router.get("/{farm_id}/status", response_model=FarmStatusResponse)
@@ -46,7 +49,9 @@ async def get_farm_status(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    farm_result = await db.execute(select(Farm).where(Farm.id == farm_id))
+    farm_result = await db.execute(
+        select(Farm).where(Farm.id == farm_id, Farm.deleted_at.is_(None))
+    )
     farm = farm_result.scalar_one_or_none()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
@@ -76,7 +81,9 @@ async def get_farm_history(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    farm_result = await db.execute(select(Farm).where(Farm.id == farm_id))
+    farm_result = await db.execute(
+        select(Farm).where(Farm.id == farm_id, Farm.deleted_at.is_(None))
+    )
     farm = farm_result.scalar_one_or_none()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
@@ -120,15 +127,47 @@ async def update_farm(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id))
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     farm = result.scalar_one_or_none()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
-    
+
     update_data = farm_in.model_dump(exclude_unset=True)
     for k, v in update_data.items():
         setattr(farm, k, v)
-    
-    await db.commit()
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Farm name already exists for this user")
     await db.refresh(farm)
     return farm
+
+@router.get("/{id}", response_model=FarmResponse)
+async def read_farm(
+    id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    return farm
+
+@router.delete("/{id}", response_model=dict)
+async def delete_farm(
+    id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+
+    farm.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+
+    return {"status": "success", "message": "Farm deleted"}

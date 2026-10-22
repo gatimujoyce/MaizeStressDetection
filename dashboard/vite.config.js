@@ -6,9 +6,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      injectRegister: false,
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\/api\/.*/i,
@@ -31,8 +32,8 @@ export default defineConfig({
         short_name: 'MaizeMonitor',
         start_url: '/',
         display: 'standalone',
-        background_color: '#faf8f5',
-        theme_color: '#b5563a',
+        background_color: '#F6F7F4',
+        theme_color: '#0B6B66',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }

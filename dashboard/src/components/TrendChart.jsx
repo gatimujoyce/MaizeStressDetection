@@ -2,62 +2,42 @@ import React, { useState } from 'react'
 
 export default function TrendChart({ history = [] }) {
   const [showFull, setShowFull] = useState(false)
-
   const displayedHistory = showFull ? history : history.slice(-2)
 
   const getSeverityBadge = (sev) => {
-    if (sev === 'healthy') return { label: 'Healthy', icon: '✓', color: 'var(--color-healthy-text)' }
-    if (sev === 'warning') return { label: 'Stress', icon: '⚠️', color: 'var(--color-warning-text)' }
-    return { label: 'Critical', icon: '✕', color: 'var(--color-critical-text)' }
+    if (sev === 'healthy') return { label: 'Healthy', icon: '✓', classes: 'text-[var(--color-healthy-text)]' }
+    if (sev === 'warning') return { label: 'Stress', icon: '⚠️', classes: 'text-[var(--color-warning-text)]' }
+    return { label: 'Critical', icon: '✕', classes: 'text-[var(--color-critical-text)]' }
   }
 
   return (
-    <div style={{
-      backgroundColor: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      borderRadius: '8px',
-      padding: '1.25rem'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Recent Field Trends</h3>
+    <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-5">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-base font-semibold m-0">Recent Field Trends</h3>
         <button
           onClick={() => setShowFull(!showFull)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-brand)',
-            cursor: 'pointer',
-            padding: '0.25rem',
-            fontSize: '0.9rem',
-            minHeight: 'auto'
-          }}
+          className="text-[var(--color-brand)] text-sm bg-transparent border-none p-0 cursor-pointer min-h-0 min-w-0 font-medium underline"
         >
           {showFull ? 'Show Recent Only' : 'See Full History'}
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div className="flex flex-col gap-3">
+        {displayedHistory.length === 0 && (
+          <p className="text-[var(--color-text-secondary)] text-sm">No history available yet.</p>
+        )}
         {displayedHistory.map((item, idx) => {
           const badge = getSeverityBadge(item.severity)
           return (
-            <div 
-              key={idx} 
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0.75rem',
-                backgroundColor: 'var(--color-bg)',
-                borderRadius: '6px'
-              }}
+            <div
+              key={idx}
+              className="flex justify-between items-center px-3 py-3 bg-[var(--color-bg)] rounded-sm"
             >
               <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem' }}>{item.date}</strong>
-                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                  Stage: {item.stage}
-                </span>
+                <strong className="block text-sm text-[var(--color-text-primary)]">{item.date}</strong>
+                <span className="text-xs text-[var(--color-text-secondary)]">Stage: {item.stage}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: badge.color, fontWeight: '500' }}>
+              <div className={`flex items-center gap-1.5 font-medium text-sm ${badge.classes}`}>
                 <span>{badge.icon}</span>
                 <span>{badge.label}</span>
               </div>
