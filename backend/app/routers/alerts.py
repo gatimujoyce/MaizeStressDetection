@@ -17,9 +17,9 @@ async def list_alerts(
     db: AsyncSession = Depends(get_db)
 ):
     # Verify farm ownership
-    result_farm = await db.execute(select(Farm).where(Farm.id == farm_id, Farm.user_id == current_user.id))
+    result_farm = await db.execute(select(Farm).where(Farm.id == farm_id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
     if not result_farm.scalar_one_or_none():
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(status_code=404, detail="Farm not found")
         
     result = await db.execute(select(Alert).where(Alert.farm_id == farm_id))
     return result.scalars().all()
