@@ -6,6 +6,7 @@ from app.services.recommend import get_recommendation
 from app.routers.checkins import checkin_and_predict
 from fastapi import UploadFile, HTTPException
 from app.models import User, Farm, SensorReading
+from io import BytesIO
 
 @pytest.mark.asyncio
 async def test_compute_severity_matrix_1():
@@ -65,21 +66,56 @@ async def test_compute_severity_matrix_9():
 async def test_endpoint_predict_flow_high_severity():
     # 10. Test endpoint integration with high severity triggers SMS
     mock_db = AsyncMock()
-    
-    # Mock check_farm_access scalar_one_or_none to return a Farm -> authorized
-    mock_db.execute.return_value.scalar_one_or_none.side_effect = [
-        Farm(id=uuid.uuid4(), user_id=uuid.uuid4(), name="Test Farm", location="Loc", soil_type="loam"), # check_farm_access
-        SensorReading(id=uuid.uuid4(), farm_id=uuid.uuid4(), leaf_wetness=2.0) # sensor reading -> lw=2.0 -> "Normal" -> NLB + <3 -> High
-    ]
+
+    # Create the farm and user first
+    mock_user = User(
+        id=uuid.uuid4(),
+        name="Test User",
+        phone="+254700000000",
+        password_hash="hash",
+    )
+
+    farm_id = uuid.uuid4()
+
+    farm = Farm(
+        id=farm_id,
+        user_id=mock_user.id,
+        name="Test Farm",
+        location="Loc",
+        soil_type="loam",
+    )
+
+    sensor_reading = SensorReading(
+        id=uuid.uuid4(),
+        farm_id=farm_id,
+        soil_moisture=30.0,
+        temperature=24.0,
+        humidity=55.0,
+        leaf_wetness=2.0,
+    )
+
+    # Configure execute() to return normal SQLAlchemy-style result objects
+    farm_result = MagicMock()
+    farm_result.scalar_one_or_none.return_value = farm
+
+    sensor_result = MagicMock()
+    sensor_result.scalar_one_or_none.return_value = sensor_reading
+
+    mock_db.execute = AsyncMock(
+        side_effect=[farm_result, sensor_result]
+    )
+
+    # AsyncSession.add() is synchronous
+    mock_db.add = MagicMock()
     
     mock_file = MagicMock(spec=UploadFile)
+    mock_file.file = BytesIO(b"fake image content")
     mock_file.content_type = "image/jpeg"
     mock_file.filename = "test.jpeg"
     
     mock_user = User(id=uuid.uuid4(), name="Test User", phone="+254700000000", password_hash="hash")
     
-    with patch("app.routers.checkins.shutil.copyfileobj"), \
-         patch("app.routers.checkins.os.path.join", return_value="fake/path.jpg"), \
+    with patch("app.routers.checkins.os.path.join", return_value="fake/path.jpg"), \
          patch("app.routers.checkins.open"), \
          patch("app.routers.checkins.send_sms", return_value={"SMSMessageData": {"Message": "SentTo1"}}) as mock_send_sms:
         
@@ -87,5 +123,6 @@ async def test_endpoint_predict_flow_high_severity():
         
         assert result.severity == "High"
         assert result.recommendation is not None
+        assert result.model_versions["inference_mode"] == "demo"
         mock_send_sms.assert_called_once()
         assert "+254700000000" in mock_send_sms.call_args[0]
