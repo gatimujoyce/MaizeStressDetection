@@ -3,17 +3,16 @@
 //               VITE_USE_MOCK_API=false → calls real backend via httpClient.js
 import * as mock from './mockApi'
 import { httpClient } from './httpClient'
-import { fusedPredictionCopy } from '../content/farmerCopy'
+import { adaptFarmStatus } from './statusAdapter'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
 const realApi = {
     status: true,
     farmerFarm: false,
     farms: false,
-    readings: false,
+    readings: true,
     history: false,
-    alerts: false,
-    allAlerts: false,
+    alerts: true,
     checkin: false,
     prediction: false,
     feedback: false,
@@ -25,56 +24,32 @@ const realApi = {
     smsLog: false,
 }
 
-const predictionCopyKeys = Object.keys(fusedPredictionCopy)
+const shouldUseMock = (endpoint) => USE_MOCK && !realApi[endpoint]
 
-function adaptFarmStatus(response) {
-    const prediction = response.latest_prediction
-    if (!prediction) {
-        return {
-            farm_id: response.farm_id,
-            has_data: false,
-        }
-    }
-
-    const severity = prediction.severity?.toLowerCase()
-    const severityLevel = {
-        low: 'healthy',
-        medium: 'warning',
-        high: 'critical',
-        inconclusive: 'neutral',
-    }[severity] ?? 'neutral'
-
-    const toCopyKey = (label) => {
-        if (typeof label !== 'string') return null
-        const normalized = label.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
-        if (normalized === 'normal') return 'healthy'
-        return predictionCopyKeys.includes(normalized) ? normalized : null
-    }
-
-    const diseaseKey = toCopyKey(prediction.disease_label)
-    const sensorKey = toCopyKey(prediction.sensor_label)
-    const isHealthyDisease = diseaseKey === 'healthy'
-    const isOutOfScope = prediction.triage_result?.toLowerCase() === 'out_of_scope'
-    const labelKey = severity === 'low'
-        ? 'healthy'
-        : isOutOfScope
-            ? diseaseKey ?? sensorKey
-            : diseaseKey && !isHealthyDisease
-            ? diseaseKey
-            : sensorKey ?? diseaseKey
-    const fusedPrediction = labelKey ?? (severity === 'low' ? 'healthy' : 'leaf_blight')
-
+function adaptAlertResponse(alert) {
+    const normalizedSeverity = alert.severity?.toLowerCase()
     return {
-        farm_id: response.farm_id,
-        has_data: true,
-        fused_prediction: fusedPrediction,
-        severity_level: severityLevel,
-        created_at: prediction.created_at,
-        ...(prediction.nutrient_label != null ? { nutrient_status: prediction.nutrient_label } : {}),
+        ...alert,
+        alert_id: alert.id,
+        severity: normalizedSeverity === 'high'
+            ? 'critical'
+            : normalizedSeverity === 'medium'
+                ? 'warning'
+                : 'neutral',
+        severity_label: alert.severity,
     }
 }
 
-const shouldUseMock = (endpoint) => USE_MOCK && !realApi[endpoint]
+function adaptReadingResponse(reading) {
+    const tileFields = ['soil_moisture', 'temperature', 'humidity']
+    const hasValidTileValues = tileFields.every((field) =>
+        Number.isFinite(reading?.[field]),
+    )
+    if (!hasValidTileValues) {
+        throw new Error('The server returned incomplete field readings.')
+    }
+    return reading
+}
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const login = (credentials) =>
@@ -127,8 +102,12 @@ export const getFarmStatus = (farmId) =>
 export const getLatestReadings = (farmId) =>
     shouldUseMock('readings')
         ? mock.getLatestReadings(farmId)
-        // path to confirm at integration
         : httpClient.get(`/farms/${farmId}/readings/latest`)
+            .then(adaptReadingResponse)
+            .catch((error) => {
+                if (error.status === 404) return null
+                throw error
+            })
 
 export const getFarmHistory = (farmId, days = 30) =>
     shouldUseMock('history') ? mock.getFarmHistory(farmId, days) : httpClient.get(`/farms/${farmId}/history?days=${days}`)
@@ -144,10 +123,12 @@ export const getPredictionById = (predictionId) =>
     shouldUseMock('prediction') ? mock.getPredictionById(predictionId) : httpClient.get(`/predictions/${predictionId}`)
 
 export const getAlerts = (farmId) =>
-    shouldUseMock('alerts') ? mock.getAlerts(farmId) : httpClient.get(`/farms/${farmId}/alerts`)
+    shouldUseMock('alerts')
+        ? mock.getAlerts(farmId)
+        : httpClient.get(`/farms/${farmId}/alerts`).then((alerts) => alerts.map(adaptAlertResponse))
 
-export const getAllAlerts = () =>
-    shouldUseMock('allAlerts') ? mock.getAllAlerts() : httpClient.get('/alerts')
+export const acknowledgeAlert = (farmId, alertId) =>
+    httpClient.patch(`/farms/${farmId}/alerts/${alertId}`, {})
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
 export const confirmPrediction = (alertId, farmerId, confirmed, comment = '') =>

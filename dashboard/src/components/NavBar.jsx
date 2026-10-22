@@ -1,8 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { useAlerts } from '../api/hooks'
+import { useFarm } from '../farm/FarmContext'
 
 export default function NavBar() {
   const { role, isAuthenticated, logout } = useAuth()
+  const { selectedFarmId } = useFarm()
+  const { data: alerts = [] } = useAlerts(role === 'farmer' ? selectedFarmId : null)
+  const unreadCount = alerts.filter((alert) => alert.status !== 'acknowledged').length
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -22,7 +27,14 @@ export default function NavBar() {
               <Link to="/" className="hover:underline opacity-90 hover:opacity-100 focus-visible:outline-white">Home</Link>
               <Link to="/check-in" className="hover:underline opacity-90 hover:opacity-100 focus-visible:outline-white">Check-in</Link>
               <Link to="/trends" className="hover:underline opacity-90 hover:opacity-100 focus-visible:outline-white">Trends</Link>
-              <Link to="/alerts" className="hover:underline opacity-90 hover:opacity-100 focus-visible:outline-white">Alerts</Link>
+              <Link to="/alerts" className="inline-flex items-center gap-2 hover:underline opacity-90 hover:opacity-100 focus-visible:outline-white">
+                Alerts
+                {unreadCount > 0 && (
+                  <span aria-label={`${unreadCount} unread alerts`} className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-[var(--color-brand)]">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
             </div>
           )}
 

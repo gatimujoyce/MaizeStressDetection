@@ -1,36 +1,22 @@
 import { Link } from 'react-router-dom'
-import { useAlerts } from '../../api/hooks'
-import { WarningIcon, InfoIcon, ErrorIcon } from '../../components/Icons'
+import { useAcknowledgeAlertMutation, useAlerts } from '../../api/hooks'
+import { WarningIcon, ErrorIcon } from '../../components/Icons'
 import { useFarm } from '../../farm/FarmContext'
-
-const formatDate = (iso) =>
-    new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 export default function AlertsPage() {
     const { selectedFarmId, selectedFarm } = useFarm()
-    const { data: alerts = [], isLoading } = useAlerts(selectedFarmId)
+    const {
+        data: alerts = [],
+        isLoading,
+        isError,
+        isFetching,
+        refetch,
+    } = useAlerts(selectedFarmId)
+    const acknowledgeMutation = useAcknowledgeAlertMutation(selectedFarmId)
 
-    // Sort newest first
-    const sorted = [...alerts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    const sorted = [...alerts]
 
     const renderAlert = (alert) => {
-        if (alert.status === 'uncertain' || alert.status === 'out_of_scope') {
-            return (
-                <div key={alert.alert_id} className="bg-[var(--color-neutral-bg)] border border-[var(--color-border)] rounded-sm p-4">
-                    <div className="flex gap-2 items-center font-semibold text-[var(--color-neutral-text)] text-sm">
-                        <InfoIcon size={14} />
-                        <span>{alert.status === 'uncertain' ? 'Inconclusive Image Analysis' : 'Unrecognised Pattern'}</span>
-                        <span className="ml-auto text-xs font-normal text-[var(--color-text-secondary)]">{formatDate(alert.created_at)}</span>
-                    </div>
-                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">{alert.plain_summary}</p>
-                    {alert.alert_id && (
-                        <Link to={`/result/${alert.alert_id}`} className="mt-2 inline-block text-xs text-[var(--color-brand)] underline">
-                            View full result
-                        </Link>
-                    )}
-                </div>
-            )
-        }
         const isCritical = alert.severity === 'critical'
         return (
             <div
@@ -39,12 +25,21 @@ export default function AlertsPage() {
             >
                 <div className={`flex gap-2 items-center font-semibold text-sm ${isCritical ? 'text-[var(--color-critical-text)]' : 'text-[var(--color-warning-text)]'}`}>
                     {isCritical ? <ErrorIcon size={14} /> : <WarningIcon size={14} />}
-                    <span>{alert.plain_summary}</span>
-                    <span className="ml-auto text-xs font-normal text-[var(--color-text-secondary)]">{formatDate(alert.created_at)}</span>
+                    <span>{alert.severity_label}</span>
                 </div>
-                <Link to={`/result/${alert.alert_id}`} className="mt-2 inline-block text-xs text-[var(--color-brand)] underline">
+                {alert.prediction_id && <Link to={`/result/${alert.prediction_id}`} className="mt-2 inline-block text-xs text-[var(--color-brand)] underline">
                     View result →
-                </Link>
+                </Link>}
+                {alert.status !== 'acknowledged' && (
+                    <button
+                        type="button"
+                        onClick={() => acknowledgeMutation.mutate(alert.alert_id)}
+                        disabled={acknowledgeMutation.isPending}
+                        className="mt-3 min-h-11 rounded-xl border border-brand px-4 py-2 text-sm font-semibold text-brand disabled:opacity-60"
+                    >
+                        {acknowledgeMutation.isPending ? 'Acknowledging…' : 'Mark as read'}
+                    </button>
+                )}
             </div>
         )
     }
@@ -59,10 +54,27 @@ export default function AlertsPage() {
 
             {isLoading ? (
                 <p className="text-[var(--color-text-secondary)] text-sm">Loading alerts…</p>
+            ) : isError ? (
+                <div role="alert" className="text-[var(--color-critical-text)] text-sm">
+                    <p>Could not load alerts.</p>
+                    <button
+                        type="button"
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                        className="min-h-11 rounded-xl border border-brand px-4 py-2 font-semibold text-brand disabled:opacity-60"
+                    >
+                        {isFetching ? 'Retrying…' : 'Retry'}
+                    </button>
+                </div>
             ) : sorted.length === 0 ? (
                 <p className="text-[var(--color-text-secondary)] text-sm">No alerts recorded yet.</p>
             ) : (
                 <div className="flex flex-col gap-3">{sorted.map(renderAlert)}</div>
+            )}
+            {acknowledgeMutation.isError && (
+                <p role="alert" className="mt-3 text-[var(--color-critical-text)] text-sm">
+                    Could not acknowledge this alert. Please try again.
+                </p>
             )}
         </div>
     )

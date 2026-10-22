@@ -14,8 +14,20 @@ import { useFarm } from '../../farm/FarmContext'
 export default function FarmerDashboard() {
   const { selectedFarmId, selectedFarm, isLoading: farmsLoading, hasFarms } = useFarm()
   const { data: status = null } = useFarmStatus(selectedFarmId)
-  const { data: readings, isLoading: readingsLoading } = useLatestReadings(selectedFarmId)
-  const { data: alerts = [] } = useAlerts(selectedFarmId)
+  const {
+    data: readings,
+    isLoading: readingsLoading,
+    isError: readingsError,
+    isFetching: readingsFetching,
+    refetch: retryReadings,
+  } = useLatestReadings(selectedFarmId)
+  const {
+    data: alerts = [],
+    isLoading: alertsLoading,
+    isError: alertsError,
+    isFetching: alertsFetching,
+    refetch: retryAlerts,
+  } = useAlerts(selectedFarmId)
   const { data: history = [] } = useFarmHistory(selectedFarmId)
   const soilType = SOIL_PROFILES[selectedFarm?.soil_type] ? selectedFarm.soil_type : 'loam'
   const soilProfile = SOIL_PROFILES[soilType]
@@ -72,7 +84,19 @@ export default function FarmerDashboard() {
         </Link>
       )}
 
-      {readings && (
+      {readingsError ? (
+        <div role="alert" className="text-[15px] text-critical-text">
+          <p>Could not load field readings.</p>
+          <button
+            type="button"
+            onClick={() => retryReadings()}
+            disabled={readingsFetching}
+            className="min-h-11 rounded-xl border border-brand px-4 py-2 font-semibold text-brand disabled:opacity-60"
+          >
+            {readingsFetching ? 'Retrying…' : 'Retry'}
+          </button>
+        </div>
+      ) : readings && (
         <section aria-labelledby="field-readings-title" className="flex flex-col gap-3">
           <h2 id="field-readings-title" className="m-0 text-[21px] font-bold text-ink">
             Field readings
@@ -110,16 +134,35 @@ export default function FarmerDashboard() {
           ))}
         </section>
       )}
+      {!readings && !readingsLoading && !readingsError && selectedFarmId && (
+        <p className="text-[15px] text-ink-secondary">
+          No sensor readings recorded for this plot yet.
+        </p>
+      )}
 
       {status?.has_data !== false && (
         <section className="flex flex-col gap-3" aria-labelledby="alerts-title">
           <h2 id="alerts-title" className="m-0 text-[21px] font-bold text-ink">
             Alerts
           </h2>
-          {alerts.length > 0 ? (
+          {alertsLoading ? (
+            <p className="text-[15px] text-ink-secondary">Loading alerts…</p>
+          ) : alertsError ? (
+            <div role="alert" className="text-[15px] text-critical-text">
+              <p>Could not load alerts.</p>
+              <button
+                type="button"
+                onClick={() => retryAlerts()}
+                disabled={alertsFetching}
+                className="min-h-11 rounded-xl border border-brand px-4 py-2 font-semibold text-brand disabled:opacity-60"
+              >
+                {alertsFetching ? 'Retrying…' : 'Retry'}
+              </button>
+            </div>
+          ) : alerts.length > 0 ? (
             <div className="flex flex-col gap-3">
               {alerts.map((alert) => (
-                <AlertCard key={alert.alert_id} alert={alert} />
+                <AlertCard key={alert.alert_id} alert={alert} farmId={selectedFarmId} />
               ))}
             </div>
           ) : (
