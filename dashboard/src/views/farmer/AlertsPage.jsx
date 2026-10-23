@@ -27,7 +27,7 @@ export default function AlertsPage() {
                     {isCritical ? <ErrorIcon size={14} /> : <WarningIcon size={14} />}
                     <span>{alert.severity_label}</span>
                 </div>
-                {alert.prediction_id && <Link to={`/result/${alert.prediction_id}`} className="mt-2 inline-block text-xs text-[var(--color-brand)] underline">
+                {alert.prediction_id && <Link to={`/result/${selectedFarmId}/${alert.prediction_id}`} className="mt-2 inline-block text-xs text-[var(--color-brand)] underline">
                     View result →
                 </Link>}
                 {alert.status !== 'acknowledged' && (

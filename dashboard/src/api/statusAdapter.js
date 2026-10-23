@@ -1,4 +1,4 @@
-import { fusedPredictionCopy } from '../content/farmerCopy.js'
+import { fusedPredictionCopy, getFusedPredictionCopy } from '../content/farmerCopy.js'
 
 const predictionCopyKeys = new Set(Object.keys(fusedPredictionCopy))
 
@@ -17,15 +17,7 @@ function toCopyKey(label) {
   return predictionCopyKeys.has(normalized) ? normalized : null
 }
 
-export function adaptFarmStatus(response) {
-  const prediction = response.latest_prediction
-  if (!prediction) {
-    return {
-      farm_id: response.farm_id,
-      has_data: false,
-    }
-  }
-
+function adaptPrediction(prediction, farmId) {
   const severity = normalizeLabel(prediction.severity)
   const severityLevel = {
     low: 'healthy',
@@ -65,13 +57,42 @@ export function adaptFarmStatus(response) {
   }
 
   return {
-    farm_id: response.farm_id,
-    has_data: true,
+    ...prediction,
+    id: prediction.id,
+    prediction_id: prediction.id,
+    farm_id: farmId,
     fused_prediction: fusedPrediction,
     severity_level: resolvedSeverityLevel,
+    status: fusedPrediction === 'out_of_scope'
+      ? 'out_of_scope'
+      : fusedPrediction === 'inconclusive'
+        ? 'uncertain'
+        : 'confirmed',
     created_at: prediction.created_at,
+    disease_confidence: prediction.disease_conf,
+    nutrient_confidence: prediction.nutrient_conf,
+    recommendation: getFusedPredictionCopy(fusedPrediction).action,
     ...(prediction.nutrient_label != null
       ? { nutrient_status: prediction.nutrient_label }
       : {}),
+  }
+}
+
+export function adaptPredictionResponse(prediction, farmId) {
+  return adaptPrediction(prediction, farmId)
+}
+
+export function adaptFarmStatus(response) {
+  const prediction = response.latest_prediction
+  if (!prediction) {
+    return {
+      farm_id: response.farm_id,
+      has_data: false,
+    }
+  }
+
+  return {
+    ...adaptPrediction(prediction, response.farm_id),
+    has_data: true,
   }
 }

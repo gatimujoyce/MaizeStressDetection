@@ -242,3 +242,23 @@ async def test_random_scenario_changes_between_consecutive_selections(monkeypatc
     second = await pipeline.predict(image, reading)
 
     assert first.disease.label != second.disease.label
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("use_readings", "expected_sensor", "expected_leaf_wetness"),
+    (("true", "Waterlogging Risk", 4.0), ("false", "Drought Stress", 4.0)),
+)
+async def test_stub_sensor_reading_setting(
+    monkeypatch, use_readings, expected_sensor, expected_leaf_wetness
+):
+    monkeypatch.setenv("STUB_SCENARIO", "drought_stress")
+    monkeypatch.setenv("STUB_USE_READINGS", use_readings)
+    pipeline = StubCheckinInferencePipeline()
+    image = ImageInput(b"image", "image/jpeg")
+    reading = SensorInput(30.0, 24.0, 55.0, 4.0)
+
+    result = await pipeline.predict(image, reading)
+
+    assert result.sensor.label == expected_sensor
+    assert result.leaf_wetness_proxy == expected_leaf_wetness

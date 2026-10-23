@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 export default function TrendChart({ history = [] }) {
   const [showFull, setShowFull] = useState(false)
-  const displayedHistory = showFull ? history : history.slice(-2)
+  const displayedHistory = showFull ? history : history.slice(0, 2)
 
   const getSeverityBadge = (sev) => {
     if (sev === 'healthy') return { label: 'Healthy', icon: '✓', classes: 'text-[var(--color-healthy-text)]' }
     if (sev === 'warning') return { label: 'Stress', icon: '⚠️', classes: 'text-[var(--color-warning-text)]' }
-    return { label: 'Critical', icon: '✕', classes: 'text-[var(--color-critical-text)]' }
+    if (sev === 'critical') return { label: 'Critical', icon: '✕', classes: 'text-[var(--color-critical-text)]' }
+    if (sev === 'inconclusive') return { label: 'Inconclusive', icon: '•', classes: 'text-[var(--color-text-secondary)]' }
+    return null
   }
 
   return (
@@ -35,12 +37,16 @@ export default function TrendChart({ history = [] }) {
             >
               <div>
                 <strong className="block text-sm text-[var(--color-text-primary)]">{item.date}</strong>
-                <span className="text-xs text-[var(--color-text-secondary)]">Stage: {item.stage}</span>
+                {item.stage && (
+                  <span className="text-xs text-[var(--color-text-secondary)]">Stage: {item.stage}</span>
+                )}
               </div>
-              <div className={`flex items-center gap-1.5 font-medium text-sm ${badge.classes}`}>
-                <span>{badge.icon}</span>
-                <span>{badge.label}</span>
-              </div>
+              {badge && (
+                <div className={`flex items-center gap-1.5 font-medium text-sm ${badge.classes}`}>
+                  <span>{badge.icon}</span>
+                  <span>{badge.label}</span>
+                </div>
+              )}
             </div>
           )
         })}

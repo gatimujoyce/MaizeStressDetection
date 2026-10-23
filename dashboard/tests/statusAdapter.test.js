@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { adaptFarmStatus } from '../src/api/statusAdapter.js'
+import { adaptFarmStatus, adaptPredictionResponse } from '../src/api/statusAdapter.js'
 import { getFusedPredictionCopy } from '../src/content/farmerCopy.js'
 
 const timestamp = '2026-10-22T10:00:00Z'
@@ -73,6 +73,50 @@ test('returns an empty status when there is no prediction', () => {
     farm_id: 'farm-123',
     has_data: false,
   })
+})
+
+test('adapts direct predictions with the same safe verdict rules as farm status', () => {
+  const prediction = {
+    id: 'prediction-123',
+    severity: 'Inconclusive',
+    disease_label: 'Common Rust',
+    disease_conf: 0.9,
+    sensor_label: 'Normal',
+    sensor_conf: 0.9,
+    nutrient_label: 'No Deficiency',
+    nutrient_conf: 0.9,
+    triage_result: 'out_of_scope',
+    created_at: timestamp,
+    recommendation: 'Do not expose backend disease advice for this state.',
+  }
+  const result = adaptPredictionResponse(prediction, 'farm-456')
+
+  assert.equal(result.prediction_id, prediction.id)
+  assert.equal(result.farm_id, 'farm-456')
+  assert.equal(result.fused_prediction, 'out_of_scope')
+  assert.equal(result.status, 'out_of_scope')
+  assert.equal(result.severity_level, 'neutral')
+  assert.equal(result.recommendation, getFusedPredictionCopy('out_of_scope').action)
+  assert.equal(result.sensor_conditions, undefined)
+})
+
+test('does not expose disease advice for direct inconclusive predictions', () => {
+  const result = adaptPredictionResponse({
+    id: 'prediction-789',
+    severity: 'Inconclusive',
+    disease_label: 'Common Rust',
+    disease_conf: 0.9,
+    sensor_label: 'Normal',
+    sensor_conf: 0.9,
+    triage_result: 'in_scope',
+    created_at: timestamp,
+    recommendation: 'Backend disease treatment advice.',
+  }, 'farm-456')
+
+  assert.equal(result.fused_prediction, 'inconclusive')
+  assert.equal(result.status, 'uncertain')
+  assert.equal(result.severity_level, 'neutral')
+  assert.equal(result.recommendation, getFusedPredictionCopy('inconclusive').action)
 })
 
 test('uses neutral generic copy for unknown non-healthy labels rather than disease advice', () => {
