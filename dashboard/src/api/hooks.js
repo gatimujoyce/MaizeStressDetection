@@ -56,10 +56,10 @@ export function useLatestReadings(farmId) {
     })
 }
 
-export function useFarmHistory(farmId, days = 30) {
+export function useFarmHistory(farmId, limit = 100, offset = 0) {
     return useQuery({
-        queryKey: ['farmHistory', farmId, days],
-        queryFn: () => client.getFarmHistory(farmId, days),
+        queryKey: ['farmHistory', farmId, limit, offset],
+        queryFn: () => client.getFarmHistory(farmId, limit, offset),
         enabled: !!farmId,
     })
 }
@@ -72,21 +72,20 @@ export function useAllFarms() {
 export function useSubmitCheckinMutation() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: (formData) => client.submitCheckin(formData),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ['alerts'] })
-            qc.invalidateQueries({ queryKey: ['farmStatus'] })
-            qc.invalidateQueries({ queryKey: ['farmHistory'] })
-            qc.invalidateQueries({ queryKey: ['latestReadings'] })
+        mutationFn: ({ farmId, formData }) => client.submitCheckin(farmId, formData),
+        onSuccess: (_prediction, { farmId }) => {
+            qc.invalidateQueries({ queryKey: ['alerts', farmId] })
+            qc.invalidateQueries({ queryKey: ['farmStatus', farmId] })
+            qc.invalidateQueries({ queryKey: ['farmHistory', farmId] })
         },
     })
 }
 
-export function usePrediction(predictionId) {
+export function usePrediction(farmId, predictionId) {
     return useQuery({
-        queryKey: ['prediction', predictionId],
-        queryFn: () => client.getPredictionById(predictionId),
-        enabled: !!predictionId,
+        queryKey: ['prediction', farmId, predictionId],
+        queryFn: () => client.getPredictionById(farmId, predictionId),
+        enabled: !!farmId && !!predictionId,
     })
 }
 
@@ -98,8 +97,29 @@ export function useAlerts(farmId) {
     })
 }
 
-export function useAllAlerts() {
-    return useQuery({ queryKey: ['allAlerts'], queryFn: client.getAllAlerts })
+export function useAcknowledgeAlertMutation(farmId) {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: (alertId) => client.acknowledgeAlert(farmId, alertId),
+        onMutate: async (alertId) => {
+            await qc.cancelQueries({ queryKey: ['alerts', farmId] })
+            const previousAlerts = qc.getQueryData(['alerts', farmId])
+            qc.setQueryData(['alerts', farmId], (alerts = []) =>
+                alerts.map((alert) =>
+                    alert.alert_id === alertId
+                        ? { ...alert, status: 'acknowledged' }
+                        : alert,
+                ),
+            )
+            return { previousAlerts }
+        },
+        onError: (_error, _alertId, context) => {
+            if (context?.previousAlerts) {
+                qc.setQueryData(['alerts', farmId], context.previousAlerts)
+            }
+        },
+        onSettled: () => qc.invalidateQueries({ queryKey: ['alerts', farmId] }),
+    })
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
