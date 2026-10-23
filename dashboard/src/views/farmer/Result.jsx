@@ -2,15 +2,17 @@ import { useParams, useLocation, Link } from 'react-router-dom'
 import { usePrediction } from '../../api/hooks'
 import FeedbackControl from '../../components/FeedbackControl'
 import { useFarm } from '../../farm/FarmContext'
+import { getFusedPredictionCopy } from '../../content/farmerCopy'
 
 const SEVERITY_STYLES = {
     healthy: { classes: 'bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)]', icon: '✓', label: 'Healthy' },
     warning: { classes: 'bg-[var(--color-warning-bg)] text-[var(--color-warning-text)]', icon: '⚠️', label: 'Stress Detected' },
     critical: { classes: 'bg-[var(--color-critical-bg)] text-[var(--color-critical-text)]', icon: '🔴', label: 'Disease Confirmed' },
+    neutral: { classes: 'bg-[var(--color-neutral-bg)] text-[var(--color-neutral-text)]', icon: '•', label: 'Needs review' },
 }
 
 function SeverityBadge({ level }) {
-    const s = SEVERITY_STYLES[level] || SEVERITY_STYLES.healthy
+    const s = SEVERITY_STYLES[level] || SEVERITY_STYLES.neutral
     return (
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-sm font-semibold ${s.classes}`}>
             {s.icon} {s.label}
@@ -32,12 +34,13 @@ function UploadedImage({ imageUrl }) {
 }
 
 export default function Result() {
-    const { predictionId } = useParams()
+    const { farmId: routeFarmId, predictionId } = useParams()
     const location = useLocation()
     const uploadedImageUrl = location.state?.uploadedImageUrl
     const uploadedImage = uploadedImageUrl && <UploadedImage imageUrl={uploadedImageUrl} />
-    const { data: prediction, isLoading, isError } = usePrediction(predictionId)
-    const { farms } = useFarm()
+    const { farms, selectedFarmId } = useFarm()
+    const farmId = routeFarmId || location.state?.farmId || selectedFarmId
+    const { data: prediction, isLoading, isError } = usePrediction(farmId, predictionId)
 
     if (isLoading) {
         return <div className="flex justify-center py-20 text-[var(--color-text-secondary)]">Loading result…</div>
@@ -51,7 +54,18 @@ export default function Result() {
         )
     }
 
-    const { status, disease_label, disease_confidence, severity_level, sensor_conditions, recommendation, nutrient_status, nutrient_confidence } = prediction
+    const {
+        status,
+        fused_prediction,
+        disease_label,
+        disease_confidence,
+        severity_level,
+        sensor_conditions,
+        recommendation,
+        nutrient_status,
+        nutrient_confidence,
+    } = prediction
+    const copy = getFusedPredictionCopy(fused_prediction)
     const predictionFarm = farms.find((farm) => farm.farm_id === prediction.farm_id)
 
     // Three status states
@@ -60,11 +74,9 @@ export default function Result() {
             <div className="max-w-lg mx-auto py-8">
                 <div className="p-5 bg-[var(--color-neutral-bg)] border border-[var(--color-border)] rounded-sm">
                     <div className="flex gap-2 items-center font-bold text-[var(--color-neutral-text)] text-lg mb-2">
-                        <span>📷</span> Inconclusive Image
+                        <span>📷</span> {copy.headline}
                     </div>
-                    <p className="text-[var(--color-text-secondary)] text-sm">
-                        The photo resolution or lighting was insufficient to determine leaf condition. Upload a high-resolution photo taken in daylight.
-                    </p>
+                    <p className="text-[var(--color-text-secondary)] text-sm">{copy.support}</p>
                 </div>
                 {uploadedImage}
                 <FeedbackControl alertId={predictionId} />
@@ -78,11 +90,9 @@ export default function Result() {
             <div className="max-w-lg mx-auto py-8">
                 <div className="p-5 bg-[var(--color-warning-bg)] border border-[var(--color-border)] rounded-sm">
                     <div className="flex gap-2 items-center font-bold text-[var(--color-warning-text)] text-lg mb-2">
-                        <span>⚠️</span> Unrecognised Pattern
+                        <span>⚠️</span> {copy.headline}
                     </div>
-                    <p className="text-[var(--color-text-secondary)] text-sm">
-                        Detected symptoms do not match any condition in the current models. Consult your local agronomic extension service.
-                    </p>
+                    <p className="text-[var(--color-text-secondary)] text-sm">{copy.support}</p>
                 </div>
                 {uploadedImage}
                 <FeedbackControl alertId={predictionId} />
@@ -153,6 +163,7 @@ export default function Result() {
             )}
 
             {/* Nutrient is shown in a separate section */}
+            {nutrient_status != null && (
             <section className="bg-white border-2 border-dashed border-[var(--color-border)] rounded-sm p-5">
                 <div className="flex items-center gap-2 mb-2">
                     <span className="text-base">🧪</span>
@@ -170,6 +181,7 @@ export default function Result() {
                     </p>
                 )}
             </section>
+            )}
 
             {/* Feedback */}
             <section className="bg-white border border-[var(--color-border)] rounded-sm p-5">

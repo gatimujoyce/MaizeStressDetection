@@ -230,7 +230,10 @@ class StubCheckinInferencePipeline:
     ) -> CheckinInference:
         del image
         scenario = _get_stub_scenario()
-        if reading is None:
+        use_readings = os.getenv("STUB_USE_READINGS", "true").strip().lower() in {
+            "1", "true", "yes", "on"
+        }
+        if reading is None or not use_readings:
             sensor_label = scenario.sensor_label
             leaf_wetness_proxy = scenario.leaf_wetness_proxy
         else:

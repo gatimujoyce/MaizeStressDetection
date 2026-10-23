@@ -76,6 +76,14 @@ export default function AppRouter() {
             }
           />
           <Route
+            path="/result/:farmId/:predictionId"
+            element={
+              <RoleGuard allowedRole="farmer">
+                <Result />
+              </RoleGuard>
+            }
+          />
+          <Route
             path="/admin"
             element={
               <RoleGuard allowedRole="admin">

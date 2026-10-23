@@ -3,7 +3,7 @@
 //               VITE_USE_MOCK_API=false → calls real backend via httpClient.js
 import * as mock from './mockApi'
 import { httpClient } from './httpClient'
-import { adaptFarmStatus } from './statusAdapter'
+import { adaptFarmStatus, adaptPredictionResponse } from './statusAdapter'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
 const realApi = {
@@ -11,10 +11,10 @@ const realApi = {
     farmerFarm: false,
     farms: false,
     readings: true,
-    history: false,
+    history: true,
     alerts: true,
-    checkin: false,
-    prediction: false,
+    checkin: true,
+    prediction: true,
     feedback: false,
     systemHealth: false,
     users: false,
@@ -49,6 +49,28 @@ function adaptReadingResponse(reading) {
         throw new Error('The server returned incomplete field readings.')
     }
     return reading
+}
+
+function adaptFarmHistoryResponse(response) {
+    const severityMap = {
+        Low: 'healthy',
+        Medium: 'warning',
+        High: 'critical',
+        Inconclusive: 'inconclusive',
+    }
+
+    return (response.predictions ?? [])
+        .slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .map((prediction) => ({
+            id: prediction.id,
+            date: new Date(prediction.created_at).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+            }),
+            severity: severityMap[prediction.severity],
+        }))
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -109,18 +131,39 @@ export const getLatestReadings = (farmId) =>
                 throw error
             })
 
-export const getFarmHistory = (farmId, days = 30) =>
-    shouldUseMock('history') ? mock.getFarmHistory(farmId, days) : httpClient.get(`/farms/${farmId}/history?days=${days}`)
+export const getFarmHistory = (farmId, limit = 100, offset = 0) =>
+    shouldUseMock('history')
+        ? mock.getFarmHistory(farmId)
+        : httpClient
+            .get(`/farms/${farmId}/history?limit=${limit}&offset=${offset}`)
+            .then(adaptFarmHistoryResponse)
 
 export const getAllFarms = () =>
     shouldUseMock('farms') ? mock.getAllFarms() : httpClient.get('/farms')
 
 // ── Check-ins / Predictions ───────────────────────────────────────────────────
-export const submitCheckin = (formData) =>
-    shouldUseMock('checkin') ? mock.submitCheckin(formData) : httpClient.post('/checkins', formData)
+export const submitCheckin = (farmId, formData) =>
+    shouldUseMock('checkin')
+        ? mock.submitCheckin(formData).then((prediction) => ({
+            ...prediction,
+            farm_id: farmId,
+        }))
+        : (() => {
+            console.log('[check-in] request about to send', { farmId, useMock: false })
+            return httpClient
+                .post(`/farms/${farmId}/checkins`, formData)
+                .then((prediction) => adaptPredictionResponse(prediction, farmId))
+        })()
 
-export const getPredictionById = (predictionId) =>
-    shouldUseMock('prediction') ? mock.getPredictionById(predictionId) : httpClient.get(`/predictions/${predictionId}`)
+export const getPredictionById = (farmId, predictionId) =>
+    shouldUseMock('prediction')
+        ? mock.getPredictionById(predictionId).then((prediction) => ({
+            ...prediction,
+            farm_id: farmId,
+        }))
+        : httpClient
+            .get(`/farms/${farmId}/predictions/${predictionId}`)
+            .then((prediction) => adaptPredictionResponse(prediction, farmId))
 
 export const getAlerts = (farmId) =>
     shouldUseMock('alerts')
