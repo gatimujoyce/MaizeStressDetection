@@ -1,0 +1,27 @@
+﻿Train images hashed: 9656
+Test images hashed: 2080
+Possible leak: data/processed/nutrient_deficiency\test\nitrogen\IMG20230319153522_01.jpg ~ data/processed/nutrient_deficiency\train\nitrogen\IMG20230319153523.jpg (distance: 4)
+Possible leak: data/processed/nutrient_deficiency\test\nitrogen\IMG20230319153609.jpg ~ data/processed/nutrient_deficiency\train\nitrogen\IMG20230319153608_01.jpg (distance: 4)
+Possible leak: data/processed/nutrient_deficiency\test\nitrogen\IMG20230319161612.jpg ~ data/processed/nutrient_deficiency\train\nitrogen\IMG20230319161613.jpg (distance: 4)
+Possible leak: data/processed/nutrient_deficiency\test\nitrogen\IMG20230319161703_01.jpg ~ data/processed/nutrient_deficiency\train\nitrogen\IMG20230319161702_01.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\no_deficiency\1048_1.jpg ~ data/processed/nutrient_deficiency\train\no_deficiency\1050_1.jpg (distance: 4)
+Possible leak: data/processed/nutrient_deficiency\test\no_deficiency\1354_1.jpg ~ data/processed/nutrient_deficiency\train\no_deficiency\1353_1.jpg (distance: 4)
+Possible leak: data/processed/nutrient_deficiency\test\no_deficiency\1360_0.jpg ~ data/processed/nutrient_deficiency\train\no_deficiency\1359_0.jpg (distance: 4)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0355_1_0.jpg ~ data/processed/nutrient_deficiency\train\potassium\0355_0_1.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0355_1_1.jpg ~ data/processed/nutrient_deficiency\train\potassium\0355_0_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_0.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_1_1.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_1.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_1_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_2.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_3_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_2.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_4_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_3.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_3_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_3.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_4_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_4.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_3_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_0_4.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_4_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_2_0.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_3_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_2_0.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_4_0.jpg (distance: 0)
+Possible leak: data/processed/nutrient_deficiency\test\potassium\0361_2_1.jpg ~ data/processed/nutrient_deficiency\train\potassium\0361_3_1.jpg (distance: 0)
+
+Total possible leaks found: 4953
+Distinct test images with at least one flagged pair: 718
+Test images hashed: 2080
+Share of test images affected: 34.52%
