@@ -1,0 +1,7 @@
+{
+  "RANDOM_SEED": 42,
+  "SAMPLES_PER_CLASS": 1000,
+  "OVERLAP_SCALE": 1.25,
+  "Validation_Baseline_Accuracy": 0.9016666666666666,
+  "Test_Baseline_Accuracy": 0.9216666666666666
+}

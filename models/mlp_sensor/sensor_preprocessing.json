@@ -1,0 +1,34 @@
+{
+  "numeric_features": [
+    "soil_moisture",
+    "temperature_c",
+    "humidity_percent",
+    "leaf_wetness_proxy"
+  ],
+  "means": {
+    "soil_moisture": 29.394485714285672,
+    "temperature_c": 27.217464285714232,
+    "humidity_percent": 53.26713571428579,
+    "leaf_wetness_proxy": 12.043878571428593
+  },
+  "stds": {
+    "soil_moisture": 13.874775656608898,
+    "temperature_c": 6.724676030338814,
+    "humidity_percent": 23.439000119065867,
+    "leaf_wetness_proxy": 8.04899146030805
+  },
+  "soil_types": [
+    "sandy_loam",
+    "loam",
+    "silt_loam",
+    "clay"
+  ],
+  "growth_stages": [
+    "V4",
+    "V6",
+    "V11",
+    "flowering",
+    "grain_filling",
+    "maturity"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "n": 600,
+  "accuracy": 0.95,
+  "macro_precision": 0.9503275088686638,
+  "macro_recall": 0.949755897751108,
+  "macro_f1": 0.94991415191819,
+  "weighted_precision": 0.9499293436021369,
+  "weighted_recall": 0.95,
+  "weighted_f1": 0.9498423318222914,
+  "per_class": [
+    {
+      "name": "drought_stress",
+      "precision": 0.9490445859872612,
+      "recall": 0.9675324675324676,
+      "f1": 0.9581993569131833,
+      "support": 154
+    },
+    {
+      "name": "heat_stress",
+      "precision": 0.9552238805970149,
+      "recall": 0.920863309352518,
+      "f1": 0.9377289377289377,
+      "support": 139
+    },
+    {
+      "name": "normal",
+      "precision": 0.9299363057324841,
+      "recall": 0.9240506329113924,
+      "f1": 0.926984126984127,
+      "support": 158
+    },
+    {
+      "name": "waterlogging_risk",
+      "precision": 0.9671052631578947,
+      "recall": 0.9865771812080537,
+      "f1": 0.9767441860465116,
+      "support": 149
+    }
+  ],
+  "confusion_matrix": [
+    [
+      149,
+      2,
+      3,
+      0
+    ],
+    [
+      5,
+      128,
+      6,
+      0
+    ],
+    [
+      3,
+      4,
+      146,
+      5
+    ],
+    [
+      0,
+      0,
+      2,
+      147
+    ]
+  ],
+  "confidence_analysis": [
+    {
+      "threshold": 0.5,
+      "coverage": 0.9966666666666667,
+      "accuracy_on_accepted": 0.9531772575250836,
+      "deferred_share": 0.0033333333333333335
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 0.9833333333333333,
+      "accuracy_on_accepted": 0.9610169491525423,
+      "deferred_share": 0.016666666666666666
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 0.9616666666666667,
+      "accuracy_on_accepted": 0.9688041594454073,
+      "deferred_share": 0.03833333333333333
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 0.9383333333333334,
+      "accuracy_on_accepted": 0.9733570159857904,
+      "deferred_share": 0.06166666666666667
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.8883333333333333,
+      "accuracy_on_accepted": 0.9849906191369606,
+      "deferred_share": 0.11166666666666666
+    }
+  ],
+  "mean_confidence_correct": 0.9738794523372984,
+  "mean_confidence_incorrect": 0.7554225921630859,
+  "per_soil_accuracy": {
+    "sandy_loam": 0.9527027027027027,
+    "loam": 0.9459459459459459,
+    "silt_loam": 0.9411764705882353,
+    "clay": 0.9583333333333334
+  }
+}

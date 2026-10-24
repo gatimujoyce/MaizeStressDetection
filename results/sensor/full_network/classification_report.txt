@@ -1,0 +1,5 @@
+Classwise metrics:
+drought_stress: Pre=0.9371 Rec=0.9675 F1=0.9521 Sup=154
+heat_stress: Pre=0.9624 Rec=0.9209 F1=0.9412 Sup=139
+normal: Pre=0.9355 Rec=0.9177 F1=0.9265 Sup=158
+waterlogging_risk: Pre=0.9608 Rec=0.9866 F1=0.9735 Sup=149
