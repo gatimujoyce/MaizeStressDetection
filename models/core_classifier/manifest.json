@@ -1,0 +1,41 @@
+{
+  "name": "disease",
+  "task": "disease",
+  "file": "disease_best.keras",
+  "sha256": "14789a72957ec68bb73874e9b184b2e61b7dca68f0795354dcbec9f8e753acb4",
+  "bytes": 33420901,
+  "weights_location": "MyDrive/maize-project/models/core_classifier/checkpoints/disease_best.keras",
+  "tf_version": "2.21.0",
+  "enabled": true,
+  "input": {
+    "size": 224,
+    "channels": 3,
+    "preprocess": "efficientnet"
+  },
+  "classes": [
+    "common_rust",
+    "gray_leaf_spot",
+    "healthy",
+    "northern_leaf_blight"
+  ],
+  "thresholds": {
+    "t_disease": 0.55,
+    "t_disease_rule": {
+      "split": "validation",
+      "grid": "0.50 to 0.95 in steps of 0.05",
+      "min_accuracy_on_accepted": 0.97,
+      "sick_accepted_as_healthy": 0
+    },
+    "t_disease_table": "results/disease_best/disease_v1_val/threshold_table.csv",
+    "fusion_bands": {
+      "strong_min": 0.8,
+      "weak_min": 0.6
+    },
+    "note": "the RAP fusion rules treat confidence below fusion_bands.weak_min as uncertain, so fusion applies the stricter value"
+  },
+  "evidence": [
+    "results/disease_best/disease_v1_test/metrics.json",
+    "results/disease_best/disease_v1_val/predictions.csv"
+  ],
+  "version": "disease-v1"
+}
