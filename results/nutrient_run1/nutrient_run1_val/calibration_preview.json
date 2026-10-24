@@ -1,0 +1,22 @@
+{
+  "temperature": 0.9000000000000004,
+  "nll_before": 0.10309007877227046,
+  "nll_after": 0.10221893663076084,
+  "uncalibrated": {
+    "macro_recall": 0.9717419296111001,
+    "images_conf80": 1918,
+    "photos_conf80": 338,
+    "precision_conf80": 0.9911366006256517,
+    "false_alarm_conf60": 0.0,
+    "ece": 0.014203692196531776
+  },
+  "calibrated": {
+    "macro_recall": 0.9717419296111001,
+    "images_conf80": 1939,
+    "photos_conf80": 338,
+    "precision_conf80": 0.9881382155750387,
+    "false_alarm_conf60": 0.0,
+    "ece": 0.009487276167014516
+  },
+  "note": "validation split only; a preview, not applied to any model"
+}
