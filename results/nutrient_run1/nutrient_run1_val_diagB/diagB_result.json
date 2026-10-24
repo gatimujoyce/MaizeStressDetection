@@ -1,0 +1,14 @@
+{
+  "nitrogen_n": 231,
+  "nitrogen_recall_before": 1.0,
+  "nitrogen_recall_after": 0.9826839826839827,
+  "predicted_after": {
+    "nitrogen": 227,
+    "zinc": 3,
+    "phosphorus": 1
+  },
+  "median_size_kb": 6.94,
+  "median_jpeg_quality": 90,
+  "reading": "at least 0.90: little evidence that the nitrogen result depends on capture style (still not proof that deficiency is detected)",
+  "note": "validation split only; the test split was not used"
+}
