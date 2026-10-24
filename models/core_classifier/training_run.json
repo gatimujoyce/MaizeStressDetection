@@ -1,0 +1,41 @@
+{
+  "model_name": "disease_best",
+  "data_dir": "/content/data/plantvillage_maize",
+  "out_dir": "/content/drive/MyDrive/maize-project/models/core_classifier/checkpoints",
+  "class_names": [
+    "common_rust",
+    "gray_leaf_spot",
+    "healthy",
+    "northern_leaf_blight"
+  ],
+  "train_counts": {
+    "common_rust": 912,
+    "gray_leaf_spot": 401,
+    "healthy": 811,
+    "northern_leaf_blight": 798
+  },
+  "val_counts": {
+    "common_rust": 195,
+    "gray_leaf_spot": 86,
+    "healthy": 173,
+    "northern_leaf_blight": 171
+  },
+  "hyperparameters": {
+    "epochs_head": 8,
+    "epochs_finetune": 12,
+    "batch_size": 32,
+    "img_size": 224,
+    "lr_head": 0.001,
+    "lr_finetune": 1e-05,
+    "unfreeze_layers": 40,
+    "seed": 42
+  },
+  "tensorflow_version": "2.21.0",
+  "best_val_accuracy": 0.9616000056266785,
+  "epochs_run": {
+    "phase1": 8,
+    "phase2": 6
+  },
+  "phase2_trainable_weight_tensors": 22,
+  "timestamp_utc": "2026-10-24T09:08:16.878287+00:00"
+}
