@@ -1,0 +1,20 @@
+﻿=== nitrogen: 1535 images ===
+  filename styles: {'IMG camera name': 1535}
+  top image sizes (width x height): ['1200x686 (4)', '1200x556 (4)', '683x1200 (4)']
+  distinct sizes: 1320, median file size: 150.3 KB
+=== no_deficiency: 2430 images ===
+  filename styles: {'NNNN_a variant': 2430}
+  top image sizes (width x height): ['100x200 (1458)', '200x100 (972)']
+  distinct sizes: 2, median file size: 8.3 KB
+=== phosphorus: 2970 images ===
+  filename styles: {'NNNN_a variant': 2970}
+  top image sizes (width x height): ['100x200 (1782)', '200x100 (1188)']
+  distinct sizes: 2, median file size: 8.2 KB
+=== potassium: 4301 images ===
+  filename styles: {'NNNN_a_b tile': 4300, 'other': 1}
+  top image sizes (width x height): ['200x100 (2236)', '100x200 (2065)']
+  distinct sizes: 2, median file size: 5.2 KB
+=== zinc: 2545 images ===
+  filename styles: {'NNNN_a variant': 2545}
+  top image sizes (width x height): ['100x200 (1527)', '200x100 (1018)']
+  distinct sizes: 2, median file size: 8.3 KB
