@@ -216,3 +216,17 @@ def test_config_matches_sensor_constants():
 
 def test_pct_field_capacity_formula():
     assert pct_field_capacity(10.0, "sandy_loam", CFG["soil"]) == 50.0
+
+
+
+
+def test_pct_field_capacity_agrees_with_rule_baseline():
+    import sensor_constants as sc
+    from rule_baseline import predict_sensor_stress
+    cases = [(40.0, "drought_stress"), (54.0, "drought_stress"), (56.0, "normal"), (100.0, "normal"),
+             (105.0, "normal"), (109.0, "normal"), (111.0, "waterlogging_risk"), (130.0, "waterlogging_risk")]
+    for soil, props in sc.SOIL_PROPERTIES.items():
+        for pct, expected in cases:
+            moisture = pct / 100.0 * props["field_capacity"]
+            assert pct_field_capacity(moisture, soil, CFG["soil"]) == pytest.approx(pct)
+            assert predict_sensor_stress(moisture, 22.0, soil) == expected

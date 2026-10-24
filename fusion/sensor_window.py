@@ -13,8 +13,9 @@ EPS = 1e-9
 
 
 def pct_field_capacity(soil_moisture, soil_type, soil_table):
-    """ASSUMPTION, to be checked against scripts/rule_baseline.py: soil_moisture is in the same units as
-    field_capacity in scripts/sensor_constants.py."""
+    """Percent of field capacity. Matches scripts/rule_baseline.py, which compares moisture * 100 with
+    threshold * field_capacity. soil_moisture must be in the same units as field_capacity in
+    scripts/sensor_constants.py."""
     return 100.0 * float(soil_moisture) / soil_table[soil_type]["field_capacity"]
 
 
