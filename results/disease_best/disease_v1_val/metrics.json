@@ -1,0 +1,104 @@
+{
+  "n": 625,
+  "accuracy": 0.9616,
+  "macro_precision": 0.9491973448827793,
+  "macro_recall": 0.9491973448827793,
+  "macro_f1": 0.9491973448827793,
+  "weighted_precision": 0.9616,
+  "weighted_recall": 0.9616,
+  "weighted_f1": 0.9616,
+  "per_class": [
+    {
+      "name": "common_rust",
+      "precision": 0.9948717948717949,
+      "recall": 0.9948717948717949,
+      "f1": 0.9948717948717949,
+      "support": 195
+    },
+    {
+      "name": "gray_leaf_spot",
+      "precision": 0.872093023255814,
+      "recall": 0.872093023255814,
+      "f1": 0.872093023255814,
+      "support": 86
+    },
+    {
+      "name": "healthy",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 173
+    },
+    {
+      "name": "northern_leaf_blight",
+      "precision": 0.9298245614035088,
+      "recall": 0.9298245614035088,
+      "f1": 0.9298245614035088,
+      "support": 171
+    }
+  ],
+  "confusion_matrix": [
+    [
+      194,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      75,
+      0,
+      11
+    ],
+    [
+      0,
+      0,
+      173,
+      0
+    ],
+    [
+      1,
+      11,
+      0,
+      159
+    ]
+  ],
+  "confidence_analysis": [
+    {
+      "threshold": 0.5,
+      "coverage": 0.992,
+      "accuracy_on_accepted": 0.964516129032258,
+      "deferred_share": 0.008
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 0.9472,
+      "accuracy_on_accepted": 0.9780405405405406,
+      "deferred_share": 0.0528
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 0.9104,
+      "accuracy_on_accepted": 0.9859402460456942,
+      "deferred_share": 0.0896
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 0.8656,
+      "accuracy_on_accepted": 0.9907578558225508,
+      "deferred_share": 0.1344
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.7744,
+      "accuracy_on_accepted": 0.9958677685950413,
+      "deferred_share": 0.2256
+    }
+  ],
+  "mean_confidence_correct": 0.9371915250867853,
+  "mean_confidence_incorrect": 0.6480462079246839,
+  "task_extras": {
+    "diseased_called_healthy_rate": 0.0,
+    "healthy_called_diseased_rate": 0.0
+  }
+}

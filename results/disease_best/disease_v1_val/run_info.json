@@ -1,0 +1,17 @@
+{
+  "model_file": "/content/drive/MyDrive/maize-project/models/core_classifier/checkpoints/disease_best.keras",
+  "date": "2026-10-24T10:44:26Z",
+  "test_dir": "/content/data/plantvillage_maize/val",
+  "n": 625,
+  "tf_version": "2.21.0",
+  "class_names": [
+    "common_rust",
+    "gray_leaf_spot",
+    "healthy",
+    "northern_leaf_blight"
+  ],
+  "task": "disease",
+  "preprocess": "efficientnet",
+  "img_size": 224,
+  "run_name": "disease_v1_val"
+}
