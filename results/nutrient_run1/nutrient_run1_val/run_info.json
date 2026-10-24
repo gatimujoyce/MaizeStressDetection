@@ -1,0 +1,18 @@
+{
+  "model_file": "/content/drive/MyDrive/maize-project/models/nutrient_head/run1/nutrient_run1.keras",
+  "date": "2026-10-24T13:52:33Z",
+  "test_dir": "/content/data/nutrient_deficiency_v2/val",
+  "n": 2076,
+  "tf_version": "2.21.0",
+  "class_names": [
+    "nitrogen",
+    "no_deficiency",
+    "phosphorus",
+    "potassium",
+    "zinc"
+  ],
+  "task": "nutrient",
+  "preprocess": "efficientnet",
+  "img_size": 224,
+  "run_name": "nutrient_run1_val"
+}

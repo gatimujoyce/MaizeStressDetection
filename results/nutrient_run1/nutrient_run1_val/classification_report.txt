@@ -1,0 +1,11 @@
+               precision    recall  f1-score   support
+
+     nitrogen       1.00      1.00      1.00       231
+no_deficiency       0.99      0.98      0.99       365
+   phosphorus       0.96      0.98      0.97       445
+    potassium       0.98      0.95      0.96       650
+         zinc       0.92      0.95      0.93       385
+
+     accuracy                           0.97      2076
+    macro avg       0.97      0.97      0.97      2076
+ weighted avg       0.97      0.97      0.97      2076

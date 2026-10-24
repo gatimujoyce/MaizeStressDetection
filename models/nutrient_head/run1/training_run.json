@@ -1,0 +1,44 @@
+{
+  "model_name": "nutrient_run1",
+  "data_dir": "/content/data/nutrient_deficiency_v2",
+  "out_dir": "/content/drive/MyDrive/maize-project/models/nutrient_head/run1",
+  "class_names": [
+    "nitrogen",
+    "no_deficiency",
+    "phosphorus",
+    "potassium",
+    "zinc"
+  ],
+  "train_counts": {
+    "nitrogen": 997,
+    "no_deficiency": 1580,
+    "phosphorus": 1930,
+    "potassium": 2775,
+    "zinc": 1650
+  },
+  "val_counts": {
+    "nitrogen": 231,
+    "no_deficiency": 365,
+    "phosphorus": 445,
+    "potassium": 650,
+    "zinc": 385
+  },
+  "hyperparameters": {
+    "epochs_head": 8,
+    "epochs_finetune": 12,
+    "batch_size": 32,
+    "img_size": 224,
+    "lr_head": 0.001,
+    "lr_finetune": 1e-05,
+    "unfreeze_layers": 40,
+    "seed": 42
+  },
+  "tensorflow_version": "2.21.0",
+  "best_val_accuracy": 0.9672446846961975,
+  "epochs_run": {
+    "phase1": 8,
+    "phase2": 12
+  },
+  "phase2_trainable_weight_tensors": 22,
+  "timestamp_utc": "2026-10-24T13:48:22.356421+00:00"
+}
