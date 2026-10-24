@@ -1,0 +1,142 @@
+{
+  "n": 2773,
+  "accuracy": 0.9383339343671114,
+  "macro_precision": 0.944499382790692,
+  "macro_recall": 0.9526631723012274,
+  "macro_f1": 0.9472419803089526,
+  "weighted_precision": 0.9418417176739452,
+  "weighted_recall": 0.9383339343671114,
+  "weighted_f1": 0.938365459173549,
+  "per_class": [
+    {
+      "name": "nitrogen",
+      "precision": 1.0,
+      "recall": 0.996742671009772,
+      "f1": 0.99836867862969,
+      "support": 307
+    },
+    {
+      "name": "no_deficiency",
+      "precision": 0.9979253112033195,
+      "recall": 0.9917525773195877,
+      "f1": 0.9948293691830403,
+      "support": 485
+    },
+    {
+      "name": "phosphorus",
+      "precision": 0.8831562974203339,
+      "recall": 0.9781512605042016,
+      "f1": 0.9282296650717703,
+      "support": 595
+    },
+    {
+      "name": "potassium",
+      "precision": 0.9730423620025674,
+      "recall": 0.865296803652968,
+      "f1": 0.916012084592145,
+      "support": 876
+    },
+    {
+      "name": "zinc",
+      "precision": 0.8683729433272395,
+      "recall": 0.9313725490196079,
+      "f1": 0.8987701040681173,
+      "support": 510
+    }
+  ],
+  "confusion_matrix": [
+    [
+      306,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      481,
+      0,
+      0,
+      4
+    ],
+    [
+      0,
+      1,
+      582,
+      0,
+      12
+    ],
+    [
+      0,
+      0,
+      63,
+      758,
+      55
+    ],
+    [
+      0,
+      0,
+      14,
+      21,
+      475
+    ]
+  ],
+  "confidence_analysis": [
+    {
+      "threshold": 0.5,
+      "coverage": 0.9927875946628201,
+      "accuracy_on_accepted": 0.9407918634217217,
+      "deferred_share": 0.00721240533717995
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 0.9718716191849982,
+      "accuracy_on_accepted": 0.9469387755102041,
+      "deferred_share": 0.028128380815001804
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 0.9430219978362784,
+      "accuracy_on_accepted": 0.9617590822179732,
+      "deferred_share": 0.0569780021637216
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 0.9213847818247386,
+      "accuracy_on_accepted": 0.9655577299412916,
+      "deferred_share": 0.07861521817526144
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.8871258564731338,
+      "accuracy_on_accepted": 0.9711382113821139,
+      "deferred_share": 0.11287414352686621
+    }
+  ],
+  "mean_confidence_correct": 0.9687429251669005,
+  "mean_confidence_incorrect": 0.7884870344086697,
+  "task_extras": {
+    "per_class_recall": [
+      {
+        "name": "nitrogen",
+        "recall": 0.996742671009772
+      },
+      {
+        "name": "no_deficiency",
+        "recall": 0.9917525773195877
+      },
+      {
+        "name": "phosphorus",
+        "recall": 0.9781512605042016
+      },
+      {
+        "name": "potassium",
+        "recall": 0.865296803652968
+      },
+      {
+        "name": "zinc",
+        "recall": 0.9313725490196079
+      }
+    ]
+  }
+}
