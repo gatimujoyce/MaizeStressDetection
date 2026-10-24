@@ -23,3 +23,13 @@ The result is reported whatever it is and does not change the ship verdict.
 
 ## Limitation covering both image models
 Every class of the disease and nutrient datasets is studio-style (PlantVillage-type crops and tiles). No field test of either model has been run, so performance on phone photos is unknown and likely lower.
+
+
+
+## Result of Diagnostic B (validation split only; the test split was not used)
+Source: `results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json` and the `metrics.json` beside it.
+- The 231 nitrogen validation images were degraded as specified above: median degraded file size 6.94 KB, none above 8.3 KB, median JPEG quality 90.
+- Nitrogen recall was 1.0000 before and 0.9827 after (227 of 231). The 4 errors: 3 called zinc, 1 called phosphorus. Median confidence was 1.0 before and after.
+- The other four classes were copied unchanged, and their recall is identical before and after, as expected for a control.
+- Pre-stated reading (recall at least 0.90): little evidence that the nitrogen result depends on capture style as measured by resolution, file size and aspect ratio. This is not proof that deficiency is detected. Every image is resized to 224x224 before the model sees it, so the test mainly adds blur and compression. Colour, background and lighting differences were not removed. Potassium, which is also separable by file size and tiling, was not tested.
+- Consequence: the weak cap on nitrogen stays until the phone-photo smoke test (C) has been run. The ship verdict is unchanged.
