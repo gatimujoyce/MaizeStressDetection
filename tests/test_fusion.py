@@ -230,3 +230,37 @@ def test_pct_field_capacity_agrees_with_rule_baseline():
             moisture = pct / 100.0 * props["field_capacity"]
             assert pct_field_capacity(moisture, soil, CFG["soil"]) == pytest.approx(pct)
             assert predict_sensor_stress(moisture, 22.0, soil) == expected
+
+
+
+
+def test_retake_when_disease_not_assessed_even_if_sensor_contributes():
+    r = fuse(True, d("common_rust", 0.5), NODEF, sensor("weak", "heat_stress"), CFG)
+    assert r["retake"] is True and r["severity"] == "low"
+    assert "unclear_retake_photo_and_check_again" in r["notes"]
+
+
+def test_no_retake_when_only_nutrient_not_assessed():
+    r = fuse(True, HEALTHY, d("zinc", 0.5), sensor("not_flagging"), CFG)
+    assert r["retake"] is False and r["severity"] == "none"
+
+
+def test_more_evidence_never_lowers_severity():
+    import itertools
+    sev = {"none": 0, "low": 1, "medium": 2, "high": 3}
+    levels = ["not_flagging", "weak", "strong"]
+    rank = {lv: i for i, lv in enumerate(levels)}
+
+    def src(name, level):
+        if level == "not_flagging":
+            return HEALTHY if name == "disease" else NODEF
+        return d("common_rust" if name == "disease" else "phosphorus", 0.9 if level == "strong" else 0.7)
+
+    def severity(dl, nl, sl):
+        return sev[fuse(True, src("disease", dl), src("nutrient", nl), sensor(sl), CFG)["severity"]]
+
+    combos = list(itertools.product(levels, repeat=3))
+    for a in combos:
+        for b in combos:
+            if all(rank[x] <= rank[y] for x, y in zip(a, b)):
+                assert severity(*a) <= severity(*b), (a, b)
