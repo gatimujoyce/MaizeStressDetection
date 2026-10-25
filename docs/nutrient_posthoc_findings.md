@@ -33,3 +33,7 @@ Source: `results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json` and th
 - The other four classes were copied unchanged, and their recall is identical before and after, as expected for a control.
 - Pre-stated reading (recall at least 0.90): little evidence that the nitrogen result depends on capture style as measured by resolution, file size and aspect ratio. This is not proof that deficiency is detected. Every image is resized to 224x224 before the model sees it, so the test mainly adds blur and compression. Colour, background and lighting differences were not removed. Potassium, which is also separable by file size and tiling, was not tested.
 - Consequence: the weak cap on nitrogen stays until the phone-photo smoke test (C) has been run. The ship verdict is unchanged.
+
+
+## Update, 25 October 2026
+The nitrogen cap (weak whatever the confidence) stays through submission, whatever the phone-photo smoke test shows. A small smoke test can reveal a failure, but it cannot prove that nitrogen detection works. The smoke test result, if it is run, is reported next to the cap and does not lift it. In user-facing messages a nitrogen call is worded "possible nitrogen deficiency".
