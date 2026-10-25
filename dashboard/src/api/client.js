@@ -205,3 +205,33 @@ export const getRetrainingJobs = () =>
 
 export const getSmsLog = () =>
     shouldUseMock('smsLog') ? mock.getSmsLog() : httpClient.get('/sms/log')
+
+// Admin endpoints always use the authenticated backend. Keep these separate
+// from farmer queries and legacy mock helpers so the admin UI cannot silently
+// render demo data when backend integration is enabled.
+export const getAdminFarms = (includeDeleted = false) =>
+    httpClient.get(`/admin/farms${includeDeleted ? '?include_deleted=true' : ''}`)
+
+export const getAdminUsers = () =>
+    httpClient.get('/admin/users')
+
+export const createAdminUser = (data) =>
+    httpClient.post('/admin/users', data)
+
+export const getAdminFeedback = () =>
+    httpClient.get('/admin/feedback')
+
+export const getAdminModelVersions = () =>
+    httpClient.get('/admin/model-versions')
+
+export const setAdminModelVersionActive = (versionId, isActive) =>
+    httpClient.patch(`/admin/model-versions/${versionId}`, { is_active: isActive })
+
+export const getAdminRetrainingJobs = () =>
+    httpClient.get('/admin/retraining-jobs')
+
+export const requestAdminRetrain = (modelName) =>
+    httpClient.post('/admin/retrain', { model_name: modelName })
+
+export const getAdminSmsLog = () =>
+    httpClient.get('/admin/sms-log')

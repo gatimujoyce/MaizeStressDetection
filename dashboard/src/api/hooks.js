@@ -183,3 +183,63 @@ export function useRetrainingJobs() {
 export function useSmsLog() {
     return useQuery({ queryKey: ['smsLog'], queryFn: client.getSmsLog })
 }
+
+// Admin-only server data. These hooks use their own query keys so they do not
+// collide with farmer-facing farm, feedback, or alert data.
+export function useAdminFarms(includeDeleted = false) {
+    return useQuery({
+        queryKey: ['admin', 'farms', includeDeleted],
+        queryFn: () => client.getAdminFarms(includeDeleted),
+    })
+}
+
+export function useAdminUsers() {
+    return useQuery({ queryKey: ['admin', 'users'], queryFn: client.getAdminUsers })
+}
+
+export function useCreateAdminUserMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: client.createAdminUser,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    })
+}
+
+export function useAdminFeedback() {
+    return useQuery({ queryKey: ['admin', 'feedback'], queryFn: client.getAdminFeedback })
+}
+
+export function useAdminModelVersions() {
+    return useQuery({
+        queryKey: ['admin', 'modelVersions'],
+        queryFn: client.getAdminModelVersions,
+    })
+}
+
+export function useSetAdminModelVersionActiveMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: ({ versionId, isActive }) =>
+            client.setAdminModelVersionActive(versionId, isActive),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'modelVersions'] }),
+    })
+}
+
+export function useAdminRetrainingJobs() {
+    return useQuery({
+        queryKey: ['admin', 'retrainingJobs'],
+        queryFn: client.getAdminRetrainingJobs,
+    })
+}
+
+export function useRequestAdminRetrainMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: (modelName) => client.requestAdminRetrain(modelName),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'retrainingJobs'] }),
+    })
+}
+
+export function useAdminSmsLog() {
+    return useQuery({ queryKey: ['admin', 'smsLog'], queryFn: client.getAdminSmsLog })
+}
