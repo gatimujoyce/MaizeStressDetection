@@ -70,3 +70,31 @@ A perceptual-hash check (phash distance of 5 or less) between the train and test
 **Post-hoc decision.** After the test evaluation, a nitrogen call is capped at weak in fusion, whatever its confidence. This is separate from the pre-registered rule (`docs/nutrient_posthoc_findings.md`). It is lifted only if a check on real phone photos supports it; that smoke test has not been run.
 
 **Real-world gap (both image models).** Every class of the disease and nutrient datasets is studio-style. No field test of either model has been run, so performance on phone photos is unknown and likely lower.
+
+
+
+### Disease threshold in the system (added 25 October 2026)
+
+The system applies a disease threshold of 0.60. This is the RAP fusion bound below which a result is treated as uncertain, so it comes from the RAP rule and not from the test data. The operating point selected on the validation split by the pre-stated rule was 0.55, and fusion overrides it with the stricter 0.60 (`models/core_classifier/manifest.json`: `t_disease` = 0.6, `t_disease_validation_selected` = 0.55). At 0.60 on the validation split coverage is 0.9472 and accuracy on accepted images is 0.9780, with no diseased leaf accepted as healthy (`results/disease_best/disease_v1_val/threshold_table.csv`). On the test split, coverage is 0.9366 and accuracy on accepted images is 0.9526 (`confidence_analysis` in `results/disease_best/disease_v1_test/metrics.json`), which is below the 0.97 validation target. About 19% of validation gray leaf spot photos (coverage 0.814) ask for a retake at 0.60.
+
+### Fusion and sensor window (added 25 October 2026)
+
+**Source.** The fusion rules follow the RAP fusion rules, implemented in `fusion/fuse.py` with settings in `models/fusion/fusion_rules.yaml` and tests in `tests/test_fusion.py`. The scenario table is `results/fusion/fusion_scenarios.csv`.
+
+**Gaps in the RAP rules that were filled by design:** a healthy result below 0.60 confidence counts as not assessed; three or more weak sources count as Medium; ties between sources go disease, then nutrient, then sensor; and a retake is requested whenever the gate fails or the disease source is not assessed, even if the sensors still contribute to severity. A retake is not requested when only the nutrient source is not assessed. A property test checks that adding evidence never lowers severity.
+
+**Sensor window.** The sensor is judged over the last 24 hours. Heat counts as weak at 2 hours and strong at 5; drought at 6 and 12; waterlogging at 4 and 12. A run must last at least 1 hour and contain at least 3 consecutive readings, and the level drops by one if the most recent hour shows none of the class. If readings cover less than 60% of the window, the sensor is not assessed. Readings between 29 and 32 degrees C, or between 100% and 110% of field capacity, can reach weak but never strong. These thresholds are design assumptions. The sensor data is simulated with no time structure, so they could not be tuned or validated on data, and the tests show only that the code follows the written design.
+
+**Sensitivity.** Scaling every hour threshold by 0.5 and 1.5 changed the result for 76 of 410 synthetic windows (18.5%); scaling by 0.75 and 1.25 changed 37 and 39 (about 9%). The windows are synthetic, built for this analysis. Source: `results/fusion/sensor_sensitivity.txt` and `results/fusion/sensor_sensitivity.csv`. With a strong disease finding fewer windows change (47 at the extreme scalings), so the thresholds matter most when the photo shows nothing. Sensitivity is concentrated in drought and waterlogging.
+
+**Sampling interval.** At sampling of 30 minutes or faster, isolated readings are ignored, as designed. At hourly sampling each reading counts as one hour, so isolated readings could add up (8 isolated readings gave 8.00 hours and a weak status in the analysis before the minimum-readings guard was added). The guard (3 consecutive readings) removes that case, and a test covers it. The simulator in `backend/simulator/run.py` sends one reading every 60 seconds by default.
+
+**Simulator.** The simulator moves to the next scenario on every tick, so a stress class shows up as a single reading every four minutes between other classes. The aggregator ignores such readings, so simulator data never produces a sensor status, however long it runs. A demonstration of the 24-hour window needs a scenario that stays on for hours. This is in the backend, outside the ML track.
+
+**Cold readings.** The backend rules define normal temperature as 18 to 29 degrees C and nothing below 18, so cold stress is not modelled. In the simulated data, 6.1% of train rows are below 18 degrees C (minimum 8.3 degrees C), labelled mostly waterlogging_risk (98 of 170), with 65 normal and 7 drought, none heat (`results/sensor/cold_check.txt`). On the 28 test rows below 18 degrees C both networks scored 0.9643 (27 correct; the one error is a waterlogging row called normal), against 0.9476 and 0.9493 above 18 degrees C (`results/sensor/cold_predictions.txt`). This is a small simulated test and says nothing about real cold, dry conditions in the field. Waterlogging at strong level maps straight to High severity, so a model that confused a cold night with waterlogging would raise severe alerts. That has not been tested on real readings.
+
+**Wording.** User-facing messages say "no heat, drought or waterlogging stress detected", not "conditions normal", and nitrogen calls are worded "possible nitrogen deficiency". Normal can read as reassurance on a cold night, which the system does not assess.
+
+
+## Update, 25 October 2026
+The nitrogen cap (weak whatever the confidence) stays through submission, whatever the phone-photo smoke test shows. A small smoke test can reveal a failure, but it cannot prove that nitrogen detection works. The smoke test result, if it is run, is reported next to the cap and does not lift it. In user-facing messages a nitrogen call is worded "possible nitrogen deficiency".
