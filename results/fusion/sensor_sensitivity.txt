@@ -1,0 +1,30 @@
+﻿A) hours of ongoing stress at which the sensor first turns weak / strong (interval 15 min)
+family                              x0.5         x0.75          x1.0         x1.25          x1.5
+heat_confirmed                 1.0 / 2.5     1.5 / 4.0     2.0 / 5.0     2.5 / 6.5     3.0 / 7.5
+heat_borderline                  1.0 / -       1.5 / -       2.0 / -       2.5 / -       3.0 / -
+drought_confirmed              3.0 / 6.0     4.5 / 9.0    6.0 / 12.0    7.5 / 15.0    9.0 / 18.0
+waterlogging_confirmed         2.0 / 6.0     3.0 / 9.0    4.0 / 12.0    5.0 / 15.0    6.0 / 18.0
+waterlogging_borderline          2.0 / -       3.0 / -       4.0 / -       5.0 / -       6.0 / -
+
+B) windows (of 410) whose result differs from the unscaled configuration
+  factor   sensor status     severity images_quiet     severity disease_weak   severity disease_strong
+    x0.5              76                        76                        76                        47
+   x0.75              37                        37                        37                        23
+   x1.25              39                        39                        39                        24
+    x1.5              76                        76                        76                        47
+
+   by family, images_quiet: windows whose severity changes at x0.5 and x1.5
+   heat_confirmed            x0.5: 12   x1.5: 12
+   heat_borderline           x0.5: 2   x1.5: 2
+   drought_confirmed         x0.5: 30   x1.5: 30
+   waterlogging_confirmed    x0.5: 28   x1.5: 28
+   waterlogging_borderline   x0.5: 4   x1.5: 4
+
+C) the minimum-run rule at different sampling intervals (heat_stress label, config as written)
+  interval    1 isolated reading   8 isolated readings    status   2 consecutive
+     5 min                0.00 h                0.00 hnot_flagging          0.00 h
+    15 min                0.00 h                0.00 hnot_flagging          0.00 h
+    30 min                0.00 h                0.00 hnot_flagging          1.00 h
+    60 min                1.00 h                8.00 h      weak          2.00 h
+
+wrote results\fusion\sensor_sensitivity.csv (2050 rows)
