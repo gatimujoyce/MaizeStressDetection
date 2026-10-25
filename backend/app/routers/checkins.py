@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 import uuid
 import os
 import shutil
+import asyncio
 from datetime import datetime, timezone
 
 from app.core.deps import get_db, require_farmer
@@ -19,9 +20,11 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 async def check_farm_access(farm_id: uuid.UUID, user_id: uuid.UUID, db: AsyncSession):
-    result = await db.execute(select(Farm).where(Farm.id == farm_id, Farm.user_id == user_id))
-    if not result.scalar_one_or_none():
-        raise HTTPException(status_code=403, detail="Not authorized for this farm")
+    result = await db.execute(select(Farm).where(Farm.id == farm_id, Farm.user_id == user_id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    return farm
 
 @router.post("", response_model=PredictionResponse)
 async def checkin_and_predict(
@@ -30,7 +33,7 @@ async def checkin_and_predict(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    await check_farm_access(farm_id, current_user.id, db)
+    farm = await check_farm_access(farm_id, current_user.id, db)
     
     if image.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(status_code=400, detail="Invalid file type")
@@ -122,11 +125,17 @@ async def checkin_and_predict(
         )
         db.add(new_alert)
         
-        # 8. Send SMS if High
         if severity == "High":
-            msg = f"MaizeStress Alert: {severity} severity for {disease_label}. {recommendation}"
-            result = send_sms(current_user.phone, msg)
-            if result:
+            msg = f"MaizeStress Alert: {severity} severity for {disease_label} on {farm.name[:20]}. {recommendation}"
+            try:
+                sms_success = await asyncio.wait_for(
+                    asyncio.to_thread(send_sms, current_user.phone, msg),
+                    timeout=10.0
+                )
+            except (asyncio.TimeoutError, Exception):
+                sms_success = False
+
+            if sms_success:
                 new_alert.status = "sent"
                 new_alert.sent_at = datetime.now(timezone.utc)
                 alert_status = "sent"
