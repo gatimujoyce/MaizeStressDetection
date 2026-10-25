@@ -1,0 +1,22 @@
+{
+  "rule": "see the docstring of scripts/calibrate_photo_quality.py",
+  "thresholds": {
+    "dark_mean": 59.2,
+    "bright_mean": 185.1,
+    "blur_laplacian_var": 2.6
+  },
+  "validation_images": 625,
+  "test_images": 631,
+  "test_originals_rejected": 21,
+  "test_rejected_by_issue": {
+    "too_dark": 6,
+    "too_small": 2,
+    "too_bright": 13
+  },
+  "test_degradations_caught": {
+    "blur radius 2": 42,
+    "blur radius 4": 580,
+    "darkened to 20%": 631,
+    "glare +150": 631
+  }
+}
