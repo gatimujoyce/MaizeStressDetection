@@ -101,3 +101,8 @@ The system applies a disease threshold of 0.60. This is the RAP fusion bound bel
 
 The photo test pre-registered in `docs/realworld_photo_test.md` (committed on 25 October 2026, before any photo was taken) required phone photos taken by the project owner. No such photos could be taken, so the test was not run. Consequences: the gate threshold stays null and provisional (`models/gate/manifest.json`); the nutrient and disease smoke tests were not run; and no result on field photos exists for any image model. All image results in this project come from studio-style datasets and are likely to be optimistic for phone photos. The nitrogen cap in fusion is unaffected and stays in place (`docs/nutrient_posthoc_findings.md`).
 
+
+
+### Confidence intervals (added 25 October 2026)
+
+95% bootstrap intervals for the test results are in `results/intervals/bootstrap_intervals.json` (script `scripts/bootstrap_intervals.py`, 2,000 resamples, seed 42). Nutrient: photo groups are resampled within each class, and the point estimates reproduce `test_decision.json` exactly. For example, potassium recall 0.8653 [0.753, 0.958] on 33 independent test photos and zinc 0.9314 [0.828, 0.975] on 46. Disease: the split has no photo-group file, so images are resampled as independent, which understates the uncertainty if the test set holds near-twin images (not checked within the test set). Disease macro recall is 0.9072 [0.881, 0.931], accuracy 0.9223 [0.902, 0.941], and accuracy on accepted images at 0.60 is 0.9526 [0.935, 0.968], so even the upper end is below the 0.97 validation target.

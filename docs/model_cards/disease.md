@@ -31,6 +31,22 @@ Source: `results/disease_best/disease_v1_test/metrics.json`. Accuracy 0.9223, ma
 
 Safety property: diseased leaves called healthy 0.0000; healthy leaves called diseased 0.0057.
 
+## Intervals on the test results
+Source: `results/intervals/bootstrap_intervals.json`, written by `scripts/bootstrap_intervals.py`. 95% intervals from resampling images within each class (2000 resamples, seed 42). **Images are treated as independent**, because no photo-group file exists for this split. The intervals therefore understate the uncertainty if the test set contains near-twin images, which was not checked within the test set.
+
+| Measure | Estimate | 95% interval |
+|---|---|---|
+| common_rust recall | 0.9695 | [0.944, 0.990] |
+| gray_leaf_spot recall | 0.8161 | [0.736, 0.897] |
+| healthy recall | 0.9943 | [0.983, 1.000] |
+| northern_leaf_blight recall | 0.8488 | [0.791, 0.901] |
+| macro recall | 0.9072 | [0.881, 0.931] |
+| accuracy | 0.9223 | [0.902, 0.941] |
+| coverage at confidence 0.60 or more | 0.9366 | [0.918, 0.954] |
+| accuracy on accepted images at 0.60 | 0.9526 | [0.935, 0.968] |
+
+The upper end of the interval for accuracy on accepted images at 0.60 (0.968) is below the 0.97 target used on validation to choose the operating point.
+
 ## Thresholds
 - System threshold `t_disease` = 0.6. This is the RAP fusion bound below which a result is uncertain.
 - Operating point selected on the validation split by a rule fixed beforehand: 0.55. Fusion overrides it with the stricter value above.
