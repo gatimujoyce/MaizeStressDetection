@@ -1,0 +1,12 @@
+﻿images found: 13781
+
+grouping: leading photo number + phash links <= 5, seed 42, ratios 0.65/0.15/0.20
+class          photos   photos tr/va/te  images tr/va/te       image share % tr/va/te    photo numbers tr/va/te
+no_deficiency     475    309/  71/  95     1580/  365/  485     65.0/ 15.0/ 20.0       316/  73/  97
+nitrogen          854    555/ 128/ 171      997/  231/  307     65.0/ 15.0/ 20.0       562/ 130/ 175
+phosphorus        575    375/  85/ 115     1930/  445/  595     65.0/ 15.0/ 20.0       386/  89/ 119
+potassium         162    105/  24/  33     2775/  650/  876     64.5/ 15.1/ 20.4       111/  26/  35
+zinc              243    161/  36/  46     1650/  385/  510     64.8/ 15.1/ 20.0       330/  77/ 102
+total images: 13781
+
+(dry run: nothing was copied)

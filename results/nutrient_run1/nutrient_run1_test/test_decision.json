@@ -1,0 +1,21 @@
+{
+  "verdict": "SHIPS",
+  "macro_recall": 0.9526631723012274,
+  "class_recall": {
+    "nitrogen": 0.996742671009772,
+    "no_deficiency": 0.9917525773195877,
+    "phosphorus": 0.9781512605042016,
+    "potassium": 0.865296803652968,
+    "zinc": 0.9313725490196079
+  },
+  "rule1": true,
+  "rule2": true,
+  "rule3": true,
+  "rule4": true,
+  "images_conf80": 2555,
+  "photos_conf80": 451,
+  "precision_conf80": 0.9655577299412916,
+  "false_alarm_conf60": 0.002061855670103093,
+  "test_images": 2773,
+  "test_photos": 460
+}
