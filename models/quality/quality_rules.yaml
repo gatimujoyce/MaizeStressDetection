@@ -7,4 +7,4 @@ quality:
   analysis_max_side: 512      # the image is shrunk to this before measuring, so the blur measure is comparable
   dark_mean: 40.0             # mean grey level (0-255) below this is too dark
   bright_mean: 225.0          # mean grey level above this is too bright
-  blur_laplacian_var: 30.0    # variance of the Laplacian below this is blurry (placeholder, to be set from data)
+  blur_laplacian_var: 0       # blur check switched off: failed the pre-registered criteria (docs/photo_quality_check.md, results/quality/pass2.txt)
