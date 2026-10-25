@@ -27,7 +27,7 @@
     "class_caps": {
       "nitrogen": "weak"
     },
-    "class_caps_status": "post-hoc decision after the test evaluation (docs/nutrient_posthoc_findings.md); lifted only by a real phone-photo check",
+    "class_caps_status": "post-hoc decision after the test evaluation (docs/nutrient_posthoc_findings.md); kept through submission whatever the phone photos show, because a small smoke test can reveal failures but cannot prove nitrogen detection works",
     "temperature": 1.0,
     "calibration_applied": false
   },

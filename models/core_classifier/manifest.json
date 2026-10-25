@@ -19,7 +19,8 @@
     "northern_leaf_blight"
   ],
   "thresholds": {
-    "t_disease": 0.55,
+    "t_disease": 0.6,
+    "t_disease_validation_selected": 0.55,
     "t_disease_rule": {
       "split": "validation",
       "grid": "0.50 to 0.95 in steps of 0.05",
@@ -31,7 +32,7 @@
       "strong_min": 0.8,
       "weak_min": 0.6
     },
-    "note": "the RAP fusion rules treat confidence below fusion_bands.weak_min as uncertain, so fusion applies the stricter value"
+    "note": "fusion applies t_disease, the RAP bound below which a result is uncertain. t_disease_validation_selected is the operating point chosen on the validation split by the pre-stated rule, and fusion overrides it with the stricter value"
   },
   "evidence": [
     "results/disease_best/disease_v1_test/metrics.json",

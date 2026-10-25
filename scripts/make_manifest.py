@@ -145,10 +145,10 @@ def main():
     made.append(image_manifest(
         hashes, "disease", "models/core_classifier", "disease_best.keras",
         "results/disease_best/disease_v1_test/run_info.json", "models/core_classifier/class_names.json",
-        {"t_disease": t_disease, "t_disease_rule": DISEASE_RULE,
+        {"t_disease": FUSION_BANDS["weak_min"], "t_disease_validation_selected": t_disease, "t_disease_rule": DISEASE_RULE,
          "t_disease_table": "results/disease_best/disease_v1_val/threshold_table.csv",
          "fusion_bands": FUSION_BANDS,
-         "note": "the RAP fusion rules treat confidence below fusion_bands.weak_min as uncertain, so fusion applies the stricter value"},
+         "note": "fusion applies t_disease, the RAP bound below which a result is uncertain. t_disease_validation_selected is the operating point chosen on the validation split by the pre-stated rule, and fusion overrides it with the stricter value"},
         ["results/disease_best/disease_v1_test/metrics.json", "results/disease_best/disease_v1_val/predictions.csv"],
         "disease-v1"))
 
@@ -160,7 +160,7 @@ def main():
         hashes, "nutrient", "models/nutrient_head", "nutrient_run1.keras",
         "results/nutrient_run1/nutrient_run1_test/run_info.json", "models/nutrient_head/run1/class_names.json",
         {"fusion_bands": FUSION_BANDS, "class_caps": {"nitrogen": "weak"},
-         "class_caps_status": "post-hoc decision after the test evaluation (docs/nutrient_posthoc_findings.md); lifted only by a real phone-photo check",
+         "class_caps_status": "post-hoc decision after the test evaluation (docs/nutrient_posthoc_findings.md); kept through submission whatever the phone photos show, because a small smoke test can reveal failures but cannot prove nitrogen detection works",
          "temperature": 1.0, "calibration_applied": False},
         ["results/nutrient_run1/nutrient_run1_test/metrics.json",
          "results/nutrient_run1/nutrient_run1_test/test_decision.json", "docs/nutrient_ship_rule.md"],
