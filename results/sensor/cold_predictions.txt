@@ -1,0 +1,19 @@
+=== full_network: rows line up with test.csv (all 600 true labels match) ===
+  below 18 C: 28 rows, accuracy 0.9643 (27 correct)
+  true label -> predicted label counts:
+    drought_stress     -> drought_stress     2
+    normal             -> normal             3
+    waterlogging_risk  -> normal             1
+    waterlogging_risk  -> waterlogging_risk  22
+  18 C and above: 572 rows, accuracy 0.9476 (542 correct)
+
+=== no_stage_network: rows line up with test.csv (all 600 true labels match) ===
+  below 18 C: 28 rows, accuracy 0.9643 (27 correct)
+  true label -> predicted label counts:
+    drought_stress     -> drought_stress     2
+    normal             -> normal             3
+    waterlogging_risk  -> normal             1
+    waterlogging_risk  -> waterlogging_risk  22
+  18 C and above: 572 rows, accuracy 0.9493 (543 correct)
+
+Note: only the cold rows of the test file are counted here; there are very few of them (see results/sensor/cold_check.txt), so none of this supports a conclusion about unseen cold readings.

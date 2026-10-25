@@ -264,3 +264,15 @@ def test_more_evidence_never_lowers_severity():
         for b in combos:
             if all(rank[x] <= rank[y] for x, y in zip(a, b)):
                 assert severity(*a) <= severity(*b), (a, b)
+
+
+
+
+
+def test_scattered_hourly_readings_do_not_add_up_to_an_episode():
+    spaced = {int(h) for h in (3, 6, 9, 12, 15, 18, 21, 23)}
+    rs = readings(lambda ago: "heat_stress" if int(ago) in spaced and ago == int(ago) else "normal", step=1.0)
+    assert agg(rs)["status"] == "not_flagging"
+    cfg = copy.deepcopy(CFG)
+    cfg["sensor"]["min_run_readings"] = 1
+    assert agg(rs, cfg)["status"] != "not_flagging"
