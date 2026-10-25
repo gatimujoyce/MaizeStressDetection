@@ -96,5 +96,3 @@ The system applies a disease threshold of 0.60. This is the RAP fusion bound bel
 **Wording.** User-facing messages say "no heat, drought or waterlogging stress detected", not "conditions normal", and nitrogen calls are worded "possible nitrogen deficiency". Normal can read as reassurance on a cold night, which the system does not assess.
 
 
-## Update, 25 October 2026
-The nitrogen cap (weak whatever the confidence) stays through submission, whatever the phone-photo smoke test shows. A small smoke test can reveal a failure, but it cannot prove that nitrogen detection works. The smoke test result, if it is run, is reported next to the cap and does not lift it. In user-facing messages a nitrogen call is worded "possible nitrogen deficiency".
