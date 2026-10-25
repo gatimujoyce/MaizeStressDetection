@@ -4,7 +4,7 @@
 Runs before the gate model and rejects photos that are unusable for simple pixel reasons: too small, too dark or too bright. It does not look at what is in the photo, and it does not check sharpness or framing. A rejected photo gets a specific message (for example "too dark, try again in daylight") and no model runs. The module and its tests are `quality/photo_quality.py` and `tests/test_photo_quality.py`; it is not wired into any backend.
 
 ## Settings
-`models/quality/quality_rules.yaml`, status {{models/quality/quality_rules.yaml::quality.status}}, reproduced as committed:
+`models/quality/quality_rules.yaml`, status "provisional" (as in the file below), reproduced as committed:
 
 ```yaml
 {{include::models/quality/quality_rules.yaml}}
