@@ -1,0 +1,12 @@
+validation originals: 625   test originals: 631
+mean grey level on validation originals: 1st percentile 59.2, 99th percentile 185.1
+laplacian variance: originals 1st percentile 16.1; blur-radius-2 copies 5th percentile 2.6
+chosen: dark_mean 59.2, bright_mean 185.1, blur_laplacian_var 2.6
+
+TEST report (thresholds as chosen above; test images not used for choosing)
+originals rejected: 21 of 631 (3.33%)   by issue: {'too_dark': 6, 'too_small': 2, 'too_bright': 13}
+  blur radius 2      caught 42 of 631 (6.7%)
+  blur radius 4      caught 580 of 631 (91.9%)
+  darkened to 20%    caught 631 of 631 (100.0%)
+  glare +150         caught 631 of 631 (100.0%)
+The degradations are synthetic and are not real phone failures. They show whether the thresholds react at all.

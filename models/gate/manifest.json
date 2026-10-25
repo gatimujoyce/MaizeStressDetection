@@ -1,0 +1,31 @@
+{
+  "name": "gate",
+  "task": "gate",
+  "file": "gate_best.keras",
+  "sha256": "655a8af624dcbc6b3a1a840ea0db6f13da2c132dd09c4a7f5710874b2ad5835d",
+  "bytes": 17090604,
+  "weights_location": "MyDrive/maize-project/models/gate/checkpoints/gate_best.keras",
+  "tf_version": "2.21.0",
+  "enabled": true,
+  "input": {
+    "size": 224,
+    "channels": 3,
+    "preprocess": "efficientnet"
+  },
+  "classes": [
+    "in_scope",
+    "not_leaf",
+    "out_of_scope"
+  ],
+  "thresholds": {
+    "accept_p_in_scope": null,
+    "status": "provisional",
+    "interim_rule": "argmax is in_scope, the rule behind the committed test metrics",
+    "to_be_set_by": "real-world gate test (P5) and scripts/threshold_sweep.py"
+  },
+  "evidence": [
+    "results/gate_best/gate_v1_recheck/metrics.json",
+    "docs/limitations.md"
+  ],
+  "version": "gate-v1"
+}

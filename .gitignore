@@ -55,5 +55,10 @@ notebooks/**/*.csv
 *.zip
 *.tar.gz
 *.7z
-
 backend/con
+data/
+
+
+*.safetensors
+*.tflite
+*.keras

@@ -1,0 +1,42 @@
+{
+  "name": "nutrient",
+  "task": "nutrient",
+  "file": "nutrient_run1.keras",
+  "sha256": "400c34b2f2fbcd9e058a7e5829fee15b0aa2653864eb87c83008a37c68b01148",
+  "bytes": 33436273,
+  "weights_location": "MyDrive/maize-project/models/nutrient_head/run1/nutrient_run1.keras",
+  "tf_version": "2.21.0",
+  "enabled": true,
+  "input": {
+    "size": 224,
+    "channels": 3,
+    "preprocess": "efficientnet"
+  },
+  "classes": [
+    "nitrogen",
+    "no_deficiency",
+    "phosphorus",
+    "potassium",
+    "zinc"
+  ],
+  "thresholds": {
+    "fusion_bands": {
+      "strong_min": 0.8,
+      "weak_min": 0.6
+    },
+    "class_caps": {
+      "nitrogen": "weak"
+    },
+    "class_caps_status": "post-hoc decision after the test evaluation (docs/nutrient_posthoc_findings.md); kept through submission whatever the phone photos show, because a small smoke test can reveal failures but cannot prove nitrogen detection works",
+    "temperature": 1.0,
+    "calibration_applied": false
+  },
+  "evidence": [
+    "results/nutrient_run1/nutrient_run1_test/metrics.json",
+    "results/nutrient_run1/nutrient_run1_test/test_decision.json",
+    "docs/nutrient_ship_rule.md"
+  ],
+  "version": "nutrient-v1",
+  "ship_verdict": "SHIPS",
+  "run_dir": "models/nutrient_head/run1"
+}
