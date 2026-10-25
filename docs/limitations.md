@@ -96,3 +96,8 @@ The system applies a disease threshold of 0.60. This is the RAP fusion bound bel
 **Wording.** User-facing messages say "no heat, drought or waterlogging stress detected", not "conditions normal", and nitrogen calls are worded "possible nitrogen deficiency". Normal can read as reassurance on a cold night, which the system does not assess.
 
 
+
+### Real-world photo test (not run)
+
+The photo test pre-registered in `docs/realworld_photo_test.md` (committed on 25 October 2026, before any photo was taken) required phone photos taken by the project owner. No such photos could be taken, so the test was not run. Consequences: the gate threshold stays null and provisional (`models/gate/manifest.json`); the nutrient and disease smoke tests were not run; and no result on field photos exists for any image model. All image results in this project come from studio-style datasets and are likely to be optimistic for phone photos. The nitrogen cap in fusion is unaffected and stays in place (`docs/nutrient_posthoc_findings.md`).
+
