@@ -22,8 +22,11 @@ def test_sharp_normal_photo_passes():
     assert r["ok"] is True and r["issues"] == []
 
 
-def test_blurred_photo_is_flagged():
-    r = check_photo(img(BASE).filter(ImageFilter.GaussianBlur(10)), CFG)
+def test_blurred_photo_is_flagged_when_a_blur_limit_is_set():
+    import copy
+    cfg = copy.deepcopy(CFG)
+    cfg["quality"]["blur_laplacian_var"] = 30.0     # the switched-off check, turned back on for this test
+    r = check_photo(img(BASE).filter(ImageFilter.GaussianBlur(10)), cfg)
     assert "blurry" in r["issues"] and "too_dark" not in r["issues"] and "too_bright" not in r["issues"]
 
 
@@ -66,3 +69,9 @@ def test_non_rgb_input_is_handled():
 def test_config_has_every_key():
     for k in ("status", "min_side_px", "analysis_max_side", "dark_mean", "bright_mean", "blur_laplacian_var"):
         assert k in CFG["quality"]
+
+
+def test_blur_check_is_switched_off_in_the_committed_config():
+    assert CFG["quality"]["blur_laplacian_var"] == 0
+    flat = Image.fromarray(np.full((300, 300, 3), 120, dtype=np.uint8))
+    assert "blurry" not in check_photo(flat, CFG)["issues"]
