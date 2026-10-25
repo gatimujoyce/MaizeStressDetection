@@ -1,0 +1,107 @@
+{
+  "nutrient": {
+    "n_images": 2773,
+    "n_photos": 460,
+    "n_resamples": 2000,
+    "seed": 42,
+    "unit": "independent photo groups, resampled within each class",
+    "photos_per_class": {
+      "nitrogen": 171,
+      "no_deficiency": 95,
+      "phosphorus": 115,
+      "potassium": 33,
+      "zinc": 46
+    },
+    "recall": {
+      "nitrogen": {
+        "point": 0.996742671009772,
+        "lo": 0.9898305084745763,
+        "hi": 1.0
+      },
+      "no_deficiency": {
+        "point": 0.9917525773195877,
+        "lo": 0.975,
+        "hi": 1.0
+      },
+      "phosphorus": {
+        "point": 0.9781512605042016,
+        "lo": 0.9538461538461539,
+        "hi": 0.9965524609490126
+      },
+      "potassium": {
+        "point": 0.865296803652968,
+        "lo": 0.7530191503411842,
+        "hi": 0.957975654492994
+      },
+      "zinc": {
+        "point": 0.9313725490196079,
+        "lo": 0.8279923076923077,
+        "hi": 0.975
+      }
+    },
+    "macro_recall": {
+      "point": 0.9526631723012274,
+      "lo": 0.9217232862828938,
+      "hi": 0.9739383233627552
+    },
+    "rule4_precision": {
+      "point": 0.9655577299412916,
+      "lo": 0.9328391859113392,
+      "hi": 0.9906242278714238
+    },
+    "false_alarm_conf60": {
+      "point": 0.002061855670103093,
+      "lo": 0.0,
+      "hi": 0.00625
+    }
+  },
+  "disease": {
+    "n_images": 631,
+    "n_resamples": 2000,
+    "seed": 42,
+    "unit": "images resampled as independent, within each class (no photo-group file exists for this split)",
+    "note": "These intervals treat images as independent and therefore understate the uncertainty if the test set contains near-twin images.",
+    "recall": {
+      "common_rust": {
+        "point": 0.9695431472081218,
+        "lo": 0.9441624365482234,
+        "hi": 0.9898477157360406
+      },
+      "gray_leaf_spot": {
+        "point": 0.8160919540229885,
+        "lo": 0.735632183908046,
+        "hi": 0.896551724137931
+      },
+      "healthy": {
+        "point": 0.9942857142857143,
+        "lo": 0.9828571428571429,
+        "hi": 1.0
+      },
+      "northern_leaf_blight": {
+        "point": 0.8488372093023255,
+        "lo": 0.7906976744186046,
+        "hi": 0.9011627906976745
+      }
+    },
+    "macro_recall": {
+      "point": 0.9071895062047874,
+      "lo": 0.8814944870226615,
+      "hi": 0.930776844145553
+    },
+    "accuracy": {
+      "point": 0.9223454833597464,
+      "lo": 0.901703645007924,
+      "hi": 0.9413629160063391
+    },
+    "coverage_at_0_60": {
+      "point": 0.936608557844691,
+      "lo": 0.9175911251980983,
+      "hi": 0.9540412044374009
+    },
+    "accuracy_on_accepted_at_0_60": {
+      "point": 0.9526226734348562,
+      "lo": 0.9349945652173913,
+      "hi": 0.9680685663527155
+    }
+  }
+}
