@@ -1,0 +1,62 @@
+# Disease classifier model card: disease_best.keras
+
+## Purpose
+Classifies an accepted leaf photo as healthy or one of three foliar diseases, with a confidence, as one input to fusion.
+
+## Version and files
+- Version: {{models/core_classifier/manifest.json::version}}
+- File: {{models/core_classifier/manifest.json::file}} ({{models/core_classifier/manifest.json::bytes}} bytes)
+- sha256: {{models/core_classifier/manifest.json::sha256}}
+- Weights are not in git. Location: {{models/core_classifier/manifest.json::weights_location}}
+- TensorFlow {{models/core_classifier/manifest.json::tf_version}}. Input: {{models/core_classifier/manifest.json::input.size}}x{{models/core_classifier/manifest.json::input.size}} RGB, preprocessing "{{models/core_classifier/manifest.json::input.preprocess}}".
+- Classes, in model output order: {{models/core_classifier/manifest.json::classes[0]}}, {{models/core_classifier/manifest.json::classes[1]}}, {{models/core_classifier/manifest.json::classes[2]}}, {{models/core_classifier/manifest.json::classes[3]}}.
+
+## Data
+PlantVillage maize images (controlled conditions), split into train, validation and test. Train images per class: common_rust {{models/core_classifier/training_run.json::train_counts.common_rust}}, gray_leaf_spot {{models/core_classifier/training_run.json::train_counts.gray_leaf_spot}}, healthy {{models/core_classifier/training_run.json::train_counts.healthy}}, northern_leaf_blight {{models/core_classifier/training_run.json::train_counts.northern_leaf_blight}}. Validation images per class: common_rust {{models/core_classifier/training_run.json::val_counts.common_rust}}, gray_leaf_spot {{models/core_classifier/training_run.json::val_counts.gray_leaf_spot}}, healthy {{models/core_classifier/training_run.json::val_counts.healthy}}, northern_leaf_blight {{models/core_classifier/training_run.json::val_counts.northern_leaf_blight}}. Test n = {{results/disease_best/disease_v1_test/metrics.json::n}}.
+
+## Training
+Source: `models/core_classifier/training_run.json`, trained with `scripts/train_image_classifier.py` in Colab. EfficientNetB0 with ImageNet weights, two phases: head only ({{models/core_classifier/training_run.json::hyperparameters.epochs_head}} epochs allowed, learning rate {{models/core_classifier/training_run.json::hyperparameters.lr_head}}), then the last {{models/core_classifier/training_run.json::hyperparameters.unfreeze_layers}} base layers unfrozen with BatchNormalization kept frozen ({{models/core_classifier/training_run.json::hyperparameters.epochs_finetune}} epochs allowed, learning rate {{models/core_classifier/training_run.json::hyperparameters.lr_finetune}}). Epochs actually run: phase 1 {{models/core_classifier/training_run.json::epochs_run.phase1}}, phase 2 {{models/core_classifier/training_run.json::epochs_run.phase2}} (early stopping). Batch size {{models/core_classifier/training_run.json::hyperparameters.batch_size}}, seed {{models/core_classifier/training_run.json::hyperparameters.seed}}, balanced class weights, TensorFlow {{models/core_classifier/training_run.json::tensorflow_version}}. Best validation accuracy {{models/core_classifier/training_run.json::best_val_accuracy::.4f}}. The checkpoint was chosen on validation, so validation figures are optimistic.
+
+## Test results (single evaluation, n = {{results/disease_best/disease_v1_test/metrics.json::n}})
+Source: `results/disease_best/disease_v1_test/metrics.json`. Accuracy {{results/disease_best/disease_v1_test/metrics.json::accuracy::.4f}}, macro F1 {{results/disease_best/disease_v1_test/metrics.json::macro_f1::.4f}}. The test split was evaluated once and not used for any tuning.
+
+| Class | Precision | Recall | Support |
+|---|---|---|---|
+| {{results/disease_best/disease_v1_test/metrics.json::per_class[0].name}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[0].precision::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[0].recall::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[0].support}} |
+| {{results/disease_best/disease_v1_test/metrics.json::per_class[1].name}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[1].precision::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[1].recall::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[1].support}} |
+| {{results/disease_best/disease_v1_test/metrics.json::per_class[2].name}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[2].precision::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[2].recall::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[2].support}} |
+| {{results/disease_best/disease_v1_test/metrics.json::per_class[3].name}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[3].precision::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[3].recall::.4f}} | {{results/disease_best/disease_v1_test/metrics.json::per_class[3].support}} |
+
+Safety property: diseased leaves called healthy {{results/disease_best/disease_v1_test/metrics.json::task_extras.diseased_called_healthy_rate::.4f}}; healthy leaves called diseased {{results/disease_best/disease_v1_test/metrics.json::task_extras.healthy_called_diseased_rate::.4f}}.
+
+## Intervals on the test results
+Source: `results/intervals/bootstrap_intervals.json`, written by `scripts/bootstrap_intervals.py`. 95% intervals from resampling images within each class ({{results/intervals/bootstrap_intervals.json::disease.n_resamples}} resamples, seed {{results/intervals/bootstrap_intervals.json::disease.seed}}). **Images are treated as independent**, because no photo-group file exists for this split. The intervals therefore understate the uncertainty if the test set contains near-twin images, which was not checked within the test set.
+
+| Measure | Estimate | 95% interval |
+|---|---|---|
+| common_rust recall | {{results/intervals/bootstrap_intervals.json::disease.recall.common_rust.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.common_rust.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.common_rust.hi::.3f}}] |
+| gray_leaf_spot recall | {{results/intervals/bootstrap_intervals.json::disease.recall.gray_leaf_spot.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.gray_leaf_spot.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.gray_leaf_spot.hi::.3f}}] |
+| healthy recall | {{results/intervals/bootstrap_intervals.json::disease.recall.healthy.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.healthy.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.healthy.hi::.3f}}] |
+| northern_leaf_blight recall | {{results/intervals/bootstrap_intervals.json::disease.recall.northern_leaf_blight.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.northern_leaf_blight.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.northern_leaf_blight.hi::.3f}}] |
+| macro recall | {{results/intervals/bootstrap_intervals.json::disease.macro_recall.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.macro_recall.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.macro_recall.hi::.3f}}] |
+| accuracy | {{results/intervals/bootstrap_intervals.json::disease.accuracy.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.accuracy.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.accuracy.hi::.3f}}] |
+| coverage at confidence 0.60 or more | {{results/intervals/bootstrap_intervals.json::disease.coverage_at_0_60.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.coverage_at_0_60.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.coverage_at_0_60.hi::.3f}}] |
+| accuracy on accepted images at 0.60 | {{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.hi::.3f}}] |
+
+The upper end of the interval for accuracy on accepted images at 0.60 ({{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.hi::.3f}}) is below the 0.97 target used on validation to choose the operating point.
+
+## Thresholds
+- System threshold `t_disease` = {{models/core_classifier/manifest.json::thresholds.t_disease}}. This is the RAP fusion bound below which a result is uncertain.
+- Operating point selected on the validation split by a rule fixed beforehand: {{models/core_classifier/manifest.json::thresholds.t_disease_validation_selected}}. Fusion overrides it with the stricter value above.
+- At {{models/core_classifier/manifest.json::thresholds.t_disease}} on the validation split: coverage {{results/disease_best/disease_v1_val/threshold_table.csv::[threshold=0.6].coverage::.4f}}, accuracy on accepted images {{results/disease_best/disease_v1_val/threshold_table.csv::[threshold=0.6].accuracy_on_accepted::.4f}}, diseased leaves accepted as healthy {{results/disease_best/disease_v1_val/threshold_table.csv::[threshold=0.6].sick_accepted_as_healthy::d}}.
+- At the same threshold on the test split: coverage {{results/disease_best/disease_v1_test/metrics.json::confidence_analysis[threshold=0.6].coverage::.4f}}, accuracy on accepted images {{results/disease_best/disease_v1_test/metrics.json::confidence_analysis[threshold=0.6].accuracy_on_accepted::.4f}}.
+- Validation threshold table: `results/disease_best/disease_v1_val/threshold_table.csv`.
+
+## Known failure modes
+- Gray leaf spot and northern leaf blight are confused with each other: {{results/disease_best/disease_v1_test/metrics.json::confusion_matrix[1][3]}} gray leaf spot images called northern leaf blight, {{results/disease_best/disease_v1_test/metrics.json::confusion_matrix[3][1]}} the other way round (test split). Both are foliar diseases, so a sick leaf is still flagged as sick, but the disease label, and therefore the advice, can be wrong.
+- Gray leaf spot has the lowest confidence: about one validation photo in five asks for a retake at the system threshold.
+
+## Limitations
+- PlantVillage images are photographed under controlled conditions. No real-world test of this model has been run, so performance on phone photos is unknown and likely lower.
+- A perceptual-hash leakage check between train and test found no near-duplicate pairs. Its console output was not saved as a file (`docs/limitations.md`, section Disease classifier). It catches near-identical images only.
+- Covers three foliar diseases and healthy leaves. Other diseases, pests and deficiencies are not recognised.
