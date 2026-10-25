@@ -1,0 +1,67 @@
+# Nutrient classifier model card: nutrient_run1.keras
+
+## Purpose
+Classifies an accepted leaf photo as no deficiency or one of four nutrient deficiencies, with a confidence, as one input to fusion. In user-facing messages a nitrogen call is worded "possible nitrogen deficiency".
+
+## Ship status
+Verdict: {{models/nutrient_head/manifest.json::ship_verdict}} under the rule fixed before training (`docs/nutrient_ship_rule.md`; source `results/nutrient_run1/nutrient_run1_test/test_decision.json`). This means the rule passed on this dataset. It does not mean deficiency detection works in the field (see Known failure modes).
+
+## Version and files
+- Version: {{models/nutrient_head/manifest.json::version}}
+- File: {{models/nutrient_head/manifest.json::file}} ({{models/nutrient_head/manifest.json::bytes}} bytes)
+- sha256: {{models/nutrient_head/manifest.json::sha256}}
+- Weights are not in git. Location: {{models/nutrient_head/manifest.json::weights_location}}
+- TensorFlow {{models/nutrient_head/manifest.json::tf_version}}. Input: {{models/nutrient_head/manifest.json::input.size}}x{{models/nutrient_head/manifest.json::input.size}} RGB, preprocessing "{{models/nutrient_head/manifest.json::input.preprocess}}".
+- Classes, in model output order: {{models/nutrient_head/manifest.json::classes[0]}}, {{models/nutrient_head/manifest.json::classes[1]}}, {{models/nutrient_head/manifest.json::classes[2]}}, {{models/nutrient_head/manifest.json::classes[3]}}, {{models/nutrient_head/manifest.json::classes[4]}}.
+
+## Data
+Raw images in `data/raw/nutrient_deficiency/Nutrition_dataset`, mapped to classes by `scripts/resplit_nutrient_data.py`. The dataset's provenance and licence are not recorded in this repository. The first split leaked near-duplicate images between train and test (`results/nutrient/leakage_check.txt`) and was replaced by a split by independent photo group (`scripts/split_nutrient_grouped.py`, 65/15/20, seed 42; manifest `results/nutrient/split_v2_manifest.csv`). The photo groups per split, as printed by the splitter (identical to the real run):
+
+```text
+{{include::results/nutrient/split_v2_plan.txt}}
+```
+
+Train images per class: nitrogen {{models/nutrient_head/run1/training_run.json::train_counts.nitrogen}}, no_deficiency {{models/nutrient_head/run1/training_run.json::train_counts.no_deficiency}}, phosphorus {{models/nutrient_head/run1/training_run.json::train_counts.phosphorus}}, potassium {{models/nutrient_head/run1/training_run.json::train_counts.potassium}}, zinc {{models/nutrient_head/run1/training_run.json::train_counts.zinc}}. Validation images per class: nitrogen {{models/nutrient_head/run1/training_run.json::val_counts.nitrogen}}, no_deficiency {{models/nutrient_head/run1/training_run.json::val_counts.no_deficiency}}, phosphorus {{models/nutrient_head/run1/training_run.json::val_counts.phosphorus}}, potassium {{models/nutrient_head/run1/training_run.json::val_counts.potassium}}, zinc {{models/nutrient_head/run1/training_run.json::val_counts.zinc}}. Test images: {{results/nutrient_run1/nutrient_run1_test/metrics.json::n}}.
+
+## Training
+Source: `models/nutrient_head/run1/training_run.json`, `scripts/train_image_classifier.py` in Colab. EfficientNetB0 with ImageNet weights, two phases: head only (learning rate {{models/nutrient_head/run1/training_run.json::hyperparameters.lr_head}}), then the last {{models/nutrient_head/run1/training_run.json::hyperparameters.unfreeze_layers}} base layers unfrozen with BatchNormalization kept frozen (learning rate {{models/nutrient_head/run1/training_run.json::hyperparameters.lr_finetune}}). Epochs run: phase 1 {{models/nutrient_head/run1/training_run.json::epochs_run.phase1}}, phase 2 {{models/nutrient_head/run1/training_run.json::epochs_run.phase2}}. Batch size {{models/nutrient_head/run1/training_run.json::hyperparameters.batch_size}}, seed {{models/nutrient_head/run1/training_run.json::hyperparameters.seed}}, balanced class weights, TensorFlow {{models/nutrient_head/run1/training_run.json::tensorflow_version}}. Best validation accuracy {{models/nutrient_head/run1/training_run.json::best_val_accuracy::.4f}} (the checkpoint was chosen on validation, so validation figures are optimistic). One training run only (decisions in `docs/nutrient_run1_decision.md`).
+
+## Test results (single evaluation, n = {{results/nutrient_run1/nutrient_run1_test/metrics.json::n}})
+Source: `results/nutrient_run1/nutrient_run1_test/metrics.json`. Accuracy {{results/nutrient_run1/nutrient_run1_test/metrics.json::accuracy::.4f}}, macro F1 {{results/nutrient_run1/nutrient_run1_test/metrics.json::macro_f1::.4f}}.
+
+| Class | Precision | Recall | Support |
+|---|---|---|---|
+| nitrogen | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=nitrogen].precision::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=nitrogen].recall::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=nitrogen].support}} |
+| no_deficiency | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=no_deficiency].precision::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=no_deficiency].recall::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=no_deficiency].support}} |
+| phosphorus | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=phosphorus].precision::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=phosphorus].recall::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=phosphorus].support}} |
+| potassium | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=potassium].precision::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=potassium].recall::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=potassium].support}} |
+| zinc | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=zinc].precision::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=zinc].recall::.4f}} | {{results/nutrient_run1/nutrient_run1_test/metrics.json::per_class[name=zinc].support}} |
+
+## The pre-registered ship rule (`docs/nutrient_ship_rule.md`; values from `test_decision.json`)
+| Rule | Cutoff | Measured on test | Pass |
+|---|---|---|---|
+| 1. Macro recall | at least 0.70 | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::macro_recall::.4f}} | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::rule1}} |
+| 2. Lowest class recall | at least 0.50 | potassium {{results/nutrient_run1/nutrient_run1_test/test_decision.json::class_recall.potassium::.4f}} | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::rule2}} |
+| 3. no_deficiency recall | at least 0.80 | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::class_recall.no_deficiency::.4f}} | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::rule3}} |
+| 4. Predictions at confidence 0.80 or more | at least 100 images from at least 20 photos, precision at least 0.85 | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::images_conf80}} images from {{results/nutrient_run1/nutrient_run1_test/test_decision.json::photos_conf80}} photos, precision {{results/nutrient_run1/nutrient_run1_test/test_decision.json::precision_conf80::.4f}} | {{results/nutrient_run1/nutrient_run1_test/test_decision.json::rule4}} |
+
+Healthy images predicted as a deficiency at confidence 0.60 or more (the level at which fusion flags): {{results/nutrient_run1/nutrient_run1_test/test_decision.json::false_alarm_conf60::.4f}}. The test set holds {{results/nutrient_run1/nutrient_run1_test/test_decision.json::test_images}} images from {{results/nutrient_run1/nutrient_run1_test/test_decision.json::test_photos}} independent photos. The cutoffs are judgment calls fixed before training, not derived values.
+
+## Thresholds and fusion settings
+- Confidence bands (shared with disease, from the RAP fusion rules): strong at {{models/nutrient_head/manifest.json::thresholds.fusion_bands.strong_min}} or more, weak from {{models/nutrient_head/manifest.json::thresholds.fusion_bands.weak_min}}, uncertain below.
+- Cap: nitrogen counts as {{models/nutrient_head/manifest.json::thresholds.class_caps.nitrogen}} whatever its confidence. Status: {{models/nutrient_head/manifest.json::thresholds.class_caps_status}}.
+- Calibration applied: {{models/nutrient_head/manifest.json::thresholds.calibration_applied}} (temperature {{models/nutrient_head/manifest.json::thresholds.temperature}}).
+
+## Known failure modes
+- Potassium is confused with phosphorus ({{results/nutrient_run1/nutrient_run1_test/metrics.json::confusion_matrix[3][2]}} images) and zinc ({{results/nutrient_run1/nutrient_run1_test/metrics.json::confusion_matrix[3][4]}}); zinc is confused with phosphorus ({{results/nutrient_run1/nutrient_run1_test/metrics.json::confusion_matrix[4][2]}}) and potassium ({{results/nutrient_run1/nutrient_run1_test/metrics.json::confusion_matrix[4][3]}}). Potassium has few independent test photos, so its recall is uncertain. Confidence intervals were computed in the evaluation notebook by resampling photo groups and printed there; they were not saved to a file and are not reproduced in this card.
+- **Nitrogen is captured differently from every other class.** Nitrogen images are large camera photos and the other classes are tiny crops, so its near-perfect score is not evidence that nitrogen deficiency can be detected. The capture-style check:
+
+```text
+{{include::results/nutrient/capture_style.txt}}
+```
+
+  A diagnostic on the validation split only (nitrogen images cropped, shrunk to 100x200 and recompressed to match the other classes) gave nitrogen recall {{results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json::nitrogen_recall_before::.4f}} before and {{results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json::nitrogen_recall_after::.4f}} after, on {{results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json::nitrogen_n}} images (errors: {{results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json::predicted_after.zinc}} called zinc, {{results/nutrient_run1/nutrient_run1_val_diagB/diagB_result.json::predicted_after.phosphorus}} called phosphorus). That is little evidence of reliance on resolution or file size. It is not proof, since every image is resized to 224x224 before the model sees it and colour, background and lighting were not changed. Potassium, also separable by file size and tiling, was not tested.
+
+## Limitations
+- Every class is studio-style. No field test was run (the phone-photo test was not run, `docs/limitations.md`), so performance on phone photos is unknown and likely lower.
+- The leakage check shows no group in two splits and no cross-split pair at phash distance 5 or less (`tests/test_nutrient_split.py`). It uses the same distance as the grouping, so it is a consistency check. A rotated copy of a photo would not be caught.

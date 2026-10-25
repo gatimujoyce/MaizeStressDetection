@@ -68,7 +68,7 @@ def fill(match):
         p = REPO / parts[1]
         if not p.is_file():
             raise KeyError(f"file not found: {parts[1]}")
-        return p.read_text(encoding="utf-8").strip()
+        return p.read_text(encoding="utf-8-sig").strip()
     if len(parts) not in (2, 3):
         raise KeyError("expected FILE::PATH or FILE::PATH::FORMAT")
     value = resolve(load(parts[0]), parts[1])
