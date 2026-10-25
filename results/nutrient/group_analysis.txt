@@ -1,0 +1,51 @@
+﻿images found: 13781
+  hashed 1000 images so far...
+  hashed 2000 images so far...
+  hashed 3000 images so far...
+  hashed 4000 images so far...
+  hashed 5000 images so far...
+  hashed 6000 images so far...
+  hashed 7000 images so far...
+  hashed 8000 images so far...
+  hashed 9000 images so far...
+  hashed 10000 images so far...
+  hashed 11000 images so far...
+  hashed 12000 images so far...
+  hashed 13000 images so far...
+images that could not be hashed: 0
+
+=== no_deficiency: 2430 images ===
+  A) groups by the current rule ........ 486
+  B) groups by leading photo number .... 486
+  C) + near-duplicate links (distance <= 0): 486 groups, largest 5 (0.2% of class), top5 [5, 5, 5, 5, 5], single-image groups 0, test groups at 15%: 73
+  C) + near-duplicate links (distance <= 3): 484 groups, largest 10 (0.4% of class), top5 [10, 10, 5, 5, 5], single-image groups 0, test groups at 15%: 73
+  C) + near-duplicate links (distance <= 5): 475 groups, largest 20 (0.8% of class), top5 [20, 15, 10, 10, 10], single-image groups 0, test groups at 15%: 71
+
+=== nitrogen: 1535 images ===
+  A) groups by the current rule ........ 867
+  B) groups by leading photo number .... 867
+  C) + near-duplicate links (distance <= 0): 866 groups, largest 4 (0.3% of class), top5 [4, 4, 4, 4, 4], single-image groups 312, test groups at 15%: 130
+  C) + near-duplicate links (distance <= 3): 864 groups, largest 5 (0.3% of class), top5 [5, 4, 4, 4, 4], single-image groups 311, test groups at 15%: 130
+  C) + near-duplicate links (distance <= 5): 854 groups, largest 5 (0.3% of class), top5 [5, 5, 5, 4, 4], single-image groups 304, test groups at 15%: 128
+
+=== phosphorus: 2970 images ===
+  A) groups by the current rule ........ 594
+  B) groups by leading photo number .... 594
+  C) + near-duplicate links (distance <= 0): 594 groups, largest 5 (0.2% of class), top5 [5, 5, 5, 5, 5], single-image groups 0, test groups at 15%: 89
+  C) + near-duplicate links (distance <= 3): 589 groups, largest 10 (0.3% of class), top5 [10, 10, 10, 10, 10], single-image groups 0, test groups at 15%: 88
+  C) + near-duplicate links (distance <= 5): 575 groups, largest 20 (0.7% of class), top5 [20, 20, 15, 15, 10], single-image groups 0, test groups at 15%: 86
+
+=== potassium: 4301 images ===
+  A) groups by the current rule ........ 861
+  B) groups by leading photo number .... 172
+  C) + near-duplicate links (distance <= 0): 170 groups, largest 75 (1.7% of class), top5 [75, 26, 25, 25, 25], single-image groups 0, test groups at 15%: 26
+  C) + near-duplicate links (distance <= 3): 168 groups, largest 75 (1.7% of class), top5 [75, 50, 50, 26, 25], single-image groups 0, test groups at 15%: 25
+  C) + near-duplicate links (distance <= 5): 162 groups, largest 100 (2.3% of class), top5 [100, 75, 75, 50, 50], single-image groups 0, test groups at 15%: 24
+
+=== zinc: 2545 images ===
+  A) groups by the current rule ........ 509
+  B) groups by leading photo number .... 509
+  C) + near-duplicate links (distance <= 0): 360 groups, largest 50 (2.0% of class), top5 [50, 50, 40, 40, 25], single-image groups 0, test groups at 15%: 54
+  C) + near-duplicate links (distance <= 3): 272 groups, largest 200 (7.9% of class), top5 [200, 190, 110, 90, 90], single-image groups 0, test groups at 15%: 41
+  C) + near-duplicate links (distance <= 5): 243 groups, largest 200 (7.9% of class), top5 [200, 190, 190, 180, 160], single-image groups 0, test groups at 15%: 36
+

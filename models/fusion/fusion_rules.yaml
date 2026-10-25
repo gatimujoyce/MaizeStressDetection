@@ -1,0 +1,35 @@
+# Fusion rules. Sources: the RAP fusion rules (pasted by the project owner), the post-hoc nitrogen cap
+# (docs/nutrient_posthoc_findings.md) and the sensor-window design agreed with the project owner.
+# Entries marked DESIGN are design parameters chosen by us, not derived from data (the sensor data is
+# simulated and has no time structure). They are for the supervisor to review.
+bands:                        # RAP step 1: disease and nutrient share the bands
+  strong_min: 0.80
+  weak_min: 0.60
+not_flagging_labels:
+  disease: [healthy]
+  nutrient: [no_deficiency]
+class_caps:                   # post-hoc decision after the test evaluation, lifted only by a phone-photo check
+  nutrient:
+    nitrogen: weak
+primary_order: [disease, nutrient, sensor]    # RAP step 3 tie-break
+sensor:
+  window_hours: 24
+  min_coverage: 0.60          # DESIGN: below this share of the window covered by readings, the sensor is not assessed
+  max_gap_hours: 1.0          # DESIGN: a reading is credited at most this long, so missing data is never counted as stress
+  min_run_hours: 1.0          # DESIGN: a stress run shorter than this is ignored (flicker)
+  min_run_readings: 3         # DESIGN: a run also needs at least this many consecutive readings
+  recovery_hours: 1.0         # DESIGN: if the last hour shows none of a class, its level drops by one
+  stress_classes: [drought_stress, heat_stress, waterlogging_risk]
+  hours:                      # DESIGN
+    heat_stress: {weak: 2.0, strong: 5.0}
+    drought_stress: {weak: 6.0, strong: 12.0}
+    waterlogging_risk: {weak: 4.0, strong: 12.0}
+  borderline:                 # the gaps left by the backend rules (RAP): they can reach weak, never strong
+    heat_stress: {variable: temperature_c, above: 29.0, below: 32.0}
+    waterlogging_risk: {variable: soil_pct_fc, above: 100.0, up_to: 110.0}
+  severe_alone: [waterlogging_risk]           # RAP: sustained waterlogging alone is High
+soil:                         # copied from scripts/sensor_constants.py (a test checks they match)
+  sandy_loam: {field_capacity: 20.0, wilting_point: 7.5, saturation: 30.0}
+  loam: {field_capacity: 40.0, wilting_point: 12.5, saturation: 45.0}
+  silt_loam: {field_capacity: 42.0, wilting_point: 14.0, saturation: 48.0}
+  clay: {field_capacity: 50.0, wilting_point: 17.5, saturation: 58.0}

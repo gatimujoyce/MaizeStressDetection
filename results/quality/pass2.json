@@ -1,0 +1,55 @@
+{
+  "thresholds": {
+    "status": "provisional",
+    "min_side_px": 224,
+    "analysis_max_side": 512,
+    "dark_mean": 40.0,
+    "bright_mean": 225.0,
+    "blur_laplacian_var": 30.0
+  },
+  "validation": {
+    "n": 625,
+    "originals_rejected": 24,
+    "by_issue": {
+      "too_small": 6,
+      "blurry": 18
+    },
+    "caught": {
+      "blur radius 2": 610,
+      "blur radius 4": 620,
+      "darkened to 20%": 625,
+      "glare +150": 484
+    },
+    "caught_for_expected_reason": {
+      "blur radius 2": 610,
+      "blur radius 4": 620,
+      "darkened to 20%": 625,
+      "glare +150": 483
+    }
+  },
+  "test": {
+    "n": 631,
+    "originals_rejected": 11,
+    "by_issue": {
+      "too_small": 2,
+      "blurry": 9
+    },
+    "caught": {
+      "blur radius 2": 614,
+      "blur radius 4": 624,
+      "darkened to 20%": 631,
+      "glare +150": 502
+    },
+    "caught_for_expected_reason": {
+      "blur radius 2": 614,
+      "blur radius 4": 624,
+      "darkened to 20%": 630,
+      "glare +150": 502
+    }
+  },
+  "blur_decision": {
+    "originals_rejected_for_blur": 0.0288,
+    "radius4_flagged_blurry": 0.992,
+    "criteria_met": false
+  }
+}

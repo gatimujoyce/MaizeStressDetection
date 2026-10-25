@@ -1,0 +1,21 @@
+thresholds as in models/quality/quality_rules.yaml (not changed): min_side_px 224, dark_mean 40.0, bright_mean 225.0, blur_laplacian_var 30.0
+
+VALIDATION (decides the blur question) (625 images)
+  originals rejected: 24 (3.84%)   by issue: {'too_small': 6, 'blurry': 18}
+  blur radius 2      caught  610 ( 97.6%)   flagged as blurry:  610 ( 97.6%)
+  blur radius 4      caught  620 ( 99.2%)   flagged as blurry:  620 ( 99.2%)
+  darkened to 20%    caught  625 (100.0%)   flagged as too_dark:  625 (100.0%)
+  glare +150         caught  484 ( 77.4%)   flagged as too_bright:  483 ( 77.3%)
+
+TEST (reported, not used to decide) (631 images)
+  originals rejected: 11 (1.74%)   by issue: {'too_small': 2, 'blurry': 9}
+  blur radius 2      caught  614 ( 97.3%)   flagged as blurry:  614 ( 97.3%)
+  blur radius 4      caught  624 ( 98.9%)   flagged as blurry:  624 ( 98.9%)
+  darkened to 20%    caught  631 (100.0%)   flagged as too_dark:  630 ( 99.8%)
+  glare +150         caught  502 ( 79.6%)   flagged as too_bright:  502 ( 79.6%)
+
+BLUR DECISION (validation only; criteria from docs/photo_quality_check.md)
+  originals rejected for blur: 2.88%   (must be at most 2%)   -> FAILS
+  radius-4 copies flagged as blurry: 99.2%   (must be at least 80%)   -> ok
+  DECISION: the blur check is to be switched off in the config (blur_laplacian_var: 0) and sharpness reported as not reliably measurable on this data.
+Degradations are synthetic. Laplacian variance depends on resolution and content, so none of this transfers to phone photos.

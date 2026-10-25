@@ -1,0 +1,18 @@
+﻿Train images hashed: 2916
+Test images hashed: 623
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG20190523125801.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG20190523125803.jpg (distance: 4)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG20190523130029.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG20190523130032.jpg (distance: 4)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG20190523130154.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG20190523130153.jpg (distance: 2)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG20190523132952.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG20190523132953.jpg (distance: 2)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG20190523141619.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG20190523141617.jpg (distance: 2)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG_1123.JPG ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG_1122.JPG (distance: 4)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG_1155.JPG ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG_1154.JPG (distance: 0)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG_1308.JPG ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG_1309.JPG (distance: 4)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG_20190523_115923_8.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG_20190523_115922_8.jpg (distance: 4)
+Possible leak: data/processed/triage_gate\test\out_of_scope\fall_army_worm__IMG_20190523_124113_1.jpg ~ data/processed/triage_gate\train\out_of_scope\fall_army_worm__IMG_20190523_124113_8.jpg (distance: 4)
+Possible leak: data/processed/triage_gate\test\out_of_scope\maize_streak__IMG_20190523_134751_5.jpg ~ data/processed/triage_gate\train\out_of_scope\maize_streak__IMG_20190523_134752_4.jpg (distance: 4)
+
+Total possible leaks found: 11
+Distinct test images with at least one flagged pair: 11
+Test images hashed: 623
+Share of test images affected: 1.77%

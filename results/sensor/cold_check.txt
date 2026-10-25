@@ -1,0 +1,12 @@
+train: 2800 rows, temperature range 8.3 to 48.6 C, 170 rows below 18 C (6.1%)
+  labels below 18 C: {'waterlogging_risk': 98, 'normal': 65, 'drought_stress': 7}
+  labels overall:    {'waterlogging_risk': 686, 'drought_stress': 699, 'normal': 698, 'heat_stress': 717}
+val: 600 rows, temperature range 8.7 to 48.5 C, 40 rows below 18 C (6.7%)
+  labels below 18 C: {'waterlogging_risk': 30, 'normal': 10}
+  labels overall:    {'normal': 144, 'waterlogging_risk': 165, 'drought_stress': 147, 'heat_stress': 144}
+test: 600 rows, temperature range 12.0 to 44.6 C, 28 rows below 18 C (4.7%)
+  labels below 18 C: {'waterlogging_risk': 23, 'normal': 3, 'drought_stress': 2}
+  labels overall:    {'waterlogging_risk': 149, 'drought_stress': 154, 'heat_stress': 139, 'normal': 158}
+
+Part 2: trained model predictions on test rows below 18 C
+skipped: ModuleNotFoundError: No module named 'tensorflow'

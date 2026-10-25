@@ -1,0 +1,34 @@
+{
+  "name": "sensor",
+  "task": "sensor",
+  "file": "sensor_v2.keras",
+  "sha256": "b91a3cecf2a66b75911121b05b4fea678c5a66c51f650bf189c8ba7f4e0368f7",
+  "bytes": 38460,
+  "no_stage_file": "sensor_v2_no_stage.keras",
+  "no_stage_sha256": "b4d8e6980dbc9c27ba639666d6ff00d8da45102da38bd1aab14e69e9b9e09bd3",
+  "no_stage_bytes": 36152,
+  "weights_location": "MyDrive/maize-project/models/sensor/v2/",
+  "tf_version": null,
+  "enabled": true,
+  "input": {
+    "type": "feature vector",
+    "preprocessing_file": "sensor_preprocessing.json",
+    "use_no_stage_file_when": "growth stage is unknown"
+  },
+  "classes": [
+    "drought_stress",
+    "heat_stress",
+    "normal",
+    "waterlogging_risk"
+  ],
+  "thresholds": {
+    "decision": "argmax",
+    "report_confidence": true
+  },
+  "data": "simulated; not validated on real sensors",
+  "evidence": [
+    "results/sensor/comparison.md",
+    "results/sensor/sensor_model_card.md"
+  ],
+  "version": "sensor-v2"
+}

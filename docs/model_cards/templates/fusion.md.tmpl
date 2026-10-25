@@ -1,0 +1,45 @@
+# Fusion model card: decision-level rules
+
+## Purpose
+Combines the gate result, the disease and nutrient predictions and the sensor window into one severity (none, low, medium, high), a primary issue, secondary issues and a retake flag. It is rule based and contains no learned parameters. The rules follow the RAP fusion rules, with the gaps listed below filled by design.
+
+## Files
+- Code: `fusion/fuse.py` (fusion) and `fusion/sensor_window.py` (sensor window), pure Python plus PyYAML.
+- Settings: `models/fusion/fusion_rules.yaml`, reproduced here exactly as committed:
+
+```yaml
+{{include::models/fusion/fusion_rules.yaml}}
+```
+
+- Tests: `tests/test_fusion.py` (the rules case by case, the sensor window, the soil conversion against `scripts/rule_baseline.py`, and a property test that more evidence never lowers severity).
+- Scenario table: `results/fusion/fusion_scenarios.csv` (every combination of source states through the real function, written by `scripts/run_fusion_scenarios.py`).
+
+## Rules in brief
+Each source is strong, weak, not flagging, uncertain or unavailable. Disease and nutrient use the confidence bands in the settings; a nitrogen call is capped at weak (a post-hoc decision, `docs/nutrient_posthoc_findings.md`). The sensor source comes from the 24-hour window.
+
+| Severity | Condition |
+|---|---|
+| High | two or more sources flagging with at least one strong, or sustained waterlogging alone |
+| Medium | one source strong, or two or more weak |
+| Low | one source weak |
+| None | no source flagging, or every source uncertain |
+
+The primary issue is the strongest flagging source; ties go disease, then nutrient, then sensor. Uncertain and unavailable sources never raise severity. A retake is requested when the gate fails or the disease source is not assessed.
+
+## Gaps in the RAP rules filled by design
+A healthy result below the uncertain bound counts as not assessed; three or more weak sources count as Medium; a retake is not requested when only the nutrient source is not assessed; soil moisture is converted to a percentage of field capacity as in `scripts/rule_baseline.py`. All sensor hour thresholds, the coverage floor and the run rules are design parameters.
+
+## Output codes (`notes`)
+gate_failed_sensors_only, disease_with_normal_field_conditions, leaf_looks_healthy_sensor_stress, nutrient_not_assessed, unclear_retake_photo_and_check_again. The display layer is expected to word a sensor result as "no heat, drought or waterlogging stress detected" and never as "conditions normal", and a nitrogen call as "possible nitrogen deficiency". Those messages are not produced by this code.
+
+## Sensitivity of the sensor thresholds (synthetic 24-hour windows)
+Every hour threshold scaled by 0.5 to 1.5, and the minimum-run rule at four sampling intervals (`scripts/sensor_sensitivity.py`, full output `results/fusion/sensor_sensitivity.csv`). The output below was produced before the minimum-readings guard (`min_run_readings`) was added, so its last table shows the case that guard removes:
+
+```text
+{{include::results/fusion/sensor_sensitivity.txt}}
+```
+
+## Limitations
+- The sensor data is simulated with no time structure. The tests show that the code follows the written design, not that the thresholds are right.
+- The code needs timestamped readings with a model label, a temperature and soil moisture as a percentage of field capacity. Building these from stored readings is a backend job and has not been done.
+- Cold stress is not modelled. Fusion has not been run on real model outputs from a deployed backend.

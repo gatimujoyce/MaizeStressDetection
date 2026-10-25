@@ -1,0 +1,24 @@
+nutrient: point estimates match results/nutrient_run1/nutrient_run1_test/test_decision.json
+
+NUTRIENT test: 2773 images, 460 photo groups, 2000 resamples, seed 42
+  recall nitrogen (171 photos)        0.9967   [0.990, 1.000]
+  recall no_deficiency (95 photos)    0.9918   [0.975, 1.000]
+  recall phosphorus (115 photos)      0.9782   [0.954, 0.997]
+  recall potassium (33 photos)        0.8653   [0.753, 0.958]
+  recall zinc (46 photos)             0.9314   [0.828, 0.975]
+  macro recall                        0.9527   [0.922, 0.974]
+  precision at confidence >= 0.80     0.9656   [0.933, 0.991]
+  false alarm (no_deficiency, >= 0.60)  0.0021   [0.000, 0.006]
+
+disease: accuracy and per-class recall match results/disease_best/disease_v1_test/metrics.json
+disease: at confidence 0.60, coverage 0.9366 and accuracy on accepted 0.9526; metrics.json says 0.9366 and 0.9526 -> match
+
+DISEASE test: 631 images, 2000 resamples, seed 42 (images treated as independent)
+  recall common_rust                  0.9695   [0.944, 0.990]
+  recall gray_leaf_spot               0.8161   [0.736, 0.897]
+  recall healthy                      0.9943   [0.983, 1.000]
+  recall northern_leaf_blight         0.8488   [0.791, 0.901]
+  macro recall                        0.9072   [0.881, 0.931]
+  accuracy                            0.9223   [0.902, 0.941]
+  coverage at confidence >= 0.60      0.9366   [0.918, 0.954]
+  accuracy on accepted at 0.60        0.9526   [0.935, 0.968]

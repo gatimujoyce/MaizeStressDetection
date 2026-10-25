@@ -2,125 +2,91 @@ import os
 import math
 import random
 import csv
+import json
+import sys
 
-OUTPUT_RAW = "data/raw/synthetic_sensor/sensor_data_full.csv"
-OUTPUT_PROCESSED_DIR = "data/processed/synthetic_sensor"
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from sensor_constants import (
+    SOIL_PROPERTIES, DROUGHT_THRESHOLD_PCT_FC, NORMAL_UPPER_PCT_FC, 
+    WATERLOG_THRESHOLD_PCT_FC, HEAT_THRESHOLD_C, NORMAL_TEMP_RANGE
+)
+
+OUTPUT_RAW_V2 = "data/raw/synthetic_sensor_v2/sensor_data_full.csv"
+OUTPUT_PROCESSED_DIR_V2 = "data/processed/synthetic_sensor_v2"
 
 RANDOM_SEED = 42
-SAMPLES_PER_CLASS = 1000  # synthetic data, so classes are generated balanced by design
+SAMPLES_PER_CLASS = 1000
 
 STRESS_CLASSES = ["normal", "drought_stress", "heat_stress", "waterlogging_risk"]
 SOIL_TYPES = ["sandy_loam", "loam", "silt_loam", "clay"]
 GROWTH_STAGES = ["V4", "V6", "V11", "flowering", "grain_filling", "maturity"]
 
-# ---------------------------------------------------------------------------
-# Soil water properties (% volumetric water content), sourced from Cornell
-# NRCCA soil/water guidance and Oklahoma State University Extension:
-#   - Field capacity: sandy 15-25%, loam 35-45%, clay 45-55% (midpoints used)
-#   - Wilting point:  sandy 5-10%,  loam 10-15%, clay 15-20% (midpoints used)
-#   - Saturation:     sandy ~30%,   clay ~60% (loam/silt loam interpolated)
-# Silt loam values interpolated between loam and clay (not separately
-# reported in the sources consulted).
-#
-# IMPORTANT: thresholds below are expressed as a PERCENTAGE OF EACH SOIL'S
-# OWN FIELD CAPACITY, not as different absolute values per soil type. This
-# is the approach used in multiple maize water-stress studies (e.g. a
-# lysimeter study categorizing drought severity at 70/55/45/35% of field
-# capacity; a waterlogging study finding soil water >120% of field capacity
-# produces standing water). Expressing thresholds relative to field capacity
-# keeps the underlying biological threshold consistent across soil types,
-# while still producing different absolute sensor readings per soil type
-# (since each soil's field capacity differs) — this reflects soil texture
-# affecting the RATE at which a given soil reaches stress, rather than
-# implying one soil type is inherently "more resistant" at a fixed
-# absolute moisture percentage.
-# ---------------------------------------------------------------------------
-SOIL_PROPERTIES = {
-    "sandy_loam": {"field_capacity": 20.0, "wilting_point": 7.5, "saturation": 30.0},
-    "loam":       {"field_capacity": 40.0, "wilting_point": 12.5, "saturation": 45.0},
-    "silt_loam":  {"field_capacity": 42.0, "wilting_point": 14.0, "saturation": 48.0},
-    "clay":       {"field_capacity": 50.0, "wilting_point": 17.5, "saturation": 58.0},
+# ASSUMPTION - tunable, to be justified in thesis
+GROWTH_STAGE_WEIGHTS = {
+    "normal":            [1, 1, 1, 1, 1, 1],
+    "waterlogging_risk": [2, 2, 1, 1, 1, 1],
+    "drought_stress":    [1, 1, 1, 2, 2, 1],
+    "heat_stress":       [1, 1, 1, 2, 2, 1],
 }
 
-DROUGHT_THRESHOLD_PCT_FC = 55    # below this % of field capacity -> drought stress
-NORMAL_UPPER_PCT_FC = 100        # normal range ceiling, at field capacity itself
-WATERLOG_THRESHOLD_PCT_FC = 110  # above this % of field capacity -> waterlogging risk
-
-# Heat stress threshold — consistent with the grain-filling heat stress
-# literature already cited in Chapter 2 (Qu et al. 2023's mild/moderate/severe
-# gradient: ~32/24°C, ~36/28°C, ~40/32°C day/night; Li et al. 2025).
-HEAT_THRESHOLD_C = 32
-NORMAL_TEMP_RANGE = (18, 29)
-
-
 def dew_point_celsius(temp_c, rh_percent):
-    """Magnus formula approximation for dew point, given temperature (°C)
-    and relative humidity (%)."""
     a, b = 17.27, 237.7
-    rh = max(1, min(100, rh_percent))  # guard against log(0)
+    rh = max(1.0, min(100.0, rh_percent))
     alpha = ((a * temp_c) / (b + temp_c)) + math.log(rh / 100.0)
     return (b * alpha) / (a - alpha)
 
 
 def leaf_wetness_proxy(temp_c, rh_percent):
-    """Dew point depression (°C): temperature minus dew point.
-    Smaller values indicate air near saturation — conditions favorable for
-    condensation on leaf surfaces, and therefore higher fungal disease risk
-    (relevant to Common Rust, Northern Leaf Blight, Gray Leaf Spot)."""
     td = dew_point_celsius(temp_c, rh_percent)
-    return round(temp_c - td, 2)
+    return max(0.0, temp_c - td)
 
 
 def gauss_clamped(mean, sd, low, high, rng):
-    """Gaussian sample clamped to a range — avoids hard cutoffs while keeping
-    values physically plausible."""
     val = rng.gauss(mean, sd)
     return max(low, min(high, val))
 
 
 def moisture_from_pct_fc(pct_fc, soil_props):
-    """Converts a percentage of field capacity into an absolute volumetric
-    water content reading for the given soil type, clamped between that
-    soil's wilting point and saturation (the only physically possible range)."""
     absolute = (pct_fc / 100.0) * soil_props["field_capacity"]
     return max(soil_props["wilting_point"], min(soil_props["saturation"], absolute))
 
 
-def generate_sample(stress_class, rng):
+def generate_sample(stress_class, rng, overlap_scale=1.0):
     soil_type = rng.choice(SOIL_TYPES)
-    growth_stage = rng.choice(GROWTH_STAGES)
+    growth_stage = rng.choices(GROWTH_STAGES, weights=GROWTH_STAGE_WEIGHTS[stress_class])[0]
     soil_props = SOIL_PROPERTIES[soil_type]
 
     if stress_class == "normal":
-        pct_fc = gauss_clamped(80, 10, DROUGHT_THRESHOLD_PCT_FC, NORMAL_UPPER_PCT_FC, rng)
-        moisture = moisture_from_pct_fc(pct_fc, soil_props)
-        temperature = gauss_clamped(23.5, 3, *NORMAL_TEMP_RANGE, rng)
-        humidity = gauss_clamped(55, 10, 30, 80, rng)
+        pct_fc = gauss_clamped(80, 10 * overlap_scale, 0, 300, rng)
+        temperature = gauss_clamped(23.5, 3 * overlap_scale, -20, 60, rng)
+        humidity = gauss_clamped(55, 10 * overlap_scale, 0, 100, rng)
 
     elif stress_class == "drought_stress":
-        pct_fc = gauss_clamped(35, 10, 5, DROUGHT_THRESHOLD_PCT_FC, rng)
-        moisture = moisture_from_pct_fc(pct_fc, soil_props)
-        temperature = gauss_clamped(27, 3, 20, 34, rng)
-        humidity = gauss_clamped(30, 8, 10, 50, rng)  # dry conditions correlate with drought
+        pct_fc = gauss_clamped(35, 10 * overlap_scale, 0, 300, rng)
+        temperature = gauss_clamped(27, 3 * overlap_scale, -20, 60, rng)
+        humidity = gauss_clamped(30, 8 * overlap_scale, 0, 100, rng)
 
     elif stress_class == "heat_stress":
-        # Heat stress is driven by temperature, not moisture — moisture stays
-        # within the normal band while temperature is elevated.
-        pct_fc = gauss_clamped(75, 12, DROUGHT_THRESHOLD_PCT_FC, NORMAL_UPPER_PCT_FC, rng)
-        moisture = moisture_from_pct_fc(pct_fc, soil_props)
-        temperature = gauss_clamped(HEAT_THRESHOLD_C + 4, 3, HEAT_THRESHOLD_C, 45, rng)
-        humidity = gauss_clamped(45, 12, 20, 70, rng)
+        # clamped to normal band [55, 110]
+        pct_fc = gauss_clamped(75, 12 * overlap_scale, DROUGHT_THRESHOLD_PCT_FC, WATERLOG_THRESHOLD_PCT_FC, rng)
+        temperature = gauss_clamped(HEAT_THRESHOLD_C + 4, 3 * overlap_scale, -20, 60, rng)
+        humidity = gauss_clamped(45, 12 * overlap_scale, 0, 100, rng)
 
     elif stress_class == "waterlogging_risk":
-        pct_fc = gauss_clamped(125, 10, WATERLOG_THRESHOLD_PCT_FC, 160, rng)
-        moisture = moisture_from_pct_fc(pct_fc, soil_props)
-        temperature = gauss_clamped(22, 3, 16, 28, rng)
-        humidity = gauss_clamped(85, 8, 65, 100, rng)  # wet conditions correlate with waterlogging
+        pct_fc = gauss_clamped(125, 10 * overlap_scale, 0, 300, rng)
+        temperature = gauss_clamped(22, 3 * overlap_scale, -20, 60, rng)
+        humidity = gauss_clamped(85, 8 * overlap_scale, 0, 100, rng)
 
     else:
         raise ValueError(f"Unknown stress class: {stress_class}")
 
-    leaf_wetness = leaf_wetness_proxy(temperature, humidity)
+    moisture = moisture_from_pct_fc(pct_fc, soil_props)
+    
+    # Enforce API limits
+    moisture = max(0.0, min(100.0, moisture))
+    humidity = max(0.0, min(100.0, humidity))
+    temperature = max(-20.0, min(60.0, temperature))
+    leaf_wetness = round(max(0.0, leaf_wetness_proxy(temperature, humidity)), 2)
 
     return {
         "soil_moisture": round(moisture, 2),
@@ -133,18 +99,19 @@ def generate_sample(stress_class, rng):
     }
 
 
-def generate_dataset(seed=RANDOM_SEED, samples_per_class=SAMPLES_PER_CLASS):
+def generate_dataset(seed=RANDOM_SEED, samples_per_class=SAMPLES_PER_CLASS, overlap_scale=1.0):
     rng = random.Random(seed)
     rows = []
+    # Note: Drawing label FIRST natively
     for stress_class in STRESS_CLASSES:
         for _ in range(samples_per_class):
-            rows.append(generate_sample(stress_class, rng))
+            rows.append(generate_sample(stress_class, rng, overlap_scale=overlap_scale))
     rng.shuffle(rows)
     return rows
 
 
 def split_rows(rows, seed=RANDOM_SEED):
-    rows = rows[:]  # already shuffled at generation time, but re-shuffle deterministically for the split step
+    rows = rows[:]
     random.Random(seed + 1).shuffle(rows)
     n = len(rows)
     n_train = int(n * 0.70)
@@ -166,26 +133,80 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
+def tune_overlap_scale():
+    grid = [0.5 + i*0.25 for i in range(11)]  # 0.5 to 3.0
+    best_scale = None
+    best_diff = 100.0
+    best_acc = 0.0
+    results_table = []
+    target_accuracy = 0.90
+    
+    from rule_baseline import predict_sensor_stress
+    
+    for scale in grid:
+        rows = generate_dataset(seed=42, overlap_scale=scale) # Fixed seed
+        splits = split_rows(rows, seed=42)
+        val_rows = splits["val"]
+        
+        correct = 0
+        for row in val_rows:
+            pred = predict_sensor_stress(row["soil_moisture"], row["temperature_c"], row["soil_type"])
+            if pred == row["sensor_prediction"]:
+                correct += 1
+        acc = correct / len(val_rows)
+        results_table.append({"OVERLAP_SCALE": scale, "Validation_Baseline_Accuracy": acc})
+        
+        diff = abs(acc - target_accuracy)
+        if diff < best_diff and 0.85 <= acc <= 0.95:
+            best_diff = diff
+            best_scale = scale
+            best_acc = acc
+
+    return best_scale, best_acc, results_table
+
 def main():
-    rows = generate_dataset()
-    write_csv(OUTPUT_RAW, rows)
-    print(f"Generated {len(rows)} synthetic sensor readings -> {OUTPUT_RAW}")
+    print("Tuning OVERLAP_SCALE...")
+    best_scale, best_val_acc, results_table = tune_overlap_scale()
+    
+    os.makedirs("results/sensor", exist_ok=True)
+    with open("results/sensor/overlap_tuning.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["OVERLAP_SCALE", "Validation_Baseline_Accuracy"])
+        w.writeheader()
+        w.writerows(results_table)
 
+    if best_scale is None:
+        print("Error: could not find scale in 85-95% bounds.")
+        import pprint
+        pprint.pprint(results_table)
+        sys.exit(1)
+        
+    print(f"Selected OVERLAP_SCALE: {best_scale} with Validation Accuracy: {best_val_acc:.4f}")
+    
+    print("Generating full dataset v2...")
+    rows = generate_dataset(seed=RANDOM_SEED, overlap_scale=best_scale)
+    write_csv(OUTPUT_RAW_V2, rows)
+    
     splits = split_rows(rows)
-    print(f"\n{'Split':<8} {'Count':>8}")
     for split_name, split_rows_ in splits.items():
-        path = os.path.join(OUTPUT_PROCESSED_DIR, f"{split_name}.csv")
+        path = os.path.join(OUTPUT_PROCESSED_DIR_V2, f"{split_name}.csv")
         write_csv(path, split_rows_)
-        print(f"{split_name:<8} {len(split_rows_):>8}  -> {path}")
 
-    # Quick class-balance sanity check per split
-    print("\nClass balance check (should be roughly equal per split):")
-    for split_name, split_rows_ in splits.items():
-        counts = {c: 0 for c in STRESS_CLASSES}
-        for r in split_rows_:
-            counts[r["sensor_prediction"]] += 1
-        print(f"  {split_name}: {counts}")
-
+    from rule_baseline import predict_sensor_stress
+    test_correct = sum(
+        1 for r in splits["test"] 
+        if predict_sensor_stress(r["soil_moisture"], r["temperature_c"], r["soil_type"]) == r["sensor_prediction"]
+    )
+    test_acc = test_correct / len(splits["test"])
+    
+    config = {
+        "RANDOM_SEED": RANDOM_SEED,
+        "SAMPLES_PER_CLASS": SAMPLES_PER_CLASS,
+        "OVERLAP_SCALE": best_scale,
+        "Validation_Baseline_Accuracy": best_val_acc,
+        "Test_Baseline_Accuracy": test_acc
+    }
+    with open(os.path.join(OUTPUT_PROCESSED_DIR_V2, "generation_config.json"), "w") as f:
+        json.dump(config, f, indent=2)
 
 if __name__ == "__main__":
     main()
