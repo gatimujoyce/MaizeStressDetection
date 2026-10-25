@@ -50,6 +50,20 @@ Source: `results/nutrient_run1/nutrient_run1_test/metrics.json`. Accuracy 0.9383
 | potassium | 0.9730 | 0.8653 | 876 |
 | zinc | 0.8684 | 0.9314 | 510 |
 
+## Intervals on the test results
+Source: `results/intervals/bootstrap_intervals.json`, written by `scripts/bootstrap_intervals.py`. 95% intervals from resampling independent photo groups within each class (2000 resamples, seed 42). The point estimates equal the single test evaluation above (the script stops if they differ).
+
+| Measure | Independent test photos | Estimate | 95% interval |
+|---|---|---|---|
+| nitrogen recall | 171 | 0.9967 | [0.990, 1.000] |
+| no_deficiency recall | 95 | 0.9918 | [0.975, 1.000] |
+| phosphorus recall | 115 | 0.9782 | [0.954, 0.997] |
+| potassium recall | 33 | 0.8653 | [0.753, 0.958] |
+| zinc recall | 46 | 0.9314 | [0.828, 0.975] |
+| macro recall | 460 (all) | 0.9527 | [0.922, 0.974] |
+| precision at confidence 0.80 or more | 460 (all) | 0.9656 | [0.933, 0.991] |
+| healthy predicted as a deficiency at 0.60 or more | 95 | 0.0021 | [0.000, 0.006] |
+
 ## The pre-registered ship rule (`docs/nutrient_ship_rule.md`; values from `test_decision.json`)
 | Rule | Cutoff | Measured on test | Pass |
 |---|---|---|---|
@@ -66,7 +80,7 @@ Healthy images predicted as a deficiency at confidence 0.60 or more (the level a
 - Calibration applied: False (temperature 1.0).
 
 ## Known failure modes
-- Potassium is confused with phosphorus (63 images) and zinc (55); zinc is confused with phosphorus (14) and potassium (21). Potassium has few independent test photos, so its recall is uncertain. Confidence intervals were computed in the evaluation notebook by resampling photo groups and printed there; they were not saved to a file and are not reproduced in this card.
+- Potassium is confused with phosphorus (63 images) and zinc (55); zinc is confused with phosphorus (14) and potassium (21). Potassium has few independent test photos, so its recall is uncertain. The intervals in the table above show how uncertain these figures are; potassium has the fewest independent test photos (33)..
 - **Nitrogen is captured differently from every other class.** Nitrogen images are large camera photos and the other classes are tiny crops, so its near-perfect score is not evidence that nitrogen deficiency can be detected. The capture-style check:
 
 ```text

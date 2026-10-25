@@ -29,6 +29,22 @@ Source: `results/disease_best/disease_v1_test/metrics.json`. Accuracy {{results/
 
 Safety property: diseased leaves called healthy {{results/disease_best/disease_v1_test/metrics.json::task_extras.diseased_called_healthy_rate::.4f}}; healthy leaves called diseased {{results/disease_best/disease_v1_test/metrics.json::task_extras.healthy_called_diseased_rate::.4f}}.
 
+## Intervals on the test results
+Source: `results/intervals/bootstrap_intervals.json`, written by `scripts/bootstrap_intervals.py`. 95% intervals from resampling images within each class ({{results/intervals/bootstrap_intervals.json::disease.n_resamples}} resamples, seed {{results/intervals/bootstrap_intervals.json::disease.seed}}). **Images are treated as independent**, because no photo-group file exists for this split. The intervals therefore understate the uncertainty if the test set contains near-twin images, which was not checked within the test set.
+
+| Measure | Estimate | 95% interval |
+|---|---|---|
+| common_rust recall | {{results/intervals/bootstrap_intervals.json::disease.recall.common_rust.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.common_rust.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.common_rust.hi::.3f}}] |
+| gray_leaf_spot recall | {{results/intervals/bootstrap_intervals.json::disease.recall.gray_leaf_spot.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.gray_leaf_spot.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.gray_leaf_spot.hi::.3f}}] |
+| healthy recall | {{results/intervals/bootstrap_intervals.json::disease.recall.healthy.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.healthy.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.healthy.hi::.3f}}] |
+| northern_leaf_blight recall | {{results/intervals/bootstrap_intervals.json::disease.recall.northern_leaf_blight.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.recall.northern_leaf_blight.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.recall.northern_leaf_blight.hi::.3f}}] |
+| macro recall | {{results/intervals/bootstrap_intervals.json::disease.macro_recall.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.macro_recall.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.macro_recall.hi::.3f}}] |
+| accuracy | {{results/intervals/bootstrap_intervals.json::disease.accuracy.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.accuracy.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.accuracy.hi::.3f}}] |
+| coverage at confidence 0.60 or more | {{results/intervals/bootstrap_intervals.json::disease.coverage_at_0_60.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.coverage_at_0_60.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.coverage_at_0_60.hi::.3f}}] |
+| accuracy on accepted images at 0.60 | {{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.point::.4f}} | [{{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.lo::.3f}}, {{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.hi::.3f}}] |
+
+The upper end of the interval for accuracy on accepted images at 0.60 ({{results/intervals/bootstrap_intervals.json::disease.accuracy_on_accepted_at_0_60.hi::.3f}}) is below the 0.97 target used on validation to choose the operating point.
+
 ## Thresholds
 - System threshold `t_disease` = {{models/core_classifier/manifest.json::thresholds.t_disease}}. This is the RAP fusion bound below which a result is uncertain.
 - Operating point selected on the validation split by a rule fixed beforehand: {{models/core_classifier/manifest.json::thresholds.t_disease_validation_selected}}. Fusion overrides it with the stricter value above.
