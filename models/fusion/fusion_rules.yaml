@@ -17,6 +17,7 @@ sensor:
   min_coverage: 0.60          # DESIGN: below this share of the window covered by readings, the sensor is not assessed
   max_gap_hours: 1.0          # DESIGN: a reading is credited at most this long, so missing data is never counted as stress
   min_run_hours: 1.0          # DESIGN: a stress run shorter than this is ignored (flicker)
+  min_run_readings: 3         # DESIGN: a run also needs at least this many consecutive readings
   recovery_hours: 1.0         # DESIGN: if the last hour shows none of a class, its level drops by one
   stress_classes: [drought_stress, heat_stress, waterlogging_risk]
   hours:                      # DESIGN

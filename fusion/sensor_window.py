@@ -38,25 +38,28 @@ def _credits(times, now, max_gap_hours):
     return out
 
 
-def _runs_hours(flags, times, credits, max_gap_hours, min_run_hours):
-    """Total hours of consecutive True runs that last at least min_run_hours. A gap longer than max_gap_hours ends a run."""
-    total, run, active = 0.0, 0.0, False
+def _runs_hours(flags, times, credits, max_gap_hours, min_run_hours, min_run_readings=1):
+    """Total hours of consecutive True runs that last at least min_run_hours and contain at least
+    min_run_readings readings. A gap longer than max_gap_hours ends a run."""
+    total, run, count, active = 0.0, 0.0, 0, False
+
+    def close():
+        return run if (active and run + EPS >= min_run_hours and count >= min_run_readings) else 0.0
+
     for i, flag in enumerate(flags):
         contiguous = (active and i > 0 and
                       (times[i] - times[i - 1]).total_seconds() / 3600.0 <= max_gap_hours + EPS)
         if flag:
             if contiguous:
                 run += credits[i]
+                count += 1
             else:
-                if active and run + EPS >= min_run_hours:
-                    total += run
-                run, active = credits[i], True
+                total += close()
+                run, count, active = credits[i], 1, True
         else:
-            if active and run + EPS >= min_run_hours:
-                total += run
-            run, active = 0.0, False
-    if active and run + EPS >= min_run_hours:
-        total += run
+            total += close()
+            run, count, active = 0.0, 0, False
+    total += close()
     return total
 
 
@@ -85,8 +88,8 @@ def aggregate_sensor(readings, now, cfg):
         band = s["borderline"].get(c)
         borderline = [(r["label"] not in stress) and band is not None and _in_band(r.get(band["variable"]), band)
                       for r in rs]
-        conf_h = _runs_hours(confirmed, times, credits, s["max_gap_hours"], s["min_run_hours"])
-        bord_h = _runs_hours(borderline, times, credits, s["max_gap_hours"], s["min_run_hours"])
+        conf_h = _runs_hours(confirmed, times, credits, s["max_gap_hours"], s["min_run_hours"], s.get("min_run_readings", 1))
+        bord_h = _runs_hours(borderline, times, credits, s["max_gap_hours"], s["min_run_hours"], s.get("min_run_readings", 1))
         th = s["hours"][c]
         if conf_h + EPS >= th["strong"]:
             level = 2
