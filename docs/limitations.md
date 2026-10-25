@@ -106,3 +106,9 @@ The photo test pre-registered in `docs/realworld_photo_test.md` (committed on 25
 ### Confidence intervals (added 25 October 2026)
 
 95% bootstrap intervals for the test results are in `results/intervals/bootstrap_intervals.json` (script `scripts/bootstrap_intervals.py`, 2,000 resamples, seed 42). Nutrient: photo groups are resampled within each class, and the point estimates reproduce `test_decision.json` exactly. For example, potassium recall 0.8653 [0.753, 0.958] on 33 independent test photos and zinc 0.9314 [0.828, 0.975] on 46. Disease: the split has no photo-group file, so images are resampled as independent, which understates the uncertainty if the test set holds near-twin images (not checked within the test set). Disease macro recall is 0.9072 [0.881, 0.931], accuracy 0.9223 [0.902, 0.941], and accuracy on accepted images at 0.60 is 0.9526 [0.935, 0.968], so even the upper end is below the 0.97 validation target.
+
+
+
+### Photo quality check (added 25 October 2026)
+
+A pixel-statistics quality check (`quality/photo_quality.py`, settings `models/quality/quality_rules.yaml`) is meant to run before the gate and reject photos that are too small, too dark or too bright. It is not wired into any backend. Its limits are untuned placeholders that happen to reject no studio image for darkness or brightness (`results/quality/pass2.txt`); they have not been tried on phone photos. The blur check failed its pre-registered criteria on the validation split (2.88% of sharp originals rejected against a limit of 2%) and is switched off, so sharpness is not checked. Framing is not checked either, because a green-pixel share would reject yellow, nutrient-deficient leaves. A first calibration pass with percentile limits was rejected (`results/quality/calibration.txt`). The test split was used twice for quality reports, and no model was tuned on it. Details: `docs/photo_quality_check.md`, `docs/model_cards/quality.md`.
