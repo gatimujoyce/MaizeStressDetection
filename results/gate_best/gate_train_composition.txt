@@ -1,0 +1,24 @@
+﻿=== in_scope ===
+healthy                 260
+northern_leaf_blight    260
+common_rust             260
+gray_leaf_spot          260
+=== not_leaf ===
+Tomato                  422
+Grape                   163
+Apple                   157
+Potato                  130
+Peach                   88
+Cherry_including_sour   86
+Pepper_bell             85
+Strawberry              82
+Blueberry               45
+Soybean                 44
+Orange                  43
+Raspberry               42
+Squash                  41
+=== out_of_scope ===
+fall_army_worm          422
+herbicide_burn          14
+maize_streak            10
+stalk_borer             2

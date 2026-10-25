@@ -31,6 +31,40 @@ Source: `results/disease_best/disease_v1_test/metrics.json`. Accuracy 0.9223, ma
 
 Safety property: diseased leaves called healthy 0.0000; healthy leaves called diseased 0.0057.
 
+## What the classes contain (training split, by file-name prefix)
+Source: `results/gate_best/gate_train_composition.txt`.
+
+```text
+=== in_scope ===
+healthy                 260
+northern_leaf_blight    260
+common_rust             260
+gray_leaf_spot          260
+=== not_leaf ===
+Tomato                  422
+Grape                   163
+Apple                   157
+Potato                  130
+Peach                   88
+Cherry_including_sour   86
+Pepper_bell             85
+Strawberry              82
+Blueberry               45
+Soybean                 44
+Orange                  43
+Raspberry               42
+Squash                  41
+=== out_of_scope ===
+fall_army_worm          422
+herbicide_burn          14
+maize_streak            10
+stalk_borer             2
+```
+
+- `in_scope`: maize leaves (healthy and three diseases).
+- `not_leaf`: despite its name, leaves of other crops (tomato, grape, apple, potato and others). It contains no photos of soil, hands, sky, stems or other objects, so the gate's behaviour on those was never trained or tested.
+- `out_of_scope`: maize with problems the system does not cover, mostly fall armyworm damage. Other crops' look-alikes (sorghum, napier grass, sugarcane) are not in the training data.
+
 ## Thresholds
 - System threshold `t_disease` = 0.6. This is the RAP fusion bound below which a result is uncertain.
 - Operating point selected on the validation split by a rule fixed beforehand: 0.55. Fusion overrides it with the stricter value above.
