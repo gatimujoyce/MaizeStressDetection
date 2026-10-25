@@ -82,7 +82,7 @@ def fuse(gate_ok, disease, nutrient, sensor, cfg):
     primary = issue(flagging[0]) if flagging else None
     secondary = [issue(n) for n in flagging[1:]]
     severity = severity_of(sources, bool(sensor and sensor.get("severe")))
-    retake = (not gate_ok) or not any(s["status"] in ASSESSED for s in sources.values())
+    retake = (not gate_ok) or sources["disease"]["status"] not in ASSESSED
 
     d, se = sources["disease"]["status"], sources["sensor"]["status"]
     notes = []
