@@ -131,6 +131,14 @@ export const getLatestReadings = (farmId) =>
                 throw error
             })
 
+// 404: the farm has no readings yet. 503: the real models are not configured.
+export const getLatestReadingClassification = (farmId) =>
+    httpClient.get(`/farms/${farmId}/readings/latest/classification`)
+        .catch((error) => {
+            if (error.status === 404 || error.status === 503) return null
+            throw error
+        })
+
 export const getFarmHistory = (farmId, limit = 100, offset = 0) =>
     shouldUseMock('history')
         ? mock.getFarmHistory(farmId)

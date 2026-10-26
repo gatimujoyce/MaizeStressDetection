@@ -159,3 +159,10 @@ def test_load_runtime_detects_a_wrong_hash(tmp_path):
                 (dest.parent / m[key]).write_bytes(b"x")
     with pytest.raises(RuntimeUnavailable, match="manifest hash"):
         load_runtime(tmp_path)
+
+def test_classify_sensor_reading_returns_the_models_label():
+    from mlruntime.pipeline import classify_sensor_reading
+    p = make(sensor=Fake(SENSOR_C, [0.05, 0.9, 0.03, 0.02]))
+    r = classify_sensor_reading(p, {"soil_moisture": 24.0, "temperature": 38.0, "humidity": 35.0, "leaf_wetness": 14.0}, "loam")
+    assert r["label"] == "heat_stress" and r["confidence"] == 0.9
+    assert abs(sum(r["probabilities"].values()) - 1.0) < 1e-9
