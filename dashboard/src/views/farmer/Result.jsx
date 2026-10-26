@@ -1,5 +1,5 @@
 import { useParams, useLocation, Link } from 'react-router-dom'
-import { usePrediction } from '../../api/hooks'
+import { useLatestReadingClassification, useLatestReadings, usePrediction } from '../../api/hooks'
 import FeedbackControl from '../../components/FeedbackControl'
 import { useFarm } from '../../farm/FarmContext'
 import { getFusedPredictionCopy } from '../../content/farmerCopy'
@@ -29,6 +29,41 @@ function UploadedImage({ imageUrl }) {
                 alt="Uploaded maize leaf for analysis"
                 className="w-full max-h-[28rem] rounded-sm object-contain"
             />
+        </section>
+    )
+}
+
+function PlotReadingsCard({ farmId }) {
+    const { data: reading } = useLatestReadings(farmId)
+    const { data: label } = useLatestReadingClassification(farmId)
+    if (!reading) return null
+    const tiles = [
+        ['Temperature', `${reading.temperature} °C`],
+        ['Humidity', `${reading.humidity}%`],
+        ['Soil moisture', `${reading.soil_moisture}%`],
+        ['Leaf wetness', `${reading.leaf_wetness}`],
+    ]
+    return (
+        <section className="bg-white border border-[var(--color-border)] rounded-sm p-5">
+            <h2 className="text-base font-semibold mb-1">Latest field reading for this plot</h2>
+            <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+                Simulated sensor · {reading.recorded_at ? new Date(reading.recorded_at).toLocaleString('en-GB') : ''}
+            </p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+                {tiles.map(([name, value]) => (
+                    <div key={name} className="p-3 bg-[var(--color-bg)] rounded-sm">
+                        <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{name}</p>
+                        <p className="font-semibold mt-0.5">{value}</p>
+                    </div>
+                ))}
+            </div>
+            {label && (
+                <p className="mt-3 text-sm">
+                    <span className="text-[var(--color-text-secondary)]">Sensor model, this reading: </span>
+                    <strong>{label.title}</strong>{' '}
+                    <span className="text-[var(--color-text-secondary)]">({Math.round(label.confidence * 100)}%)</span>
+                </p>
+            )}
         </section>
     )
 }
@@ -161,6 +196,8 @@ export default function Result() {
                     </div>
                 </section>
             )}
+
+            <PlotReadingsCard farmId={farmId} />
 
             {/* Nutrient is shown in a separate section */}
             {nutrient_status != null && (

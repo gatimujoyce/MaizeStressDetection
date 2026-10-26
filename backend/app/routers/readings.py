@@ -68,3 +68,27 @@ async def filter_readings(
     
     result = await db.execute(query.order_by(desc(SensorReading.recorded_at)))
     return result.scalars().all()
+
+
+@router.get("/latest/classification")
+async def classify_latest(
+    farm_id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    """What the real sensor model says about the farm's latest reading. 503 when the real models are not configured."""
+    from app.services.inference import InferenceUnavailableError
+    from app.services.real_inference import classify_latest_reading
+    farm = await check_farm_access(farm_id, current_user.id, db)
+    result = await db.execute(select(SensorReading).where(SensorReading.farm_id == farm_id).order_by(desc(SensorReading.recorded_at)).limit(1))
+    reading = result.scalar_one_or_none()
+    if not reading:
+        raise HTTPException(status_code=404, detail="No readings found")
+    try:
+        label = await classify_latest_reading(
+            {"soil_moisture": reading.soil_moisture, "temperature": reading.temperature,
+             "humidity": reading.humidity, "leaf_wetness": reading.leaf_wetness},
+            getattr(farm.soil_type, "value", farm.soil_type))
+    except InferenceUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {"reading_id": reading.id, "recorded_at": reading.recorded_at, **label}

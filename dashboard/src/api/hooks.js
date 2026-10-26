@@ -53,6 +53,16 @@ export function useLatestReadings(farmId) {
         queryKey: ['latestReadings', farmId],
         queryFn: () => client.getLatestReadings(farmId),
         enabled: !!farmId,
+        refetchInterval: 15000,
+    })
+}
+
+export function useLatestReadingClassification(farmId) {
+    return useQuery({
+        queryKey: ['latestReadingClassification', farmId],
+        queryFn: () => client.getLatestReadingClassification(farmId),
+        enabled: !!farmId,
+        refetchInterval: 15000,
     })
 }
 
