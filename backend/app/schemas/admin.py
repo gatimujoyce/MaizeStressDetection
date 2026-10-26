@@ -29,3 +29,8 @@ class RetrainingJobResponse(BaseModel):
 
 class RetrainRequest(BaseModel):
     model_name: str
+
+class AdminUserCreate(BaseModel):
+    name: str
+    phone: str
+    password: str

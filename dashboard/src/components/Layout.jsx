@@ -8,11 +8,12 @@ export default function Layout({ children }) {
   const { pathname } = useLocation()
   const showBottomNav = isAuthenticated && role === 'farmer' && pathname !== '/onboarding'
   const isAuthScreen = pathname === '/login' || pathname === '/register'
+  const isAdmin = isAuthenticated && role === 'admin'
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
-      {isAuthenticated && <NavBar />}
-      {isAuthScreen ? children : (
+      {isAuthenticated && !isAdmin && <NavBar />}
+      {isAuthScreen || isAdmin ? children : (
         <main
           className={`max-w-6xl mx-auto px-4 pt-8 ${
             showBottomNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:pb-8' : 'pb-8'
