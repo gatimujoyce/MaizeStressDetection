@@ -102,3 +102,14 @@ class RealPipeline:
         return {"quality": {"ok": quality["ok"], "issues": quality["issues"], "metrics": quality["metrics"]},
                 "gate": gate_info, "disease": disease, "nutrient": nutrient, "sensor": sensor,
                 "fusion": fused, "model_versions": self.versions}
+
+def classify_sensor_reading(pipeline, reading, soil_type):
+    """One sensor reading -> the no-stage sensor model's label (no 24-hour window).
+    reading: dict with soil_moisture, temperature, humidity and leaf_wetness, as stored by the backend."""
+    row = {"soil_moisture": reading["soil_moisture"], "temperature_c": reading["temperature"],
+           "humidity_percent": reading["humidity"], "leaf_wetness_proxy": reading["leaf_wetness"],
+           "soil_type": soil_type}
+    probs = pipeline.sensor.predict(sensor_features([row], pipeline.sensor_prep))[0]
+    return {**_top(probs, pipeline.sensor.classes),
+            "probabilities": {c: float(p) for c, p in zip(pipeline.sensor.classes, probs)},
+            "model_version": pipeline.versions.get("sensor")}

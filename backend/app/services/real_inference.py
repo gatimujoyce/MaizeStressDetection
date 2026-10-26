@@ -94,3 +94,12 @@ class RealCheckinInferencePipeline:
         except InvalidImageError as exc:
             raise InvalidImageUpload(str(exc)) from exc
         return to_inference(result)
+
+
+async def classify_latest_reading(reading: dict, soil_type: str) -> dict:
+    """Label one stored sensor reading with the real sensor model (no 24-hour window)."""
+    runtime = await asyncio.to_thread(_get_runtime)
+    from mlruntime.pipeline import classify_sensor_reading
+    result = await asyncio.to_thread(classify_sensor_reading, runtime, reading, soil_type)
+    return {"label": result["label"], "title": TITLE.get(result["label"], result["label"]),
+            "confidence": result["confidence"], "model_version": result["model_version"]}
