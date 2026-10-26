@@ -270,8 +270,9 @@ def get_checkin_inference_pipeline(
 ) -> CheckinInferencePipeline:
     """Select real inference when available, otherwise use the scenario stub."""
     selected_mode = mode or settings.CHECKIN_INFERENCE_MODE
-    if selected_mode == "demo":
-        return StubCheckinInferencePipeline()
+    if selected_mode == "real" and settings.ML_ROOT:
+        from app.services.real_inference import RealCheckinInferencePipeline
+        return RealCheckinInferencePipeline()
     unavailable = InferenceUnavailableError(
         "Real check-in inference is not available: trained model artifacts and "
         "verified inference implementations are not configured."

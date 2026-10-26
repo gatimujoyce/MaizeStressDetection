@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import desc
@@ -20,6 +20,7 @@ from app.services.inference import (
     SensorInput,
     get_checkin_inference_pipeline,
 )
+from app.services.real_inference import InvalidImageUpload, severity_from
 from app.services.recommend import get_recommendation
 from app.services.sms import send_sms
 
@@ -45,14 +46,17 @@ def build_prediction_data(
     checkin_id: uuid.UUID,
     inference: CheckinInference,
 ) -> dict:
-    severity = compute_severity(
-        disease_label=inference.disease.label,
-        disease_conf=inference.disease.confidence,
-        sensor_label=inference.sensor.label,
-        sensor_conf=inference.sensor.confidence,
-        leaf_wetness_proxy=inference.leaf_wetness_proxy,
-        triage_result=inference.triage.label,
-    )
+    if "fusion" in inference.model_versions:
+        severity = severity_from(inference)
+    else:
+        severity = compute_severity(
+            disease_label=inference.disease.label,
+            disease_conf=inference.disease.confidence,
+            sensor_label=inference.sensor.label,
+            sensor_conf=inference.sensor.confidence,
+            leaf_wetness_proxy=inference.leaf_wetness_proxy,
+            triage_result=inference.triage.label,
+        )
     return {
         "id": uuid.uuid4(),
         "checkin_id": checkin_id,
@@ -122,11 +126,34 @@ async def checkin_and_predict(
         else None
     )
 
+    if getattr(inference_pipeline, "wants_readings_window", False):
+        window_start = datetime.now(timezone.utc) - timedelta(hours=24)
+        window_result = await db.execute(
+            select(SensorReading)
+            .where(SensorReading.farm_id == farm_id, SensorReading.recorded_at >= window_start)
+            .order_by(SensorReading.recorded_at)
+        )
+        window_readings = [
+            {
+                "timestamp": r.recorded_at,
+                "soil_moisture": r.soil_moisture,
+                "temperature": r.temperature,
+                "humidity": r.humidity,
+                "leaf_wetness": r.leaf_wetness,
+            }
+            for r in window_result.scalars().all()
+        ]
+        inference_pipeline = inference_pipeline.with_context(
+            window_readings, getattr(farm.soil_type, "value", farm.soil_type)
+        )
+
     try:
         inference = await inference_pipeline.predict(
             ImageInput(content=image_content, content_type=image.content_type or ""),
             sensor_input,
         )
+    except InvalidImageUpload as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except InferenceUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
