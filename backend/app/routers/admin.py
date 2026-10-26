@@ -10,6 +10,9 @@ from app.schemas.auth import UserResponse
 from app.schemas.farms import FarmResponse
 from app.schemas.predictions import FeedbackResponse
 from app.schemas.admin import ModelVersionResponse, ModelVersionUpdate, RetrainingJobResponse, RetrainRequest
+from app.schemas.admin import AdminUserCreate
+from app.core.security import get_password_hash
+from app.core.utils import normalize_ke_phone
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -17,6 +20,27 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 async def admin_users(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     res = await db.execute(select(User))
     return res.scalars().all()
+
+@router.post("/users", response_model=UserResponse, status_code=201)
+async def create_admin_user(
+    user_in: AdminUserCreate,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    phone = normalize_ke_phone(user_in.phone)
+    existing = await db.execute(select(User).where(User.phone == phone))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Phone already registered")
+    user = User(
+        name=user_in.name,
+        phone=phone,
+        password_hash=get_password_hash(user_in.password),
+        role="admin",
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
 
 @router.get("/farms", response_model=List[FarmResponse])
 async def admin_farms(
@@ -45,6 +69,16 @@ async def update_model_version(id: uuid.UUID, update_data: ModelVersionUpdate, c
     res = await db.execute(select(ModelVersion).where(ModelVersion.id == id))
     mv = res.scalar_one_or_none()
     if not mv: raise HTTPException(404, "Not found")
+    if update_data.is_active:
+        active_versions = await db.execute(
+            select(ModelVersion).where(
+                ModelVersion.model_name == mv.model_name,
+                ModelVersion.is_active.is_(True),
+                ModelVersion.id != mv.id,
+            )
+        )
+        for active_version in active_versions.scalars():
+            active_version.is_active = False
     mv.is_active = update_data.is_active
     await db.commit()
     await db.refresh(mv)
