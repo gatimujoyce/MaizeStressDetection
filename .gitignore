@@ -62,3 +62,4 @@ data/
 *.safetensors
 *.tflite
 *.keras
+backend/uploads/
