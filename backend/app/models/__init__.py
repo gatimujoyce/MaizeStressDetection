@@ -119,12 +119,17 @@ class Prediction(Base):
 class Alert(Base):
     __tablename__ = "alerts"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    prediction_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("predictions.id"), nullable=False)
+    prediction_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("predictions.id"), nullable=True)
     farm_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("farms.id"), nullable=False)
     severity: Mapped[str] = mapped_column(Text, nullable=False)
     channel: Mapped[ChannelEnum] = mapped_column(SAEnum(ChannelEnum), nullable=False)
     status: Mapped[str] = mapped_column(Text, nullable=False)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False, default="prediction", server_default="prediction")
+    stress_class: Mapped[str | None] = mapped_column(Text, nullable=True)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     
     prediction = relationship("Prediction", back_populates="alerts")
     farm = relationship("Farm")

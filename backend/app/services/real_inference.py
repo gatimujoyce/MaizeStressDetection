@@ -103,3 +103,11 @@ async def classify_latest_reading(reading: dict, soil_type: str) -> dict:
     result = await asyncio.to_thread(classify_sensor_reading, runtime, reading, soil_type)
     return {"label": result["label"], "title": TITLE.get(result["label"], result["label"]),
             "confidence": result["confidence"], "model_version": result["model_version"]}
+
+
+async def sensor_window_status(readings: list, soil_type: str, now) -> dict | None:
+    """24-hour sensor status for alerts (min_coverage 0 so alerts can fire early). readings: dicts with timestamp,
+    soil_moisture, temperature, humidity, leaf_wetness."""
+    runtime = await asyncio.to_thread(_get_runtime)
+    from mlruntime.pipeline import sensor_alert_status
+    return await asyncio.to_thread(sensor_alert_status, runtime, readings, soil_type, now)
