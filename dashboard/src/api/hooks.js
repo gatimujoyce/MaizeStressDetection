@@ -104,6 +104,7 @@ export function useAlerts(farmId) {
         queryKey: ['alerts', farmId],
         queryFn: () => client.getAlerts(farmId),
         enabled: !!farmId,
+        refetchInterval: 15000,
     })
 }
 

@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy import desc
 import uuid
 from typing import List
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.core.deps import get_db, require_farmer
 from app.models import SensorReading, Farm, User
@@ -27,14 +27,27 @@ async def create_reading(
     db: AsyncSession = Depends(get_db)
 ):
     await check_farm_access(farm_id, current_user.id, db)
+    data = reading_in.model_dump()
+    recorded_at = data.pop("recorded_at", None)
+    now = datetime.now(timezone.utc)
+    if recorded_at is None:
+        recorded_at = now
+    else:
+        if recorded_at.tzinfo is None:
+            recorded_at = recorded_at.replace(tzinfo=timezone.utc)
+        if recorded_at > now + timedelta(minutes=5):
+            raise HTTPException(status_code=422, detail="recorded_at cannot be in the future")
     new_reading = SensorReading(
         id=uuid.uuid4(),
         farm_id=farm_id,
-        recorded_at=datetime.now(timezone.utc),
-        **reading_in.model_dump()
+        recorded_at=recorded_at,
+        **data,
     )
     db.add(new_reading)
     await db.commit()
+    await db.refresh(new_reading)
+    from app.services.sensor_alerts import evaluate_reading
+    await evaluate_reading(db, new_reading)
     await db.refresh(new_reading)
     return new_reading
 
