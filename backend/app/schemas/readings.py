@@ -9,6 +9,7 @@ class SensorReadingCreate(BaseModel):
     temperature: float = Field(ge=-20, le=60)    # degrees Celsius
     humidity: float = Field(ge=0, le=100)        # percent relative humidity
     leaf_wetness: float = Field(ge=0)
+    recorded_at: Optional[datetime] = None
 
 class SensorReadingResponse(BaseModel):
     soil_moisture: float

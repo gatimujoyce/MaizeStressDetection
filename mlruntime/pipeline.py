@@ -113,3 +113,29 @@ def classify_sensor_reading(pipeline, reading, soil_type):
     return {**_top(probs, pipeline.sensor.classes),
             "probabilities": {c: float(p) for c, p in zip(pipeline.sensor.classes, probs)},
             "model_version": pipeline.versions.get("sensor")}
+
+
+def sensor_alert_status(pipeline, readings, soil_type, now):
+    """Same as RealPipeline._sensor, but with min_coverage 0 so a real-time alert can fire before 24 hours of data exist.
+    The photo check-in path is unchanged and keeps the 0.60 rule."""
+    import copy
+
+    cfg = copy.deepcopy(pipeline.fusion_cfg)
+    cfg["sensor"]["min_coverage"] = 0.0
+    s, soil = cfg["sensor"], cfg["soil"]
+    now = _utc(now)
+    if not readings or soil_type not in soil:
+        return None
+    start = now - timedelta(hours=s["window_hours"])
+    recent = [r for r in readings if start <= _utc(r["timestamp"]) <= now]
+    if not recent:
+        return None
+    rows = [{"soil_moisture": r["soil_moisture"], "temperature_c": r["temperature"],
+             "humidity_percent": r["humidity"], "leaf_wetness_proxy": r["leaf_wetness"],
+             "soil_type": soil_type} for r in recent]
+    probs = pipeline.sensor.predict(sensor_features(rows, pipeline.sensor_prep))
+    labels = [pipeline.sensor.classes[int(i)] for i in np.argmax(probs, axis=1)]
+    converted = [{"timestamp": _utc(r["timestamp"]), "label": lab, "temperature_c": float(r["temperature"]),
+                  "soil_pct_fc": pct_field_capacity(r["soil_moisture"], soil_type, soil)}
+                 for r, lab in zip(recent, labels)]
+    return aggregate_sensor(converted, now, cfg)
