@@ -1,5 +1,6 @@
 import { getFusedPredictionCopy, getNutrientStatusLabel } from '../content/farmerCopy'
-import StatusChip from './StatusChip'
+import Badge from './ui/Badge'
+import Skeleton from './ui/Skeleton'
 import MaizePlant from './illustrations/MaizePlant'
 import LeafRule from './illustrations/LeafRule'
 import DateStamp from './DateStamp'
@@ -15,10 +16,7 @@ const verdictStyles = {
 export default function VerdictPanel({ status, action }) {
   if (!status) {
     return (
-      <div
-        aria-label="Loading latest field status"
-        className="min-h-[463px] animate-pulse rounded-[24px] bg-neutral-bg p-6 sm:min-h-[308px]"
-      />
+      <Skeleton label="Loading latest field status" className="min-h-[463px] sm:min-h-[308px]" />
     )
   }
 
@@ -30,7 +28,7 @@ export default function VerdictPanel({ status, action }) {
   return (
     <section
       aria-labelledby="verdict-title"
-      className={`relative rounded-[24px] p-6 ${className}`}
+      className={`motion-reveal relative rounded-card p-5 sm:p-6 ${className}`}
     >
       <div className="flex flex-col gap-3 md:grid md:grid-cols-[176px_minmax(0,1fr)] md:gap-6">
         <div className="flex items-start justify-between md:justify-center">
@@ -44,24 +42,23 @@ export default function VerdictPanel({ status, action }) {
         </div>
         <div className="flex min-w-0 flex-col gap-3 md:pt-16">
           <div className="flex flex-col gap-3">
-            <h2 id="verdict-title" className="m-0 text-[28px] font-bold leading-tight">
+            <h2 id="verdict-title" className="m-0 text-display">
               {copy.headline}
             </h2>
-            <p className="text-[17px]">{copy.support}</p>
+            <p className="m-0 text-body">{copy.support}</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <StatusChip status={severity} label={copy.chipLabel} />
+            <Badge tone={severity}>{copy.chipLabel}</Badge>
             {status.nutrient_status != null && (
-              <StatusChip
-                status={getNutrientStatusLabel(status.nutrient_status) === 'Nutrients look fine' ? 'healthy' : 'neutral'}
-                label={getNutrientStatusLabel(status.nutrient_status)}
-              />
+              <Badge tone={getNutrientStatusLabel(status.nutrient_status) === 'Nutrients look fine' ? 'healthy' : 'neutral'}>
+                {getNutrientStatusLabel(status.nutrient_status)}
+              </Badge>
             )}
           </div>
-          <div className="rounded-2xl bg-surface p-4 text-ink">
+          <div className="rounded-control bg-surface p-4 text-ink">
             <LeafRule className="text-brand" />
-            <p className="mb-3 mt-2 font-bold">What to do</p>
-            <p className="text-[17px]">{resolvedAction}</p>
+            <p className="mb-1 mt-2 text-heading">What to do</p>
+            <p className="m-0 text-body">{resolvedAction}</p>
           </div>
         </div>
       </div>

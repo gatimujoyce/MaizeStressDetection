@@ -89,7 +89,7 @@ function CheckIcon() {
 function RadioCard({ name, value, checked, onChange, label, description, inputRef, image }) {
   return (
     <label
-      className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl p-4 text-ink ${
+      className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-card p-4 text-ink ${
         checked
           ? 'border-2 border-brand bg-brand-tint'
           : 'border-[1.5px] border-control bg-surface'
@@ -104,7 +104,7 @@ function RadioCard({ name, value, checked, onChange, label, description, inputRe
           loading="lazy"
           decoding="async"
           onError={(event) => { event.currentTarget.hidden = true }}
-          className="h-[72px] w-[72px] shrink-0 rounded-xl object-cover"
+          className="h-[72px] w-[72px] shrink-0 rounded-control object-cover"
         />
       )}
       <input
@@ -114,11 +114,11 @@ function RadioCard({ name, value, checked, onChange, label, description, inputRe
         value={value}
         checked={checked}
         onChange={onChange}
-        className="h-5 w-5 shrink-0 accent-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="h-5 w-5 shrink-0 accent-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       />
       <span className="flex-1">
-        <span className="block text-base font-bold">{label}</span>
-        {description && <span className="mt-1 block text-base text-ink-secondary">{description}</span>}
+        <span className="block text-body font-bold">{label}</span>
+        {description && <span className="mt-1 block text-body text-ink-secondary">{description}</span>}
       </span>
       {checked && <CheckIcon />}
     </label>
@@ -277,25 +277,25 @@ export default function PlotWizard({ mode = 'onboarding' }) {
   ]
 
   return (
-    <div className="mx-auto max-w-2xl py-6 text-ink">
+    <div className="mx-auto max-w-2xl text-ink">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <h1 className="m-0 text-display">{title}</h1>
         {mode === 'onboarding' && (
-          <p className="mt-2 text-base text-ink-secondary">
+          <p className="mt-2 text-body text-ink-secondary">
             A few quick questions so we can tune alerts to your field.
           </p>
         )}
       </header>
 
-      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+      <section className="rounded-card border border-border bg-surface p-5 sm:p-6">
         <div className="mb-6">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="m-0 text-base font-semibold">Step {step + 1} of 4</p>
+            <p className="m-0 text-body font-bold">Step {step + 1} of 4</p>
             {(step > 0 || mode === 'add') && (
               <button
                 type="button"
                 onClick={goBack}
-                className="min-h-12 rounded-xl px-3 text-base font-semibold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                className="min-h-12 rounded-control px-3 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Back
               </button>
@@ -319,18 +319,18 @@ export default function PlotWizard({ mode = 'onboarding' }) {
           </div>
         </div>
 
-        {summary && <p className="mb-4 text-base font-semibold text-critical-text" role="alert">{summary}</p>}
-        {saveError && <p className="mb-4 text-base text-critical-text" role="alert">{saveError}</p>}
+        {summary && <p className="mb-4 text-body font-bold text-critical-text" role="alert">{summary}</p>}
+        {saveError && <p className="mb-4 text-body text-critical-text" role="alert">{saveError}</p>}
 
         <div>
-          <h2 ref={headingRef} tabIndex={-1} className="mb-5 text-xl font-bold focus:outline-none">
+          <h2 ref={headingRef} tabIndex={-1} className="mb-5 mt-0 text-title focus:outline-none">
             {STEP_TITLES[step]}
           </h2>
 
           {step === 0 && (
             <div className="flex flex-col gap-5">
               <div>
-                <label htmlFor="farmName" className="mb-2 block text-base font-semibold">Plot name <span aria-hidden="true">*</span></label>
+                <label htmlFor="farmName" className="mb-2 block text-body font-bold">Plot name <span aria-hidden="true">*</span></label>
                 <input
                   ref={(element) => { fieldRefs.current.farmName = element }}
                   id="farmName"
@@ -339,20 +339,20 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   placeholder="e.g. North field"
                   aria-invalid={!!errors.farmName}
                   aria-describedby={errors.farmName ? 'farmName-error' : undefined}
-                  className="min-h-12 w-full rounded-xl border-[1.5px] border-control bg-surface px-4 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 />
-                {errors.farmName && <p id="farmName-error" className="mt-1 text-base text-critical-text">{errors.farmName}</p>}
+                {errors.farmName && <p id="farmName-error" className="mt-1 text-body text-critical-text">{errors.farmName}</p>}
               </div>
 
               <fieldset>
-                <legend className="mb-2 text-base font-semibold">Size in acres <span className="font-normal text-ink-secondary">(optional)</span></legend>
+                <legend className="mb-2 text-body font-bold">Size in acres <span className="font-normal text-ink-secondary">(optional)</span></legend>
                 <div className="flex flex-wrap gap-2">
                   {sizeChoices.map((choice) => (
                     <label
                       key={choice}
-                      className={`flex min-h-12 cursor-pointer items-center gap-2 rounded-xl px-3 text-base ${
+                      className={`flex min-h-12 cursor-pointer items-center gap-2 rounded-control px-3 text-body ${
                         answers.sizeChoice === choice
-                          ? 'border-2 border-brand bg-brand-tint font-semibold'
+                          ? 'border-2 border-brand bg-brand-tint font-bold'
                           : 'border-[1.5px] border-control bg-surface'
                       }`}
                     >
@@ -374,7 +374,7 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                 </div>
                 {answers.sizeChoice === 'more' && (
                   <div className="mt-3">
-                    <label htmlFor="sizeAcres" className="mb-2 block text-base font-semibold">Acres</label>
+                    <label htmlFor="sizeAcres" className="mb-2 block text-body font-bold">Acres</label>
                     <input
                       ref={(element) => { fieldRefs.current.sizeAcres = element }}
                       id="sizeAcres"
@@ -385,15 +385,15 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                       onChange={(event) => setAnswer('sizeAcres', event.target.value)}
                       aria-invalid={!!errors.sizeAcres}
                       aria-describedby={errors.sizeAcres ? 'sizeAcres-error' : undefined}
-                      className="min-h-12 w-full rounded-xl border-[1.5px] border-control bg-surface px-4 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                      className="min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     />
-                    {errors.sizeAcres && <p id="sizeAcres-error" className="mt-1 text-base text-critical-text">{errors.sizeAcres}</p>}
+                    {errors.sizeAcres && <p id="sizeAcres-error" className="mt-1 text-body text-critical-text">{errors.sizeAcres}</p>}
                   </div>
                 )}
               </fieldset>
 
               <div>
-                <label htmlFor="county" className="mb-2 block text-base font-semibold">County</label>
+                <label htmlFor="county" className="mb-2 block text-body font-bold">County</label>
                 <select
                   ref={(element) => { fieldRefs.current.county = element }}
                   id="county"
@@ -401,12 +401,12 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   onChange={(event) => setAnswer('county', event.target.value)}
                   aria-invalid={!!errors.county}
                   aria-describedby={errors.county ? 'county-error' : undefined}
-                  className="min-h-12 w-full rounded-xl border-[1.5px] border-control bg-surface px-4 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 >
                   <option value="">Choose county</option>
                   {COUNTIES.map((county) => <option key={county} value={county}>{county}</option>)}
                 </select>
-                {errors.county && <p id="county-error" className="mt-1 text-base text-critical-text">{errors.county}</p>}
+                {errors.county && <p id="county-error" className="mt-1 text-body text-critical-text">{errors.county}</p>}
               </div>
             </div>
           )}
@@ -429,14 +429,14 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   />
                 ))}
               </div>
-              {errors.soilType && <p className="mt-2 text-base text-critical-text">{errors.soilType}</p>}
+              {errors.soilType && <p className="mt-2 text-body text-critical-text">{errors.soilType}</p>}
             </fieldset>
           )}
 
           {step === 2 && (
             <div className="flex flex-col gap-6">
               <fieldset>
-                <legend className="mb-3 text-base font-semibold">How is it watered? <span aria-hidden="true">*</span></legend>
+                <legend className="mb-3 text-body font-bold">How is it watered? <span aria-hidden="true">*</span></legend>
                 <div className="flex flex-col gap-3">
                   {WATER_SOURCES.map((water, index) => (
                     <RadioCard
@@ -450,12 +450,12 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                     />
                   ))}
                 </div>
-                {errors.waterSource && <p className="mt-2 text-base text-critical-text">{errors.waterSource}</p>}
+                {errors.waterSource && <p className="mt-2 text-body text-critical-text">{errors.waterSource}</p>}
               </fieldset>
 
               <fieldset>
-                <legend className="mb-3 text-base font-semibold">When did you plant? <span aria-hidden="true">*</span></legend>
-                <label htmlFor="plantingDate" className="mb-2 block text-base">Planting date</label>
+                <legend className="mb-3 text-body font-bold">When did you plant? <span aria-hidden="true">*</span></legend>
+                <label htmlFor="plantingDate" className="mb-2 block text-body">Planting date</label>
                 <input
                   ref={(element) => { fieldRefs.current.plantingDate = element }}
                   id="plantingDate"
@@ -468,9 +468,9 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   }}
                   aria-invalid={!!errors.plantingDate}
                   aria-describedby={errors.plantingDate ? 'plantingDate-error' : undefined}
-                  className="min-h-12 w-full rounded-xl border-[1.5px] border-control bg-surface px-4 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 />
-                <label className="mt-3 flex min-h-12 cursor-pointer items-center gap-3 text-base">
+                <label className="mt-3 flex min-h-12 cursor-pointer items-center gap-3 text-body">
                   <input
                     type="checkbox"
                     checked={answers.notPlanted}
@@ -482,16 +482,16 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   />
                   I have not planted yet
                 </label>
-                {errors.plantingDate && <p id="plantingDate-error" className="mt-2 text-base text-critical-text">{errors.plantingDate}</p>}
+                {errors.plantingDate && <p id="plantingDate-error" className="mt-2 text-body text-critical-text">{errors.plantingDate}</p>}
               </fieldset>
 
               <div>
-                <label htmlFor="seedVariety" className="mb-2 block text-base font-semibold">Seed variety (optional)</label>
+                <label htmlFor="seedVariety" className="mb-2 block text-body font-bold">Seed variety (optional)</label>
                 <input
                   id="seedVariety"
                   value={answers.seedVariety}
                   onChange={(event) => setAnswer('seedVariety', event.target.value)}
-                  className="min-h-12 w-full rounded-xl border-[1.5px] border-control bg-surface px-4 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 />
               </div>
             </div>
@@ -502,13 +502,13 @@ export default function PlotWizard({ mode = 'onboarding' }) {
               {reviewRows.map((row) => (
                 <div key={row.label} className="flex min-h-16 items-center justify-between gap-4 py-3">
                   <div className="min-w-0">
-                    <dt className="text-base font-semibold">{row.label}</dt>
-                    <dd className="m-0 break-words text-base text-ink-secondary">{row.value}</dd>
+                    <dt className="text-body font-bold">{row.label}</dt>
+                    <dd className="m-0 break-words text-body text-ink-secondary">{row.value}</dd>
                   </div>
                   <button
                     type="button"
                     onClick={() => editAnswer(row.step)}
-                    className="min-h-12 shrink-0 rounded-xl px-3 text-base font-semibold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                    className="min-h-12 shrink-0 rounded-control px-3 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   >
                     Edit
                   </button>
@@ -522,7 +522,7 @@ export default function PlotWizard({ mode = 'onboarding' }) {
               <button
                 type="button"
                 onClick={goNext}
-                className="min-h-12 w-full rounded-xl bg-brand px-5 text-base font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:w-auto"
+                className="min-h-12 w-full rounded-control bg-brand px-5 text-body font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:w-auto"
               >
                 Next
               </button>
@@ -532,11 +532,11 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="min-h-12 w-full rounded-xl bg-brand px-5 text-base font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-70 sm:w-auto"
+                  className="min-h-12 w-full rounded-control bg-brand px-5 text-body font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-70 sm:w-auto"
                 >
                   Save plot
                 </button>
-                {isSaving && <p role="status" className="m-0 text-base text-ink-secondary">Saving...</p>}
+                {isSaving && <p role="status" className="m-0 text-body text-ink-secondary">Saving...</p>}
               </div>
             )}
           </div>

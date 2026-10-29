@@ -1,4 +1,5 @@
-import StatusChip from './StatusChip'
+import Badge from './ui/Badge'
+import { cardClass, buttonClass } from './ui/styles'
 import FeedbackControl from './FeedbackControl'
 import { useAcknowledgeAlertMutation } from '../api/hooks'
 
@@ -8,7 +9,7 @@ const STRESS_TITLES = {
   waterlogging_risk: 'Waterlogging risk',
 }
 
-export default function AlertCard({ alert, farmId }) {
+export default function AlertCard({ alert, farmId, arrived = false }) {
   const acknowledgeMutation = useAcknowledgeAlertMutation(farmId)
   const severity = alert.severity
   const isSensor = alert.source === 'sensor'
@@ -17,10 +18,10 @@ export default function AlertCard({ alert, farmId }) {
     : alert.severity_label
 
   return (
-    <article className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-surface p-4">
-      <StatusChip status={severity} label={label} />
+    <article className={`flex flex-col items-start gap-3 ${cardClass} ${arrived ? 'motion-enter' : ''}`}>
+      <Badge tone={severity}>{label}</Badge>
       {isSensor && alert.message && (
-        <p className="m-0 text-sm">
+        <p className="m-0 text-body text-ink">
           {alert.message.includes(': ') ? alert.message.split(': ').slice(1).join(': ') : alert.message}
         </p>
       )}
@@ -34,13 +35,13 @@ export default function AlertCard({ alert, farmId }) {
           type="button"
           onClick={() => acknowledgeMutation.mutate(alert.alert_id)}
           disabled={acknowledgeMutation.isPending}
-          className="min-h-11 rounded-xl border border-brand px-4 py-2 text-sm font-semibold text-brand disabled:opacity-60"
+          className={buttonClass({ variant: 'secondary', size: 'sm' })}
         >
           {acknowledgeMutation.isPending ? 'Acknowledging…' : 'Mark as read'}
         </button>
       )}
       {acknowledgeMutation.isError && (
-        <p role="alert" className="m-0 text-sm text-critical-text">
+        <p role="alert" className="m-0 text-small text-critical-text">
           Could not acknowledge this alert. Please try again.
         </p>
       )}

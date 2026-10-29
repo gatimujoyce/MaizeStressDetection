@@ -62,7 +62,7 @@ export default function PlotSwitcher() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
-        className="flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-brand bg-surface px-4 text-base font-semibold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="flex min-h-12 items-center justify-center gap-2 rounded-control border-2 border-brand bg-surface px-4 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
         My plots
         <ChevronDownIcon />
@@ -80,15 +80,15 @@ export default function PlotSwitcher() {
           setIsOpen(false)
           requestAnimationFrame(() => triggerRef.current?.focus())
         }}
-        className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[80vh] w-full max-w-none overflow-y-auto rounded-t-3xl border-0 bg-surface p-5 text-ink backdrop:bg-black/40 sm:inset-0 sm:m-auto sm:max-w-md sm:rounded-3xl"
+        className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[80vh] w-full max-w-none overflow-y-auto rounded-t-card border-0 bg-surface p-5 text-ink backdrop:bg-black/40 sm:inset-0 sm:m-auto sm:max-w-md sm:rounded-card shadow-raised"
       >
         <div className="flex flex-col gap-5">
           <header className="flex items-center justify-between gap-3">
-            <h2 id="your-plots-title" className="m-0 text-2xl font-bold">Your plots</h2>
+            <h2 id="your-plots-title" className="m-0 text-title">Your plots</h2>
             <button
               type="button"
               onClick={closeDialog}
-              className="min-h-12 rounded-xl px-4 text-base font-semibold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="min-h-12 rounded-control px-4 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Close
             </button>
@@ -107,16 +107,16 @@ export default function PlotSwitcher() {
                       selectFarm(farm.farm_id)
                       closeDialog()
                     }}
-                    className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+                    className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-control border px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
                       selected ? 'border-2 border-brand bg-brand-tint' : 'border-border bg-surface'
                     }`}
                   >
                     <span className="min-w-0">
-                      <span className="block text-base font-bold">{farm.farm_name}</span>
-                      {details && <span className="mt-1 block text-base text-ink-secondary">{details}</span>}
+                      <span className="block text-body font-bold">{farm.farm_name}</span>
+                      {details && <span className="mt-1 block text-body text-ink-secondary">{details}</span>}
                     </span>
                     {selected && (
-                      <span className="flex shrink-0 items-center gap-1 text-base font-semibold text-brand">
+                      <span className="flex shrink-0 items-center gap-1 text-body font-bold text-brand">
                         <CheckIcon />
                         Selected
                       </span>
@@ -133,7 +133,7 @@ export default function PlotSwitcher() {
               closeDialog()
               navigate('/plots/new')
             }}
-            className="flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-brand bg-surface px-4 text-base font-semibold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="flex min-h-12 items-center justify-center gap-2 rounded-control border-2 border-brand bg-surface px-4 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <PlusIcon />
             Add another plot

@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAcknowledgeAlertMutation, useAlerts } from '../../api/hooks'
-import { WarningIcon, ErrorIcon } from '../../components/Icons'
+import AttentionAlert from '../../components/AttentionAlert'
+import Notice from '../../components/ui/Notice'
+import PageHeader from '../../components/ui/PageHeader'
+import Skeleton from '../../components/ui/Skeleton'
+import { buttonClass, linkClass } from '../../components/ui/styles'
+import useArrivals from '../../components/ui/useArrivals'
 import { useFarm } from '../../farm/FarmContext'
 
 const STRESS_TITLES = {
@@ -36,67 +41,33 @@ function byNewest(a, b) {
     return (timeOf(b.created_at) || 0) - (timeOf(a.created_at) || 0)
 }
 
-function adviceOf(alert) {
-    if (!alert.message) return ''
-    return alert.message.includes(': ') ? alert.message.split(': ').slice(1).join(': ') : alert.message
-}
-
 function Stripe({ critical }) {
     return (
         <span
             aria-hidden="true"
-            className="absolute left-0 top-0 h-full w-1.5 rounded-l-sm"
-            style={{ background: critical ? 'var(--color-critical-text)' : 'var(--color-warning-text)' }}
+            className={`absolute inset-y-0 left-0 w-1.5 ${critical ? 'bg-critical-text' : 'bg-warning-text'}`}
         />
+    )
+}
+
+function SectionLabel({ id, children }) {
+    return (
+        <h2 id={id} className="mb-3 mt-0 text-heading text-ink-secondary">
+            {children}
+        </h2>
     )
 }
 
 export default function AlertsPage() {
     const { selectedFarmId, selectedFarm } = useFarm()
-    const { data: alerts = [], isLoading, isError, isFetching, refetch } = useAlerts(selectedFarmId)
+    const { data: alerts = [], isLoading, isSuccess, isError, isFetching, refetch } = useAlerts(selectedFarmId)
     const acknowledgeMutation = useAcknowledgeAlertMutation(selectedFarmId)
+    const arrived = useArrivals(alerts.map((a) => a.alert_id), isSuccess)
 
     const sorted = [...alerts].sort(byNewest)
     const isOngoing = (a) => a.source === 'sensor' && !a.resolved_at
     const ongoing = sorted.filter(isOngoing)
     const earlier = sorted.filter((a) => !isOngoing(a))
-
-    const markRead = (alert) =>
-        alert.status === 'acknowledged' ? null : (
-            <button
-                type="button"
-                onClick={() => acknowledgeMutation.mutate(alert.alert_id)}
-                disabled={acknowledgeMutation.isPending}
-                className="min-h-11 text-sm font-semibold text-[var(--color-brand)] underline-offset-2 hover:underline disabled:opacity-60"
-            >
-                Mark as read
-            </button>
-        )
-
-    const renderOngoing = (alert) => {
-        const critical = alert.severity === 'critical'
-        const Icon = critical ? ErrorIcon : WarningIcon
-        return (
-            <article
-                key={alert.alert_id}
-                className={`relative overflow-hidden rounded-sm border border-[var(--color-border)] py-4 pl-6 pr-4 ${critical ? 'bg-[var(--color-critical-bg)]' : 'bg-[var(--color-warning-bg)]'}`}
-            >
-                <Stripe critical={critical} />
-                <div className={`flex items-center gap-2 ${critical ? 'text-[var(--color-critical-text)]' : 'text-[var(--color-warning-text)]'}`}>
-                    <Icon size={16} />
-                    <h3 className="m-0 text-base font-bold">{STRESS_TITLES[alert.stress_class] || 'Field alert'}</h3>
-                    <span className="ml-auto rounded-full border border-current px-2 py-0.5 text-xs font-semibold">
-                        {critical ? 'Urgent' : 'Act soon'}
-                    </span>
-                </div>
-                <p className="mb-0 mt-2 text-[15px] leading-snug text-[var(--color-text-primary)]">{adviceOf(alert)}</p>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs text-[var(--color-text-secondary)]">Ongoing · started {formatWhen(alert.created_at)}</span>
-                    {markRead(alert)}
-                </div>
-            </article>
-        )
-    }
 
     const renderEarlier = (alert) => {
         const critical = alert.severity === 'critical'
@@ -108,80 +79,90 @@ export default function AlertsPage() {
         return (
             <li
                 key={alert.alert_id}
-                className="relative flex flex-wrap items-center gap-x-3 gap-y-1 overflow-hidden rounded-sm border border-[var(--color-border)] bg-[var(--color-surface,transparent)] py-3 pl-6 pr-4"
+                className={`relative flex flex-wrap items-center gap-x-4 gap-y-2 overflow-hidden rounded-card border border-border bg-surface py-3 pl-6 pr-4 ${arrived(alert.alert_id) ? 'motion-enter' : ''}`}
             >
                 <Stripe critical={critical} />
-                <div className="min-w-0 flex-1">
-                    <p className="m-0 flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-                        {unread && <span aria-label="Unread" className="inline-block h-2 w-2 rounded-full bg-[var(--color-brand)]" />}
+                <div className="min-w-0 flex-1 basis-48">
+                    <p className="m-0 flex items-center gap-2 text-body font-bold text-ink">
+                        {unread && <span aria-label="Unread" className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />}
                         {title}
                     </p>
-                    <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                    <p className="m-0 text-small text-ink-secondary">
                         {formatWhen(alert.created_at)}
                         {alert.resolved_at ? ` · cleared ${formatWhen(alert.resolved_at)}` : ''}
                     </p>
                 </div>
-                {alert.prediction_id && (
-                    <Link to={`/result/${selectedFarmId}/${alert.prediction_id}`} className="text-sm font-semibold text-[var(--color-brand)] underline-offset-2 hover:underline">
-                        View result →
-                    </Link>
-                )}
-                {markRead(alert)}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    {alert.prediction_id && (
+                        <Link to={`/result/${selectedFarmId}/${alert.prediction_id}`} className={`inline-flex min-h-11 items-center text-small ${linkClass}`}>
+                            View result →
+                        </Link>
+                    )}
+                    {unread && (
+                        <button
+                            type="button"
+                            onClick={() => acknowledgeMutation.mutate(alert.alert_id)}
+                            disabled={acknowledgeMutation.isPending}
+                            className={buttonClass({ variant: 'quiet', size: 'sm' })}
+                        >
+                            Mark as read
+                        </button>
+                    )}
+                </div>
             </li>
         )
     }
 
     return (
-        <div className="mx-auto max-w-2xl px-4 py-8">
-            <header className="mb-6">
-                <h1 className="m-0 text-2xl font-bold text-[var(--color-text-primary)]">Alerts</h1>
-                <p className="mb-0 mt-1 text-[15px] text-[var(--color-text-secondary)]">
-                    {selectedFarm?.farm_name || 'Your field'}
-                    {ongoing.length > 0 ? ` · ${ongoing.length} need${ongoing.length === 1 ? 's' : ''} attention now` : ''}
-                </p>
-            </header>
+        <div className="mx-auto flex max-w-2xl flex-col gap-6">
+            <PageHeader
+                title="Alerts"
+                subtitle={`${selectedFarm?.farm_name || 'Your field'}${ongoing.length > 0 ? ` · ${ongoing.length} need${ongoing.length === 1 ? 's' : ''} attention now` : ''}`}
+            />
 
             {isLoading ? (
-                <p className="text-sm text-[var(--color-text-secondary)]">Loading alerts…</p>
-            ) : isError ? (
-                <div role="alert" className="text-sm text-[var(--color-critical-text)]">
-                    <p>Could not load alerts.</p>
-                    <button
-                        type="button"
-                        onClick={() => refetch()}
-                        disabled={isFetching}
-                        className="min-h-11 rounded-xl border border-brand px-4 py-2 font-semibold text-brand disabled:opacity-60"
-                    >
-                        {isFetching ? 'Retrying…' : 'Retry'}
-                    </button>
+                <div className="flex flex-col gap-3">
+                    <Skeleton label="Loading alerts…" className="h-32" />
+                    <Skeleton className="h-16" />
+                    <Skeleton className="h-16" />
                 </div>
+            ) : isError ? (
+                <Notice tone="critical" onRetry={() => refetch()} retrying={isFetching}>
+                    <p>Could not load alerts.</p>
+                </Notice>
             ) : (
                 <>
-                    <section aria-labelledby="now-heading" className="mb-8">
-                        <h2 id="now-heading" className="mb-3 mt-0 text-sm font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
-                            Needs attention now
-                        </h2>
+                    <section aria-labelledby="now-heading">
+                        <SectionLabel id="now-heading">Needs attention now</SectionLabel>
                         {ongoing.length === 0 ? (
-                            <p className="m-0 rounded-sm border border-[var(--color-border)] p-4 text-[15px] text-[var(--color-text-primary)]">
+                            <p className="m-0 rounded-card border border-border bg-surface p-4 text-body text-ink">
                                 Nothing needs your attention right now. We are watching your field and will alert you here.
                             </p>
                         ) : (
-                            <div className="flex flex-col gap-3">{ongoing.map(renderOngoing)}</div>
+                            <div className="flex flex-col gap-3">
+                                {ongoing.map((alert) => (
+                                    <AttentionAlert
+                                        key={alert.alert_id}
+                                        alert={alert}
+                                        farmId={selectedFarmId}
+                                        meta={`Ongoing · started ${formatWhen(alert.created_at)}`}
+                                        arrived={arrived(alert.alert_id)}
+                                    />
+                                ))}
+                            </div>
                         )}
                     </section>
 
                     {earlier.length > 0 && (
                         <section aria-labelledby="earlier-heading">
-                            <h2 id="earlier-heading" className="mb-3 mt-0 text-sm font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
-                                Earlier
-                            </h2>
+                            <SectionLabel id="earlier-heading">Earlier</SectionLabel>
                             <ul className="m-0 flex list-none flex-col gap-2 p-0">{earlier.map(renderEarlier)}</ul>
                         </section>
                     )}
                 </>
             )}
             {acknowledgeMutation.isError && (
-                <p role="alert" className="mt-3 text-sm text-[var(--color-critical-text)]">
+                <p role="alert" className="m-0 text-small text-critical-text">
                     Could not acknowledge this alert. Please try again.
                 </p>
             )}

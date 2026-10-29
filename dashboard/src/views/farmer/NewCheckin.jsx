@@ -1,8 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSubmitCheckinMutation } from '../../api/hooks'
+import CheckinSteps from '../../components/CheckinSteps'
+import { CameraIcon } from '../../components/NavIcons'
 import PlotSwitcher from '../../components/PlotSwitcher'
 import PhotoTips from '../../components/PhotoTips'
+import Notice from '../../components/ui/Notice'
+import { buttonClass } from '../../components/ui/styles'
 import { useFarm } from '../../farm/FarmContext'
 
 const GUIDANCE_TEXT = 'For best results: photograph a single leaf in full daylight. Hold the camera steady and fill the frame with the leaf; no shadows, no blurring.'
@@ -83,12 +87,9 @@ export default function NewCheckin() {
 
     if (!selectedFarmId) {
         return (
-            <div className="max-w-md mx-auto py-8">
-                <p className="text-base text-ink">Add a plot before your first check.</p>
-                <Link
-                    to="/plots/new"
-                    className="mt-4 inline-flex min-h-[52px] items-center justify-center rounded-xl bg-brand px-5 text-base font-bold text-white hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                >
+            <div className="mx-auto max-w-md">
+                <p className="m-0 text-body text-ink">Add a plot before your first check.</p>
+                <Link to="/plots/new" className={`mt-4 ${buttonClass()}`}>
                     Add a plot
                 </Link>
             </div>
@@ -157,68 +158,64 @@ export default function NewCheckin() {
         }
     }
 
+    const step = submitMutation.isPending ? 2 : preview ? 1 : 0
+
     return (
-        <div className="max-w-md mx-auto py-8">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">New Photo Check-in</h1>
-                <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                    <p className="m-0 font-bold text-ink">Checking: {selectedFarm?.farm_name || 'Selected plot'}</p>
+        <div className="mx-auto flex max-w-md flex-col gap-5">
+            <header>
+                <h1 className="m-0 text-display text-ink">New Photo Check-in</h1>
+                <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="m-0 text-heading text-ink">Checking: {selectedFarm?.farm_name || 'Selected plot'}</p>
                     <PlotSwitcher />
                 </div>
-                <p className="text-[var(--color-text-secondary)] mt-1 text-sm">{GUIDANCE_TEXT}</p>
-            </div>
+                <p className="mb-0 mt-3 text-small text-ink-secondary">{GUIDANCE_TEXT}</p>
+            </header>
+
+            <CheckinSteps current={step} />
 
             {/* Error states use distinct visual treatments */}
             {errorState === 'inconclusive' && (
-                <div className="mb-5 p-4 bg-[var(--color-neutral-bg)] border border-[var(--color-border)] rounded-sm">
-                    <div className="flex gap-2 items-center font-semibold text-[var(--color-neutral-text)] mb-1">
-                        <span>📷</span> Image Inconclusive
-                    </div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                        The photo was unclear or too dark for the model to analyse. Please retake in bright daylight, one leaf filling the frame.
-                    </p>
-                    <button onClick={handleRetake} className="mt-3 bg-[var(--color-brand)] text-white px-4 py-2 rounded-sm text-sm font-semibold">
-                        Retake Photo
-                    </button>
-                </div>
+                <Notice
+                    tone="neutral"
+                    title="Image Inconclusive"
+                    action={<button type="button" onClick={handleRetake} className={buttonClass({ size: 'sm' })}>Retake Photo</button>}
+                >
+                    <p>The photo was unclear or too dark for the model to analyse. Please retake in bright daylight, one leaf filling the frame.</p>
+                </Notice>
             )}
 
             {errorState === 'out_of_scope' && (
-                <div className="mb-5 p-4 bg-[var(--color-warning-bg)] border border-[var(--color-border)] rounded-sm">
-                    <div className="flex gap-2 items-center font-semibold text-[var(--color-warning-text)] mb-1">
-                        <span>⚠️</span> Pattern Not Recognised
-                    </div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                        The detected symptom does not match any condition the model was trained on. Please consult your local agricultural extension office.
-                    </p>
-                    <button onClick={handleRetake} className="mt-3 bg-[var(--color-brand)] text-white px-4 py-2 rounded-sm text-sm font-semibold">
-                        Try Again
-                    </button>
-                </div>
+                <Notice
+                    tone="warning"
+                    title="Pattern Not Recognised"
+                    action={<button type="button" onClick={handleRetake} className={buttonClass({ size: 'sm' })}>Try Again</button>}
+                >
+                    <p>The detected symptom does not match any condition the model was trained on. Please consult your local agricultural extension office.</p>
+                </Notice>
             )}
 
             {errorState === 'server' && (
-                <div className="mb-5 p-4 bg-[var(--color-critical-bg)] border border-[var(--color-border)] rounded-sm">
-                    <div className="flex gap-2 items-center font-semibold text-[var(--color-critical-text)] mb-1">
-                        <span>❌</span> Upload Failed
-                    </div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{errorMsg}</p>
-                    <button onClick={handleRetake} className="mt-3 bg-[var(--color-brand)] text-white px-4 py-2 rounded-sm text-sm font-semibold">
-                        Try Again
-                    </button>
-                </div>
+                <Notice
+                    tone="critical"
+                    title="Upload Failed"
+                    action={<button type="button" onClick={handleRetake} className={buttonClass({ size: 'sm' })}>Try Again</button>}
+                >
+                    <p>{errorMsg}</p>
+                </Notice>
             )}
 
             <PhotoTips />
 
             {/* Photo capture / preview */}
             {!preview ? (
-                <div className="bg-white border-2 border-dashed border-[var(--color-border)] rounded-sm p-8 flex flex-col items-center gap-4 text-center">
-                    <span className="text-5xl">🌿</span>
-                    <p className="text-sm text-[var(--color-text-secondary)]">
+                <div className="flex flex-col items-center gap-4 rounded-card border-2 border-dashed border-control bg-surface p-6 text-center focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-tint text-brand">
+                        <CameraIcon className="h-7 w-7" />
+                    </span>
+                    <p className="m-0 text-body text-ink-secondary">
                         Tap below to take a photo or select an image from your gallery.
                     </p>
-                    <label htmlFor="photo-input" className="bg-[var(--color-brand)] text-white font-semibold px-6 py-2.5 rounded-sm cursor-pointer text-sm hover:bg-[var(--color-brand-hover)] transition-colors">
+                    <label htmlFor="photo-input" className={`${buttonClass({ block: true })} cursor-pointer`}>
                         Capture / Select Photo
                     </label>
                     <input
@@ -228,40 +225,42 @@ export default function NewCheckin() {
                         accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                         capture="environment"
                         onChange={handleFileChange}
-                        className="hidden"
+                        className="sr-only"
                     />
                 </div>
             ) : (
-                <div className="flex flex-col gap-4">
-                    <div className="rounded-sm overflow-hidden border border-[var(--color-border)]">
-                        <img src={preview} alt="Leaf preview" className="w-full object-cover max-h-72" />
+                <div className="motion-reveal flex flex-col gap-4">
+                    <div className="overflow-hidden rounded-card border border-border">
+                        <img src={preview} alt="Leaf preview" className="max-h-72 w-full object-cover" />
                     </div>
                     <div className="flex gap-3">
                         <button
+                            type="button"
                             onClick={handleRetake}
-                            className="flex-1 border border-[var(--color-border)] bg-white text-[var(--color-text-primary)] font-semibold py-2.5 px-4 rounded-sm text-sm hover:bg-[var(--color-neutral-bg)] transition-colors"
+                            className={`${buttonClass({ variant: 'secondary' })} flex-1`}
                         >
                             Retake
                         </button>
                         <button
+                            type="button"
                             onClick={handleSubmit}
                             disabled={submitMutation.isPending}
-                            className="flex-2 bg-[var(--color-brand)] text-white font-semibold py-2.5 px-6 rounded-sm text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-60 flex-1"
+                            className={`${buttonClass()} flex-[2]`}
                         >
                             {submitMutation.isPending ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <>
+                                    <span aria-hidden="true" className="inline-block h-4 w-4 rounded-full border-2 border-white border-t-transparent motion-safe:animate-spin" />
                                     Analysing…
-                                </span>
+                                </>
                             ) : 'Submit for Analysis'}
                         </button>
                     </div>
                 </div>
             )}
             {errorState === 'validation' && (
-                <div role="alert" className="mt-4 rounded-sm border border-[var(--color-border)] bg-[var(--color-warning-bg)] p-4 text-sm text-[var(--color-warning-text)]">
-                    {errorMsg}
-                </div>
+                <Notice tone="warning" role="alert">
+                    <p>{errorMsg}</p>
+                </Notice>
             )}
         </div>
     )

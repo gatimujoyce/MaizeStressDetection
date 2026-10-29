@@ -9,7 +9,7 @@ function Field({ id, label, type = 'text', placeholder, value, error, onChange, 
 
     return (
         <div className="flex flex-col gap-1">
-            <label htmlFor={id} className="text-[15px] font-medium text-[var(--color-text-primary)]">
+            <label htmlFor={id} className="text-small font-normal text-[var(--color-text-primary)]">
                 {label}
             </label>
             <div className={isPassword || prefix ? 'relative' : undefined}>
@@ -21,13 +21,13 @@ function Field({ id, label, type = 'text', placeholder, value, error, onChange, 
                     placeholder={placeholder}
                     inputMode={inputMode}
                     maxLength={maxLength}
-                    className={`min-h-12 border px-3 py-2 ${isPassword ? 'pr-16' : ''} ${prefix ? 'pl-16' : ''} rounded-sm text-base w-full focus:outline-none ${error
+                    className={`min-h-12 border-[1.5px] px-3 py-2 ${isPassword ? 'pr-16' : ''} ${prefix ? 'pl-16' : ''} rounded-control text-body w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${error
                         ? 'border-[var(--color-critical-text)]'
-                        : 'border-[var(--color-border)] focus:border-[var(--color-brand)]'
+                        : 'border-control'
                         }`}
                 />
                 {prefix && (
-                    <span className="absolute inset-y-0 left-3 flex items-center text-base text-[var(--color-text-secondary)]" aria-hidden="true">
+                    <span className="absolute inset-y-0 left-3 flex items-center text-body text-[var(--color-text-secondary)]" aria-hidden="true">
                         {prefix}
                     </span>
                 )}
@@ -37,14 +37,14 @@ function Field({ id, label, type = 'text', placeholder, value, error, onChange, 
                         onClick={onToggleVisibility}
                         aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
                         aria-pressed={visible}
-                        className="absolute inset-y-0 right-3 min-h-12 min-w-12 text-[15px] font-medium text-[var(--color-brand)]"
+                        className="absolute inset-y-0 right-3 min-h-12 min-w-12 text-small font-normal text-[var(--color-brand)]"
                     >
                         {visible ? <EyeOffIcon /> : <EyeIcon />}
                     </button>
                 )}
             </div>
             {error && (
-                <p className="text-[15px] text-[var(--color-critical-text)]">{error}</p>
+                <p className="text-small text-[var(--color-critical-text)]">{error}</p>
             )}
         </div>
     )
@@ -101,7 +101,7 @@ export default function Register() {
     return (
         <AuthLayout subtitle="Create your farmer account">
                 {errors.server && (
-                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-sm text-[15px]">
+                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
                         {errors.server}
                     </div>
                 )}
@@ -115,15 +115,15 @@ export default function Register() {
                     <button
                         type="submit"
                         disabled={registerMutation.isPending}
-                        className="min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-semibold py-2 px-4 rounded-sm transition-colors disabled:opacity-60"
+                        className="min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold py-2 px-4 rounded-control transition-colors disabled:opacity-60"
                     >
                         {registerMutation.isPending ? 'Creating account…' : 'Create account'}
                     </button>
                 </form>
 
-                <p className="mt-5 text-center text-[15px] text-[var(--color-text-secondary)]">
+                <p className="mt-5 text-center text-small text-[var(--color-text-secondary)]">
                     Already have an account?{' '}
-                    <Link to="/login" className="inline-flex min-h-12 items-center text-[var(--color-brand)] font-medium underline">
+                    <Link to="/login" className="inline-flex min-h-12 items-center text-[var(--color-brand)] font-normal underline">
                         Sign in
                     </Link>
                 </p>
