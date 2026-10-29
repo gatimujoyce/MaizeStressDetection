@@ -20,6 +20,23 @@ function SeverityBadge({ level }) {
     )
 }
 
+const BAND_BADGES = {
+    weak: { classes: 'bg-[var(--color-warning-bg)] text-[var(--color-warning-text)]', label: 'Possible, please check' },
+    none: { classes: 'bg-[var(--color-neutral-bg)] text-[var(--color-neutral-text)]', label: 'Not sure' },
+}
+
+// Shows "Disease Confirmed" only when the model is confident. A weaker result gets a softer badge.
+function DiseaseBadge({ band, label, level }) {
+    const isDisease = Boolean(label) && label.toLowerCase() !== 'healthy'
+    const style = isDisease ? BAND_BADGES[band] : null
+    if (!style) return <SeverityBadge level={level} />
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-sm font-semibold ${style.classes}`}>
+            {style.label}
+        </span>
+    )
+}
+
 function UploadedImage({ imageUrl }) {
     return (
         <section className="bg-white border border-[var(--color-border)] rounded-sm p-5">
@@ -94,6 +111,7 @@ export default function Result() {
         fused_prediction,
         disease_label,
         disease_confidence,
+        disease_band,
         severity_level,
         sensor_conditions,
         recommendation,
@@ -101,6 +119,19 @@ export default function Result() {
         nutrient_confidence,
     } = prediction
     const copy = getFusedPredictionCopy(fused_prediction)
+
+    // How sure the model is about the disease decides the wording of the Disease Detection card.
+    const diseaseName = disease_label?.replace(/_/g, ' ') || 'Unknown'
+    const isDiseaseLabel = diseaseName.toLowerCase() !== 'healthy' && diseaseName !== 'Unknown'
+    const diseaseUnsure = isDiseaseLabel && disease_band === 'none'
+    const diseaseHeadline = !isDiseaseLabel
+        ? diseaseName
+        : diseaseUnsure
+            ? 'Not sure what this is'
+            : disease_band === 'weak'
+                ? `Possible: ${diseaseName}`
+                : diseaseName
+    const hasNutrientDeficiency = /deficiency/i.test(nutrient_status || '') && !/^no[ _]deficiency$/i.test(nutrient_status || '')
     const predictionFarm = farms.find((farm) => farm.farm_id === prediction.farm_id)
 
     // Three status states
@@ -153,19 +184,30 @@ export default function Result() {
             <section className="bg-white border border-[var(--color-border)] rounded-sm p-5 flex flex-col gap-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                     <h2 className="text-base font-semibold">Disease Detection</h2>
-                    <SeverityBadge level={severity_level} />
+                    <DiseaseBadge band={disease_band} label={disease_label} level={severity_level} />
                 </div>
                 <div>
                     <p className="text-lg font-bold text-[var(--color-text-primary)] capitalize">
-                        {disease_label?.replace(/_/g, ' ') || 'Unknown'}
+                        {diseaseHeadline}
                     </p>
                     {disease_confidence != null && (
-                        <p className="text-sm text-[var(--color-text-secondary)]">
-                            Confidence: <span className="font-medium">{Math.round(disease_confidence * 100)}%</span>
-                        </p>
+                        diseaseUnsure ? (
+                            <p className="text-sm text-[var(--color-text-secondary)] normal-case">
+                                Closest match: <span className="font-medium capitalize">{diseaseName}</span> ({Math.round(disease_confidence * 100)}%). This is too low to rely on.
+                            </p>
+                        ) : (
+                            <p className="text-sm text-[var(--color-text-secondary)]">
+                                Confidence: <span className="font-medium">{Math.round(disease_confidence * 100)}%</span>
+                            </p>
+                        )
                     )}
                 </div>
-                {recommendation && (
+                {diseaseUnsure && (
+                    <div className="mt-1 p-3 bg-[var(--color-neutral-bg)] rounded-sm text-sm text-[var(--color-text-primary)]">
+                        <strong>What to do:</strong> The photo did not give a clear answer. Take another photo in daylight with one leaf held flat. If the leaf looks sick to you, ask your extension officer to have a look.
+                    </div>
+                )}
+                {recommendation && !diseaseUnsure && (
                     <div className="mt-1 p-3 bg-[var(--color-neutral-bg)] rounded-sm text-sm text-[var(--color-text-primary)]">
                         <strong>Recommended action:</strong> {recommendation}
                     </div>
@@ -215,6 +257,11 @@ export default function Result() {
                 {nutrient_confidence != null && (
                     <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                         Confidence: {Math.round(nutrient_confidence * 100)}%
+                    </p>
+                )}
+                {hasNutrientDeficiency && (
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-2">
+                        This is an early sign only. Ask your extension officer to confirm it before you apply fertiliser.
                     </p>
                 )}
             </section>
