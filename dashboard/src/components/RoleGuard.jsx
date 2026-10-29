@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { InfoIcon } from './Icons'
 
 export default function RoleGuard({ allowedRole, children }) {
   const { isAuthenticated, role } = useAuth()
@@ -12,11 +13,11 @@ export default function RoleGuard({ allowedRole, children }) {
   if (role !== allowedRole) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
-        <div className="text-4xl">🔒</div>
-        <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">
+        <span aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-bg text-neutral-text"><InfoIcon size={28} /></span>
+        <h1 className="m-0 text-title text-ink">
           Access Denied
         </h1>
-        <p className="text-[var(--color-text-secondary)] max-w-sm">
+        <p className="m-0 max-w-sm text-body text-ink-secondary">
           You don&apos;t have permission to view this page.
           {role === 'farmer' && (
             <> <a href="/" className="text-[var(--color-brand)] underline">Go to your dashboard</a>.</>

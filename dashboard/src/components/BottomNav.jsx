@@ -28,7 +28,7 @@ export default function BottomNav() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-sm py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-inset ${
+              `flex min-h-16 flex-1 flex-col items-center justify-center gap-1 py-2 text-small font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset ${
                 isActive ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-secondary)]'
               }`
             }
@@ -41,7 +41,7 @@ export default function BottomNav() {
               <span className="relative">
                 <Icon className="h-6 w-6" />
                 {label === 'Alerts' && unreadCount > 0 && (
-                  <span aria-label={`${unreadCount} unread alerts`} className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-critical-text px-1 text-[11px] font-bold text-white">
+                  <span aria-label={`${unreadCount} unread alerts`} className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-critical-text px-1 text-caption font-bold text-white">
                     {unreadCount}
                   </span>
                 )}

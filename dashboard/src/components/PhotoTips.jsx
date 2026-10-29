@@ -11,7 +11,7 @@ const photoExamples = [
 
 function TipBadge({ good, children }) {
   return (
-    <span className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-2.5 text-[15px] font-bold ${good ? 'bg-healthy-bg text-healthy-text' : 'bg-warning-bg text-warning-text'}`}>
+    <span className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-2.5 text-small font-bold ${good ? 'bg-healthy-bg text-healthy-text' : 'bg-warning-bg text-warning-text'}`}>
       {good ? (
         <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="m4 10 4 4 8-8" />
@@ -52,9 +52,9 @@ export default function PhotoTips() {
     <details
       open={!isCollapsed}
       onToggle={handleToggle}
-      className="mb-5 rounded-2xl border border-border bg-surface p-4"
+      className="rounded-card border border-border bg-surface p-4"
     >
-      <summary className="flex min-h-12 cursor-pointer items-center rounded-xl text-[17px] font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+      <summary className="flex min-h-12 cursor-pointer items-center rounded-control text-heading text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
         How to take a clear photo
       </summary>
       <div role="group" aria-label="Photo examples" className="mt-4 grid grid-cols-2 gap-3">
@@ -68,13 +68,13 @@ export default function PhotoTips() {
                 height="240"
                 loading="lazy"
                 decoding="async"
-                className="aspect-square w-full rounded-xl object-cover"
+                className="aspect-square w-full rounded-control object-cover"
               />
               <div className="absolute left-2 top-2">
                 <TipBadge good={example.good}>{example.badge}</TipBadge>
               </div>
             </div>
-            <figcaption className="mt-2 text-[15px] text-ink">
+            <figcaption className="mt-2 text-small text-ink">
               {example.caption}
             </figcaption>
           </figure>
