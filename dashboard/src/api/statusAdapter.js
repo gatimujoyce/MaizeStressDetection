@@ -2,6 +2,19 @@ import { fusedPredictionCopy, getFusedPredictionCopy } from '../content/farmerCo
 
 const predictionCopyKeys = new Set(Object.keys(fusedPredictionCopy))
 
+// Confidence bands. These are copied from models/fusion/fusion_rules.yaml (bands: strong_min, weak_min).
+// Keep them in sync with that file. Below weak_min the model's answer is not used as a verdict.
+export const STRONG_MIN = 0.80
+export const WEAK_MIN = 0.60
+
+// 'strong' | 'weak' | 'none' for a model confidence between 0 and 1.
+export function confidenceBand(confidence) {
+  if (!Number.isFinite(confidence)) return 'none'
+  if (confidence >= STRONG_MIN) return 'strong'
+  if (confidence >= WEAK_MIN) return 'weak'
+  return 'none'
+}
+
 function normalizeLabel(label) {
   if (typeof label !== 'string') return null
   return label
@@ -33,6 +46,11 @@ function adaptPrediction(prediction, farmId) {
   const hasNutrientDeficiency = nutrientLabel?.endsWith('_deficiency')
     && nutrientLabel !== 'no_deficiency'
 
+  // A disease name the model is not sure about (below weak_min) must neither confirm a disease nor count as healthy.
+  const diseaseIsUnsure = Boolean(diseaseKey) && diseaseKey !== 'healthy'
+    && confidenceBand(prediction.disease_conf) === 'none'
+  const confidentDiseaseKey = diseaseIsUnsure ? null : diseaseKey
+
   let fusedPrediction
   let resolvedSeverityLevel = severityLevel
 
@@ -42,13 +60,17 @@ function adaptPrediction(prediction, farmId) {
   } else if (severity === 'inconclusive') {
     fusedPrediction = 'inconclusive'
     resolvedSeverityLevel = 'neutral'
-  } else if (hasNutrientDeficiency && diseaseKey === 'healthy' && severity === 'low') {
+  } else if (diseaseIsUnsure && severity === 'low') {
+    // The only reason this photo looked fine is that the disease model was not sure. That is not "healthy".
+    fusedPrediction = 'inconclusive'
+    resolvedSeverityLevel = 'neutral'
+  } else if (hasNutrientDeficiency && confidentDiseaseKey === 'healthy' && severity === 'low') {
     fusedPrediction = 'nutrient_deficiency'
     resolvedSeverityLevel = 'neutral'
   } else if (severity === 'low') {
     fusedPrediction = 'healthy'
-  } else if (diseaseKey && diseaseKey !== 'healthy') {
-    fusedPrediction = diseaseKey
+  } else if (confidentDiseaseKey && confidentDiseaseKey !== 'healthy') {
+    fusedPrediction = confidentDiseaseKey
   } else if (sensorKey) {
     fusedPrediction = sensorKey
   } else {
@@ -63,9 +85,13 @@ function adaptPrediction(prediction, farmId) {
     farm_id: farmId,
     fused_prediction: fusedPrediction,
     severity_level: resolvedSeverityLevel,
+    disease_band: confidenceBand(prediction.disease_conf),
+    // 'uncertain' is for a photo that could not be assessed at all. A disease the model is only unsure about keeps the
+    // full result page, where the disease card says "Not sure" and the sensor and nutrient results still show.
+    disease_unsure: diseaseIsUnsure,
     status: fusedPrediction === 'out_of_scope'
       ? 'out_of_scope'
-      : fusedPrediction === 'inconclusive'
+      : fusedPrediction === 'inconclusive' && !(diseaseIsUnsure && severity === 'low')
         ? 'uncertain'
         : 'confirmed',
     created_at: prediction.created_at,
