@@ -20,6 +20,18 @@ ADVICE = {
 }
 
 
+SMS_TEXT = {
+    "heat_stress": "Heat stress on {farm}: temperatures have stayed high for hours. Check for wilting; water or shade if you can.",
+    "drought_stress": "Drought stress on {farm}: the soil has stayed dry for hours. Check soil moisture and irrigate if needed.",
+    "waterlogging_risk": "Waterlogging risk on {farm}: the soil is saturated. Make sure water can drain from the plot.",
+}
+
+
+def sms_text(stress, farm_name):
+    """One short text for a High alert (about 120 characters)."""
+    return "MaizeStress: " + SMS_TEXT[stress].format(farm=farm_name[:20].rstrip())
+
+
 def stress_levels(result):
     """{stress_class: 'weak' | 'strong'} from an aggregate_sensor result."""
     if result.get("status") in (None, "unavailable") or not result.get("primary"):
