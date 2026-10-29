@@ -1,6 +1,6 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import FarmerDashboard from './views/farmer/FarmerDashboard'
-import AdminDashboard from './views/admin/AdminDashboard'
 import AlertsPage from './views/farmer/AlertsPage'
 import AddPlot from './views/farmer/AddPlot'
 import NewCheckin from './views/farmer/NewCheckin'
@@ -11,6 +11,19 @@ import Login from './views/auth/Login'
 import Register from './views/auth/Register'
 import RoleGuard from './components/RoleGuard'
 import Layout from './components/Layout'
+import Skeleton from './components/ui/Skeleton'
+
+// Admin code is a separate chunk, fetched only after RoleGuard lets an admin through,
+// so farmers on slow connections never download it.
+const AdminDashboard = lazy(() => import('./views/admin/AdminDashboard'))
+
+function AdminLoading() {
+  return (
+    <div className="mx-auto max-w-6xl p-4 sm:p-8">
+      <Skeleton label="Loading admin workspace" className="h-64" />
+    </div>
+  )
+}
 
 export default function AppRouter() {
   return (
@@ -87,7 +100,9 @@ export default function AppRouter() {
             path="/admin"
             element={
               <RoleGuard allowedRole="admin">
-                <AdminDashboard />
+                <Suspense fallback={<AdminLoading />}>
+                  <AdminDashboard />
+                </Suspense>
               </RoleGuard>
             }
           />

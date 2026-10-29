@@ -1,56 +1,63 @@
 import { useState } from 'react'
+import { CheckIcon, ErrorIcon, InfoIcon, WarningIcon } from './Icons'
+import Card, { SectionHeader } from './ui/Card'
+import { buttonClass, insetClass } from './ui/styles'
 
 export default function TrendChart({ history = [] }) {
   const [showFull, setShowFull] = useState(false)
   const displayedHistory = showFull ? history : history.slice(0, 2)
 
   const getSeverityBadge = (sev) => {
-    if (sev === 'healthy') return { label: 'Healthy', icon: '✓', classes: 'text-[var(--color-healthy-text)]' }
-    if (sev === 'warning') return { label: 'Stress', icon: '⚠️', classes: 'text-[var(--color-warning-text)]' }
-    if (sev === 'critical') return { label: 'Critical', icon: '✕', classes: 'text-[var(--color-critical-text)]' }
-    if (sev === 'inconclusive') return { label: 'Inconclusive', icon: '•', classes: 'text-[var(--color-text-secondary)]' }
+    if (sev === 'healthy') return { label: 'Healthy', Icon: CheckIcon, classes: 'text-healthy-text' }
+    if (sev === 'warning') return { label: 'Stress', Icon: WarningIcon, classes: 'text-warning-text' }
+    if (sev === 'critical') return { label: 'Critical', Icon: ErrorIcon, classes: 'text-critical-text' }
+    if (sev === 'inconclusive') return { label: 'Inconclusive', Icon: InfoIcon, classes: 'text-ink-secondary' }
     return null
   }
 
   return (
-    <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-5">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-base font-semibold m-0">Recent Field Trends</h3>
-        <button
-          onClick={() => setShowFull(!showFull)}
-          className="text-[var(--color-brand)] text-sm bg-transparent border-none p-0 cursor-pointer min-h-0 min-w-0 font-medium underline"
-        >
-          {showFull ? 'Show Recent Only' : 'See Full History'}
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {displayedHistory.length === 0 && (
-          <p className="text-[var(--color-text-secondary)] text-sm">No history available yet.</p>
+    <Card aria-labelledby="trend-title">
+      <SectionHeader
+        id="trend-title"
+        title="Recent Field Trends"
+        as="h3"
+        aside={history.length > 2 && (
+          <button
+            type="button"
+            onClick={() => setShowFull(!showFull)}
+            aria-expanded={showFull}
+            className={buttonClass({ variant: 'quiet', size: 'sm' })}
+          >
+            {showFull ? 'Show Recent Only' : 'See Full History'}
+          </button>
         )}
-        {displayedHistory.map((item, idx) => {
-          const badge = getSeverityBadge(item.severity)
-          return (
-            <div
-              key={idx}
-              className="flex justify-between items-center px-3 py-3 bg-[var(--color-bg)] rounded-sm"
-            >
-              <div>
-                <strong className="block text-sm text-[var(--color-text-primary)]">{item.date}</strong>
-                {item.stage && (
-                  <span className="text-xs text-[var(--color-text-secondary)]">Stage: {item.stage}</span>
-                )}
-              </div>
-              {badge && (
-                <div className={`flex items-center gap-1.5 font-medium text-sm ${badge.classes}`}>
-                  <span>{badge.icon}</span>
-                  <span>{badge.label}</span>
+      />
+
+      {displayedHistory.length === 0 ? (
+        <p className="m-0 text-small text-ink-secondary">No history available yet.</p>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+          {displayedHistory.map((item, idx) => {
+            const badge = getSeverityBadge(item.severity)
+            return (
+              <li key={idx} className={`flex items-center justify-between gap-3 ${insetClass}`}>
+                <div className="min-w-0">
+                  <strong className="block text-small text-ink">{item.date}</strong>
+                  {item.stage && (
+                    <span className="text-small text-ink-secondary">Stage: {item.stage}</span>
+                  )}
                 </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
+                {badge && (
+                  <span className={`flex shrink-0 items-center gap-1.5 text-small font-bold ${badge.classes}`}>
+                    <badge.Icon size={16} />
+                    <span>{badge.label}</span>
+                  </span>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </Card>
   )
 }

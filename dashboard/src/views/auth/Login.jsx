@@ -36,24 +36,24 @@ export default function Login() {
     return (
         <AuthLayout subtitle="Field monitoring & disease detection">
                 {registered && (
-                    <div className="mb-4 px-3 py-2 bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)] rounded-sm text-[15px]">
+                    <div className="mb-4 px-3 py-2 bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)] rounded-control text-small">
                         Account created successfully. You can now log in.
                     </div>
                 )}
 
                 {error && (
-                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-sm text-[15px]">
+                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
-                        <label htmlFor="phone" className="text-[15px] font-medium text-[var(--color-text-primary)]">
+                        <label htmlFor="phone" className="text-small font-normal text-[var(--color-text-primary)]">
                             Phone number
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-3 flex items-center text-base text-[var(--color-text-secondary)]" aria-hidden="true">
+                            <span className="absolute inset-y-0 left-3 flex items-center text-body text-[var(--color-text-secondary)]" aria-hidden="true">
                                 +254
                             </span>
                             <input
@@ -65,13 +65,13 @@ export default function Login() {
                                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
                                 placeholder="712345678"
                                 required
-                                className="min-h-12 border border-[var(--color-border)] px-3 py-2 pl-16 rounded-sm text-base w-full focus:outline-none focus:border-[var(--color-brand)]"
+                                className="min-h-12 border-[1.5px] border-control px-3 py-2 pl-16 rounded-control text-body w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             />
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <label htmlFor="password" className="text-[15px] font-medium text-[var(--color-text-primary)]">
+                        <label htmlFor="password" className="text-small font-normal text-[var(--color-text-primary)]">
                             Password
                         </label>
                         <div className="relative">
@@ -81,14 +81,14 @@ export default function Login() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="min-h-12 border border-[var(--color-border)] px-3 py-2 pr-16 rounded-sm text-base w-full focus:outline-none focus:border-[var(--color-brand)]"
+                                className="min-h-12 border-[1.5px] border-control px-3 py-2 pr-16 rounded-control text-body w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((visible) => !visible)}
                                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 aria-pressed={showPassword}
-                                className="absolute inset-y-0 right-3 min-h-12 min-w-12 text-[15px] font-medium text-[var(--color-brand)]"
+                                className="absolute inset-y-0 right-3 min-h-12 min-w-12 text-small font-normal text-[var(--color-brand)]"
                             >
                                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                             </button>
@@ -98,22 +98,22 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={loginMutation.isPending}
-                        className="min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-semibold py-2 px-4 rounded-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold py-2 px-4 rounded-control transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
                     </button>
                 </form>
 
-                <p className="mt-5 text-center text-[15px] text-[var(--color-text-secondary)]">
+                <p className="mt-5 text-center text-small text-[var(--color-text-secondary)]">
                     Don&apos;t have an account?{' '}
-                    <Link to="/register" className="inline-flex min-h-12 items-center text-[var(--color-brand)] font-medium underline">
+                    <Link to="/register" className="inline-flex min-h-12 items-center text-[var(--color-brand)] font-normal underline">
                         Register
                     </Link>
                 </p>
 
                 {/* Dev hint */}
                 {import.meta.env.VITE_USE_MOCK_API === 'true' && (
-                    <div className="mt-4 p-3 bg-[var(--color-neutral-bg)] rounded-sm text-[15px] text-[var(--color-text-secondary)]">
+                    <div className="mt-4 p-3 bg-[var(--color-neutral-bg)] rounded-control text-small text-[var(--color-text-secondary)]">
                         <strong>Mock mode:</strong><br />
                         Farmer: 712000001 / farmer123<br />
                         Admin: 712000002 / admin123
