@@ -1,16 +1,17 @@
 import copy
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
 
-import sys
-sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent.parent))
+REPO = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(REPO))
 
 from app.services.alert_rules import plan_alerts, stress_levels
 from fusion.sensor_window import aggregate_sensor
 
-CFG = yaml.safe_load((Path(__file__).resolve().parent.parent.parent / "models/fusion/fusion_rules.yaml").read_text(encoding="utf-8"))
+CFG = yaml.safe_load((REPO / "models/fusion/fusion_rules.yaml").read_text(encoding="utf-8"))
 CFG = copy.deepcopy(CFG)
 CFG["sensor"]["min_coverage"] = 0.0
 T0 = datetime(2026, 10, 28, 0, 0, tzinfo=timezone.utc)
@@ -62,3 +63,11 @@ def test_unavailable_changes_nothing():
     res = {"status": "unavailable", "primary": None, "secondary": [], "hours": {}}
     assert plan_alerts(res, {"heat_stress"}, {}, T0) == ([], [])
     assert stress_levels(res) == {}
+
+
+def test_sms_text_is_short_and_names_the_plot():
+    from app.services.alert_rules import sms_text
+    for stress in ("heat_stress", "drought_stress", "waterlogging_risk"):
+        text = sms_text(stress, "Maize Plot 3 with a very long plot name")
+        assert text.startswith("MaizeStress: ") and "Maize Plot 3 with a" in text and "very long" not in text
+        assert len(text) <= 160

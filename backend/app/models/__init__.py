@@ -128,7 +128,7 @@ class Alert(Base):
     source: Mapped[str] = mapped_column(Text, nullable=False, default="prediction", server_default="prediction")
     stress_class: Mapped[str | None] = mapped_column(Text, nullable=True)
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     
     prediction = relationship("Prediction", back_populates="alerts")

@@ -1,71 +1,57 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from app.services.sms import send_sms
+"""send_sms: True only when the first recipient reports Success (101); never raises."""
+import io
+import json
+import urllib.error
+from unittest.mock import patch
+
+from app.services import sms
+
+
+class _Response(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _reply(payload):
+    return _Response(json.dumps(payload).encode("utf-8"))
+
+
+def _recipients(status, code):
+    return {"SMSMessageData": {"Recipients": [{"status": status, "statusCode": code}]}}
+
 
 def test_send_sms_success():
-    mock_response = {
-        "SMSMessageData": {
-            "Message": "Sent to 1/1 Total Cost: KES 0.8000",
-            "Recipients": [
-                {
-                    "statusCode": 101,
-                    "number": "+254712345678",
-                    "cost": "KES 0.8000",
-                    "status": "Success",
-                    "messageId": "ATXid_12345"
-                }
-            ]
-        }
-    }
-    with patch("app.services.sms.sms.send", return_value=mock_response) as mock_send:
-        result = send_sms("+254712345678", "Test message")
-        assert result is True
-        mock_send.assert_called_once_with("Test message", ["+254712345678"])
+    with patch("urllib.request.urlopen", return_value=_reply(_recipients("Success", 101))) as urlopen:
+        assert sms.send_sms("+254700000000", "hello") is True
+    request = urlopen.call_args[0][0]
+    assert request.full_url.endswith("/version1/messaging")
+    assert b"to=%2B254700000000" in request.data and b"message=hello" in request.data
+    assert urlopen.call_args[1]["context"].maximum_version.name == "TLSv1_2"
+
 
 def test_send_sms_invalid_phone_number():
-    mock_response = {
-        "SMSMessageData": {
-            "Message": "Sent to 0/1 Total Cost: KES 0",
-            "Recipients": [
-                {
-                    "statusCode": 403,
-                    "number": "+254712345678",
-                    "cost": "0",
-                    "status": "InvalidPhoneNumber",
-                    "messageId": "None"
-                }
-            ]
-        }
-    }
-    with patch("app.services.sms.sms.send", return_value=mock_response):
-        result = send_sms("+254712345678", "Test message")
-        assert result is False
+    with patch("urllib.request.urlopen", return_value=_reply(_recipients("InvalidPhoneNumber", 403))):
+        assert sms.send_sms("123", "hello") is False
+
 
 def test_send_sms_empty_recipients():
-    mock_response = {
-        "SMSMessageData": {
-            "Message": "No recipients",
-            "Recipients": []
-        }
-    }
-    with patch("app.services.sms.sms.send", return_value=mock_response):
-        result = send_sms("+254712345678", "Test message")
-        assert result is False
+    with patch("urllib.request.urlopen", return_value=_reply({"SMSMessageData": {"Recipients": []}})):
+        assert sms.send_sms("+254700000000", "hello") is False
+
 
 def test_send_sms_missing_keys_or_malformed():
-    with patch("app.services.sms.sms.send", return_value={}):
-        assert send_sms("+254712345678", "Test message") is False
+    for payload in ({}, {"SMSMessageData": {}}, {"SMSMessageData": {"Recipients": "oops"}},
+                    {"SMSMessageData": {"Recipients": ["oops"]}}, ["not", "a", "dict"]):
+        with patch("urllib.request.urlopen", return_value=_reply(payload)):
+            assert sms.send_sms("+254700000000", "hello") is False
 
-    with patch("app.services.sms.sms.send", return_value="string response"):
-        assert send_sms("+254712345678", "Test message") is False
-
-    with patch("app.services.sms.sms.send", return_value={"SMSMessageData": {}}):
-        assert send_sms("+254712345678", "Test message") is False
-
-    with patch("app.services.sms.sms.send", return_value={"SMSMessageData": {"Recipients": [{}]}}):
-        assert send_sms("+254712345678", "Test message") is False
 
 def test_send_sms_exception_never_raises():
-    with patch("app.services.sms.sms.send", side_effect=Exception("Connection refused")):
-        result = send_sms("+254712345678", "Test message")
-        assert result is False
+    with patch("urllib.request.urlopen", side_effect=RuntimeError("network down")):
+        assert sms.send_sms("+254700000000", "hello") is False
+    with patch("urllib.request.urlopen",
+               side_effect=urllib.error.HTTPError("u", 401, "Unauthorized", {}, None)):
+        assert sms.send_sms("+254700000000", "hello") is False
