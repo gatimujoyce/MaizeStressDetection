@@ -1,8 +1,9 @@
-import { ErrorIcon, InfoIcon, WarningIcon } from '../Icons'
+import { CheckIcon, ErrorIcon, InfoIcon, WarningIcon } from '../Icons'
 import { buttonClass } from './styles'
 
 const TONES = {
   neutral: { className: 'bg-neutral-bg text-neutral-text', Icon: InfoIcon, role: 'status' },
+  positive: { className: 'bg-positive-bg text-positive-text', Icon: CheckIcon, role: 'status' },
   warning: { className: 'bg-warning-bg text-warning-text', Icon: WarningIcon, role: 'status' },
   critical: { className: 'bg-critical-bg text-critical-text', Icon: ErrorIcon, role: 'alert' },
 }
