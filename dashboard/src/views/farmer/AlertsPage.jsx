@@ -91,6 +91,9 @@ export default function AlertsPage() {
                         {formatWhen(alert.created_at)}
                         {alert.resolved_at ? ` · cleared ${formatWhen(alert.resolved_at)}` : ''}
                     </p>
+                    {!sensor && alert.message && (
+                        <p className="m-0 mt-1 text-small text-ink">{alert.message}</p>
+                    )}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     {alert.prediction_id && (
