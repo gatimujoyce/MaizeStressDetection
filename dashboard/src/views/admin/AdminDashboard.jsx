@@ -1,6 +1,15 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAdminFarms, useAdminFeedback, useAdminModelVersions, useAdminRetrainingJobs, useAdminSmsLog, useAdminUsers, useCreateAdminUserMutation, useRequestAdminRetrainMutation, useSetAdminModelVersionActiveMutation } from '../../api/hooks'
+import Badge from '../../components/ui/Badge'
+import Card, { SectionHeader } from '../../components/ui/Card'
+import DataTable from '../../components/ui/DataTable'
+import Notice from '../../components/ui/Notice'
+import PageHeader from '../../components/ui/PageHeader'
+import Skeleton from '../../components/ui/Skeleton'
+import StatTile from '../../components/ui/StatTile'
+import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
+import { buttonClass, focusRing, insetClass, linkClass } from '../../components/ui/styles'
 import AdminShell from './AdminShell'
 
 const SECTIONS = {
@@ -34,6 +43,24 @@ const SECTIONS = {
   },
 }
 
+const adminFieldClass = `mt-1 block min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-normal text-ink ${focusRing}`
+
+function CountBadge({ children, tone = 'neutral' }) {
+  return <Badge tone={tone} size="sm" icon={false}>{children}</Badge>
+}
+
+function LoadingRows() {
+  return (
+    <div className="flex flex-col gap-2">
+      <Skeleton label="Loading" className="h-11" />
+      <Skeleton className="h-11" />
+      <Skeleton className="h-11" />
+    </div>
+  )
+}
+
+const timeValue = (value) => (value ? Date.parse(value) || null : null)
+
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams()
   const requestedSection = searchParams.get('view')
@@ -42,15 +69,9 @@ export default function AdminDashboard() {
 
   return (
     <AdminShell activeSection={activeSection}>
-      <header className="relative mb-7 overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-emerald-800 px-6 py-7 text-white shadow-xl shadow-brand/15 sm:px-8 sm:py-9">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-24 h-72 w-72 rounded-full border-[36px] border-white/10" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 right-28 h-56 w-56 rounded-full bg-lime-300/10 blur-2xl" />
-        <div className="relative">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-white/70">Admin workspace</p>
-          <h1 className="m-0 text-3xl font-extrabold sm:text-4xl">{section.title}</h1>
-          <p className="mt-2 max-w-2xl text-base text-white/80">{section.description}</p>
-        </div>
-      </header>
+      <div className="mb-6">
+        <PageHeader title={section.title} subtitle={section.description} />
+      </div>
 
       {activeSection === 'overview'
         ? <AdminOverview />
@@ -75,67 +96,81 @@ function AdminOverview() {
   const farms = useAdminFarms()
   const users = useAdminUsers()
   const smsLog = useAdminSmsLog()
+  const userRows = users.data ?? []
+  const smsRows = smsLog.data ?? []
+  const smsCount = (status) => smsRows.filter((entry) => entry.status?.toLowerCase() === status).length
+  const farmerCount = userRows.filter((user) => user.role === 'farmer').length
+  const adminCount = userRows.filter((user) => user.role === 'admin').length
 
   return (
     <div className="flex flex-col gap-6">
       {(farms.isError || users.isError || smsLog.isError) && (
-        <div role="alert" className="rounded-xl border border-critical-text/30 bg-critical-bg p-4 text-sm text-critical-text">
-          Some overview data could not be loaded. Check your connection or access, then refresh.
-        </div>
+        <Notice tone="critical">
+          <p>Some overview data could not be loaded. Check your connection or access, then refresh.</p>
+        </Notice>
       )}
 
       <section aria-label="Admin overview counts" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <OverviewCard label="Registered farms" query={farms} />
-        <OverviewCard label="User accounts" query={users} />
-        <OverviewCard label="SMS alert records" query={smsLog} />
+        <StatTile label="Registered farms" value={farms.data?.length ?? 0} isLoading={farms.isLoading} isError={farms.isError} />
+        <StatTile
+          label="User accounts"
+          value={userRows.length}
+          isLoading={users.isLoading}
+          isError={users.isError}
+          detail={`${farmerCount} ${farmerCount === 1 ? 'farmer' : 'farmers'} · ${adminCount} ${adminCount === 1 ? 'admin' : 'admins'}`}
+        />
+        <StatTile
+          label="SMS alert records"
+          value={smsRows.length}
+          isLoading={smsLog.isLoading}
+          isError={smsLog.isError}
+          detail={`${smsCount('sent')} sent · ${smsCount('failed')} failed · ${smsCount('pending')} pending`}
+        />
       </section>
 
-      <section aria-labelledby="recent-farms-title" className="rounded-2xl border border-border bg-surface p-4 sm:p-6">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="recent-farms-title" className="m-0 text-xl font-bold text-ink">Registered farms</h2>
-          <span className="text-sm text-ink-secondary">{farms.data?.length ?? 0} total</span>
-        </div>
-
+      <Card aria-labelledby="recent-farms-title">
+        <SectionHeader
+          id="recent-farms-title"
+          title="Registered farms"
+          aside={<span className="text-small text-ink-secondary">{farms.data?.length ?? 0} total</span>}
+        />
         {farms.isLoading ? (
-          <p className="m-0 text-sm text-ink-secondary">Loading farms…</p>
+          <LoadingRows />
         ) : farms.data?.length ? (
-          <ul className="m-0 divide-y divide-border p-0">
-            {farms.data.slice(0, 5).map((farm) => (
-              <li key={farm.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 first:pt-0 last:pb-0">
-                <span className="font-semibold text-ink">{farm.name}</span>
-                <span className="text-sm text-ink-secondary">
-                  {[farm.location, farm.soil_type?.replaceAll('_', ' ')].filter(Boolean).join(' · ')}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="m-0 list-none divide-y divide-border p-0">
+              {farms.data.slice(0, 5).map((farm) => (
+                <li key={farm.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 first:pt-0">
+                  <span className="text-small font-bold text-ink">{farm.name}</span>
+                  <span className="text-small text-ink-secondary">
+                    {[farm.location, farm.soil_type?.replaceAll('_', ' ')].filter(Boolean).join(' · ')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {farms.data.length > 5 && (
+              <Link to="/admin?view=farms" className={`mt-2 inline-flex min-h-11 items-center text-small ${linkClass}`}>
+                All {farms.data.length} farms →
+              </Link>
+            )}
+          </>
         ) : (
-          <p className="m-0 text-sm text-ink-secondary">
+          <p className="m-0 text-small text-ink-secondary">
             {farms.isError ? 'Farm records are unavailable.' : 'No farms have been registered yet.'}
           </p>
         )}
-      </section>
+      </Card>
     </div>
-  )
-}
-
-function OverviewCard({ label, query }) {
-  const value = query.isLoading ? '…' : query.isError ? 'Unavailable' : (query.data?.length ?? 0)
-  return (
-    <article className="rounded-2xl border border-border bg-surface p-5">
-      <p className="m-0 text-sm font-semibold text-ink-secondary">{label}</p>
-      <p className="mb-0 mt-2 text-3xl font-bold tabular-nums text-ink">{value}</p>
-    </article>
   )
 }
 
 function ComingSoonPanel({ title }) {
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
-      <p className="m-0 text-base text-ink-secondary">
+    <Card>
+      <p className="m-0 text-small text-ink-secondary">
         The {title.toLowerCase()} panel will be connected in its implementation task.
       </p>
-    </section>
+    </Card>
   )
 }
 
@@ -158,28 +193,41 @@ function UsersPanel() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,.8fr)]">
-      <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-          <div><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Directory</p><h2 className="mb-0 mt-1 text-xl font-extrabold">People with access</h2></div>
-          <span className="rounded-full bg-brand-tint px-3 py-1 text-sm font-bold text-brand">{users.data?.length ?? 0} accounts</span>
-        </div>
-        <label className="mb-4 block"><span className="sr-only">Search users</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, phone, or role" className="w-full rounded-xl border border-border bg-app-bg px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-        {users.isError && <p role="alert" className="rounded-xl bg-critical-bg p-3 text-sm text-critical-text">Could not load users. Check your admin access and connection.</p>}
-        {users.isLoading ? <p className="text-sm text-ink-secondary">Loading account directory…</p> : filteredUsers.length ? <ul className="m-0 divide-y divide-border p-0">{filteredUsers.map((user) => <li key={user.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-tint font-bold text-brand">{user.name.slice(0, 1).toUpperCase()}</span><span className="min-w-0 flex-1"><span className="block truncate font-bold">{user.name}</span><span className="block text-sm text-ink-secondary">{user.phone}</span></span><span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${user.role === 'admin' ? 'bg-brand-tint text-brand' : 'bg-neutral-bg text-ink-secondary'}`}>{user.role}</span></li>)}</ul> : <p className="rounded-xl bg-app-bg p-4 text-sm text-ink-secondary">{search ? 'No accounts match this search.' : 'No accounts found.'}</p>}
-      </section>
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,.8fr)]">
+      <Card aria-labelledby="users-title">
+        <SectionHeader id="users-title" title="People with access" aside={<CountBadge>{users.data?.length ?? 0} accounts</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search users" value={search} onChange={setSearch} placeholder="Search name, phone, or role" />
+        </Toolbar>
+        {users.isError && <Notice tone="critical" className="mb-4"><p>Could not load users. Check your admin access and connection.</p></Notice>}
+        {users.isLoading ? <LoadingRows /> : (
+          <DataTable
+            caption="User accounts"
+            rows={filteredUsers}
+            rowKey={(user) => user.id}
+            initialSort={{ key: 'name', dir: 'asc' }}
+            empty={search ? 'No accounts match this search.' : 'No accounts found.'}
+            columns={[
+              { key: 'name', label: 'Name', sortValue: (user) => user.name, render: (user) => <span className="font-bold text-ink">{user.name}</span> },
+              { key: 'phone', label: 'Phone', sortValue: (user) => user.phone, render: (user) => <span className="tabular-nums text-ink-secondary">{user.phone}</span> },
+              { key: 'role', label: 'Role', sortValue: (user) => user.role, render: (user) => <CountBadge tone={user.role === 'admin' ? 'healthy' : 'neutral'}><span className="capitalize">{user.role}</span></CountBadge> },
+            ]}
+          />
+        )}
+      </Card>
 
-      <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-        <div className="mb-5"><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Access management</p><h2 className="mb-0 mt-1 text-xl font-extrabold">Add an administrator</h2><p className="mb-0 mt-2 text-sm leading-5 text-ink-secondary">Create a separate admin login for a trusted team member.</p></div>
-        {createdName && <p role="status" className="mb-4 rounded-xl bg-positive-bg p-3 text-sm font-semibold text-positive-text">Administrator account created for {createdName}.</p>}
-        {createAdmin.isError && <p role="alert" className="mb-4 rounded-xl bg-critical-bg p-3 text-sm text-critical-text">{createAdmin.error?.message || 'Could not create the administrator. Check whether the phone is already registered.'}</p>}
+      <Card aria-labelledby="add-admin-title">
+        <SectionHeader id="add-admin-title" title="Add an administrator" />
+        <p className="mb-4 mt-0 text-small text-ink-secondary">Create a separate admin login for a trusted team member.</p>
+        {createdName && <Notice tone="positive" className="mb-4"><p>Administrator account created for {createdName}.</p></Notice>}
+        {createAdmin.isError && <Notice tone="critical" className="mb-4"><p>{createAdmin.error?.message || 'Could not create the administrator. Check whether the phone is already registered.'}</p></Notice>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="text-sm font-semibold">Full name<input required autoComplete="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="mt-1 block w-full rounded-xl border border-border bg-app-bg px-3 py-3 font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-          <label className="text-sm font-semibold">Kenyan phone number<input required type="tel" autoComplete="tel" placeholder="07… or +254…" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className="mt-1 block w-full rounded-xl border border-border bg-app-bg px-3 py-3 font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-          <label className="text-sm font-semibold">Temporary password<input required minLength={8} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className="mt-1 block w-full rounded-xl border border-border bg-app-bg px-3 py-3 font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-          <button disabled={createAdmin.isPending} type="submit" className="mt-1 min-h-12 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white shadow-md shadow-brand/20 transition hover:bg-brand/90 disabled:cursor-wait disabled:opacity-60">{createAdmin.isPending ? 'Creating account…' : 'Create admin account'}</button>
+          <label className="text-small font-bold">Full name<input required autoComplete="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className={adminFieldClass} /></label>
+          <label className="text-small font-bold">Kenyan phone number<input required type="tel" autoComplete="tel" placeholder="07… or +254…" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className={adminFieldClass} /></label>
+          <label className="text-small font-bold">Temporary password<input required minLength={8} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className={adminFieldClass} /></label>
+          <button disabled={createAdmin.isPending} type="submit" className={`mt-1 ${buttonClass({ size: 'sm' })}`}>{createAdmin.isPending ? 'Creating account…' : 'Create admin account'}</button>
         </form>
-      </section>
+      </Card>
     </div>
   )
 }
@@ -194,33 +242,44 @@ function FarmsPanel() {
   })
 
   return (
-    <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Field directory</p><h2 className="mb-0 mt-1 text-xl font-extrabold">Registered farms</h2></div>
-        <span className="rounded-full bg-brand-tint px-3 py-1 text-sm font-bold text-brand">{farms.data?.length ?? 0} {includeDeleted ? 'records' : 'active farms'}</span>
-      </div>
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="min-w-0 flex-1"><span className="sr-only">Search farms</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search farm, location, crop, or soil" className="w-full rounded-xl border border-border bg-app-bg px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-        <label className="flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold text-ink-secondary"><input type="checkbox" checked={includeDeleted} onChange={(event) => setIncludeDeleted(event.target.checked)} className="h-4 w-4 accent-brand" />Include archived farms</label>
-      </div>
-      {farms.isError && <p role="alert" className="rounded-xl bg-critical-bg p-4 text-sm text-critical-text">Farm records could not be loaded. Check your admin access and connection.</p>}
-      {farms.isLoading ? <p className="py-8 text-center text-sm text-ink-secondary">Loading farm records…</p> : visibleFarms.length ? (
-        <div className="overflow-x-auto rounded-2xl border border-border">
-          <table className="w-full min-w-[780px] border-collapse text-left text-sm">
-            <thead className="bg-app-bg text-xs uppercase tracking-wide text-ink-secondary"><tr><th className="px-4 py-3 font-bold">Farm</th><th className="px-4 py-3 font-bold">Location</th><th className="px-4 py-3 font-bold">Land</th><th className="px-4 py-3 font-bold">Crop details</th><th className="px-4 py-3 font-bold">Water source</th><th className="px-4 py-3 font-bold">Status</th></tr></thead>
-            <tbody className="divide-y divide-border">{visibleFarms.map((farm) => <tr key={farm.id} className="hover:bg-app-bg/70">
-              <td className="px-4 py-4"><span className="block font-bold text-ink">{farm.name}</span><span className="mt-1 block text-xs text-ink-secondary">{farm.size_acres ? `${farm.size_acres} acres` : 'Size not set'}</span></td>
-              <td className="px-4 py-4 text-ink-secondary">{farm.location}</td>
-              <td className="px-4 py-4"><span className="capitalize text-ink">{farm.soil_type?.replaceAll('_', ' ') || 'Not recorded'}</span>{farm.planting_date && <span className="mt-1 block text-xs text-ink-secondary">Planted {farm.planting_date}</span>}</td>
-              <td className="px-4 py-4 text-ink-secondary">{farm.seed_variety || 'Not recorded'}</td>
-              <td className="px-4 py-4 text-ink-secondary">{farm.water_source || 'Not recorded'}</td>
-              <td className="px-4 py-4">{farm.deleted_at ? <span className="rounded-full bg-neutral-bg px-3 py-1 text-xs font-bold text-ink-secondary">Archived</span> : <span className="rounded-full bg-positive-bg px-3 py-1 text-xs font-bold text-positive-text">Active</span>}</td>
-            </tr>)}</tbody>
-          </table>
-        </div>
-      ) : <p className="rounded-xl bg-app-bg p-5 text-center text-sm text-ink-secondary">{search ? 'No farms match this search.' : 'No farm records found.'}</p>}
-      <p className="mb-0 mt-4 text-xs text-ink-secondary">Showing {visibleFarms.length} of {farms.data?.length ?? 0} returned records.</p>
-    </section>
+    <Card aria-labelledby="farms-title">
+      <SectionHeader id="farms-title" title="Registered farms" aside={<CountBadge>{farms.data?.length ?? 0} {includeDeleted ? 'records' : 'active farms'}</CountBadge>} />
+      <Toolbar>
+        <SearchField label="Search farms" value={search} onChange={setSearch} placeholder="Search farm, location, crop, or soil" />
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-bold text-ink">
+          <input type="checkbox" checked={includeDeleted} onChange={(event) => setIncludeDeleted(event.target.checked)} className="h-4 w-4 min-h-0 accent-brand" />
+          Include archived farms
+        </label>
+      </Toolbar>
+      {farms.isError && <Notice tone="critical" className="mb-4"><p>Farm records could not be loaded. Check your admin access and connection.</p></Notice>}
+      {farms.isLoading ? <LoadingRows /> : (
+        <DataTable
+          caption="Registered farms"
+          rows={visibleFarms}
+          rowKey={(farm) => farm.id}
+          initialSort={{ key: 'name', dir: 'asc' }}
+          empty={search ? 'No farms match this search.' : 'No farm records found.'}
+          columns={[
+            {
+              key: 'name', label: 'Farm', sortValue: (farm) => farm.name,
+              render: (farm) => <><span className="block font-bold text-ink">{farm.name}</span><span className="mt-0.5 block text-caption text-ink-secondary">{farm.size_acres ? `${farm.size_acres} acres` : 'Size not set'}</span></>,
+            },
+            { key: 'location', label: 'Location', sortValue: (farm) => farm.location, render: (farm) => <span className="text-ink-secondary">{farm.location}</span> },
+            {
+              key: 'land', label: 'Land', sortValue: (farm) => farm.soil_type,
+              render: (farm) => <><span className="capitalize text-ink">{farm.soil_type?.replaceAll('_', ' ') || 'Not recorded'}</span>{farm.planting_date && <span className="mt-0.5 block text-caption text-ink-secondary">Planted {farm.planting_date}</span>}</>,
+            },
+            { key: 'crop', label: 'Crop details', sortValue: (farm) => farm.seed_variety, render: (farm) => <span className="text-ink-secondary">{farm.seed_variety || 'Not recorded'}</span> },
+            { key: 'water', label: 'Water source', sortValue: (farm) => farm.water_source, render: (farm) => <span className="text-ink-secondary">{farm.water_source || 'Not recorded'}</span> },
+            {
+              key: 'status', label: 'Status', sortValue: (farm) => (farm.deleted_at ? 'Archived' : 'Active'),
+              render: (farm) => (farm.deleted_at ? <CountBadge>Archived</CountBadge> : <CountBadge tone="healthy">Active</CountBadge>),
+            },
+          ]}
+        />
+      )}
+      <p className="mb-0 mt-3 text-caption text-ink-secondary">Showing {visibleFarms.length} of {farms.data?.length ?? 0} returned records.</p>
+    </Card>
   )
 }
 
@@ -237,32 +296,40 @@ function FeedbackPanel() {
   })
 
   return (
-    <div className="flex flex-col gap-5">
-      <section aria-label="Feedback summary" className="grid gap-4 sm:grid-cols-3">
-        <OverviewCard label="Responses received" query={{ isLoading: feedback.isLoading, isError: feedback.isError, data: rows }} />
-        <OverviewCard label="Marked inaccurate" query={{ isLoading: feedback.isLoading, isError: feedback.isError, data: rows.filter((item) => !item.accurate) }} />
-        <OverviewCard label="Marked useful" query={{ isLoading: feedback.isLoading, isError: feedback.isError, data: rows.filter((item) => item.useful === true) }} />
+    <div className="flex flex-col gap-6">
+      <section aria-label="Feedback summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Responses received" value={rows.length} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Marked inaccurate" value={inaccurateCount} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Marked useful" value={rows.filter((item) => item.useful === true).length} isLoading={feedback.isLoading} isError={feedback.isError} />
       </section>
-      <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-          <div><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Farmer voice</p><h2 className="mb-0 mt-1 text-xl font-extrabold">Prediction feedback</h2></div>
-          <span className="rounded-full bg-brand-tint px-3 py-1 text-sm font-bold text-brand">{inaccurateCount} flagged inaccurate</span>
-        </div>
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row">
-          <label className="min-w-0 flex-1"><span className="sr-only">Search feedback</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search comments, labels, or prediction ID" className="w-full rounded-xl border border-border bg-app-bg px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-          <label className="sr-only" htmlFor="feedback-filter">Filter feedback</label><select id="feedback-filter" value={filter} onChange={(event) => setFilter(event.target.value)} className="min-h-11 rounded-xl border border-border bg-surface px-3 text-sm font-semibold outline-none focus:border-brand"><option value="all">All feedback</option><option value="inaccurate">Marked inaccurate</option><option value="useful">Marked useful</option></select>
-        </div>
-        {feedback.isError && <p role="alert" className="rounded-xl bg-critical-bg p-4 text-sm text-critical-text">Feedback could not be loaded. Check your admin access and connection.</p>}
-        {feedback.isLoading ? <p className="py-8 text-center text-sm text-ink-secondary">Loading feedback…</p> : filtered.length ? <ul className="m-0 flex flex-col gap-3 p-0">{filtered.map((item) => <li key={item.id} className="rounded-2xl border border-border bg-app-bg/70 p-4 sm:p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-bold ${item.accurate ? 'bg-positive-bg text-positive-text' : 'bg-critical-bg text-critical-text'}`}>{item.accurate ? 'Prediction accurate' : 'Marked inaccurate'}</span>{item.useful != null && <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink-secondary">{item.useful ? 'Useful' : 'Not useful'}</span>}</div>
-            <time className="text-xs text-ink-secondary" dateTime={item.created_at}>{new Date(item.created_at).toLocaleString()}</time>
-          </div>
-          {item.correct_label && <p className="mb-0 mt-3 text-sm"><span className="font-bold">Suggested label:</span> {item.correct_label}</p>}
-          {item.comment && <blockquote className="mb-0 mt-3 border-l-2 border-brand/40 pl-3 text-sm leading-6 text-ink-secondary">{item.comment}</blockquote>}
-          <p className="mb-0 mt-3 truncate text-xs text-ink-secondary">Prediction ID: {item.prediction_id}</p>
-        </li>)}</ul> : <p className="rounded-xl bg-app-bg p-5 text-center text-sm text-ink-secondary">{search || filter !== 'all' ? 'No feedback matches those filters.' : 'No farmer feedback has been submitted yet.'}</p>}
-      </section>
+      <Card aria-labelledby="feedback-title">
+        <SectionHeader id="feedback-title" title="Prediction feedback" aside={<CountBadge tone={inaccurateCount ? 'warning' : 'neutral'}>{inaccurateCount} flagged inaccurate</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search feedback" value={search} onChange={setSearch} placeholder="Search comments, labels, or prediction ID" />
+          <FilterSelect id="feedback-filter" label="Filter feedback" value={filter} onChange={setFilter} options={[['all', 'All feedback'], ['inaccurate', 'Marked inaccurate'], ['useful', 'Marked useful']]} />
+        </Toolbar>
+        {feedback.isError && <Notice tone="critical" className="mb-4"><p>Feedback could not be loaded. Check your admin access and connection.</p></Notice>}
+        {feedback.isLoading ? <LoadingRows /> : filtered.length ? (
+          <ul className="m-0 flex list-none flex-col divide-y divide-border p-0">
+            {filtered.map((item) => (
+              <li key={item.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <CountBadge tone={item.accurate ? 'healthy' : 'critical'}>{item.accurate ? 'Prediction accurate' : 'Marked inaccurate'}</CountBadge>
+                    {item.useful != null && <CountBadge>{item.useful ? 'Useful' : 'Not useful'}</CountBadge>}
+                  </div>
+                  <time className="text-caption text-ink-secondary" dateTime={item.created_at}>{new Date(item.created_at).toLocaleString()}</time>
+                </div>
+                {item.correct_label && <p className="mb-0 mt-2 text-small"><span className="font-bold">Suggested label:</span> {item.correct_label}</p>}
+                {item.comment && <blockquote className="mx-0 mb-0 mt-2 border-l-2 border-control pl-3 text-small text-ink-secondary">{item.comment}</blockquote>}
+                <p className="mb-0 mt-2 truncate text-caption text-ink-secondary">Prediction ID: {item.prediction_id}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="m-0 rounded-control bg-app-bg p-5 text-center text-small text-ink-secondary">{search || filter !== 'all' ? 'No feedback matches those filters.' : 'No farmer feedback has been submitted yet.'}</p>
+        )}
+      </Card>
     </div>
   )
 }
@@ -278,30 +345,56 @@ function ModelsPanel() {
   const formatMetric = (value) => typeof value === 'number' ? (value <= 1 ? `${(value * 100).toFixed(1)}%` : value.toFixed(2)) : String(value)
 
   return (
-    <div className="flex flex-col gap-5">
-      <section aria-label="Model version summary" className="grid gap-4 sm:grid-cols-3">
-        <OverviewCard label="Model families" query={{ isLoading: versions.isLoading, isError: versions.isError, data: modelNames }} />
-        <OverviewCard label="Registered versions" query={{ isLoading: versions.isLoading, isError: versions.isError, data: records }} />
-        <OverviewCard label="Active deployments" query={{ isLoading: versions.isLoading, isError: versions.isError, data: records.filter((item) => item.is_active) }} />
+    <div className="flex flex-col gap-6">
+      <section aria-label="Model version summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Model families" value={modelNames.length} isLoading={versions.isLoading} isError={versions.isError} />
+        <StatTile label="Registered versions" value={records.length} isLoading={versions.isLoading} isError={versions.isError} />
+        <StatTile label="Active deployments" value={activeTotal} isLoading={versions.isLoading} isError={versions.isError} />
       </section>
-      <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-          <div><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Deployment registry</p><h2 className="mb-0 mt-1 text-xl font-extrabold">Model versions</h2></div>
-          <span className="rounded-full bg-positive-bg px-3 py-1 text-sm font-bold text-positive-text">{activeTotal} active</span>
-        </div>
-        <label className="mb-5 block"><span className="sr-only">Search model versions</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search model, version, or metric" className="w-full rounded-xl border border-border bg-app-bg px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-        {versions.isError && <p role="alert" className="rounded-xl bg-critical-bg p-4 text-sm text-critical-text">Model versions could not be loaded. Check your admin access and connection.</p>}
-        {setActive.isError && <p role="alert" className="mb-4 rounded-xl bg-critical-bg p-4 text-sm text-critical-text">{setActive.error?.message || 'The deployment status could not be updated.'}</p>}
-        {versions.isLoading ? <p className="py-8 text-center text-sm text-ink-secondary">Loading model versions…</p> : filtered.length ? <div className="grid gap-4 lg:grid-cols-2">{filtered.map((item) => <article key={item.id} className={`rounded-2xl border p-5 ${item.is_active ? 'border-brand/40 bg-brand-tint/30' : 'border-border bg-app-bg/60'}`}>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><p className="m-0 text-xs font-bold uppercase tracking-widest text-ink-secondary">{item.model_name} model</p><h3 className="mb-0 mt-1 text-xl font-extrabold">{item.version}</h3></div>
-            <span className={`rounded-full px-3 py-1 text-xs font-bold ${item.is_active ? 'bg-positive-bg text-positive-text' : 'bg-surface text-ink-secondary'}`}>{item.is_active ? 'Active' : 'Standby'}</span>
+      <Card aria-labelledby="models-title">
+        <SectionHeader id="models-title" title="Model versions" aside={<CountBadge tone="healthy">{activeTotal} active</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search model versions" value={search} onChange={setSearch} placeholder="Search model, version, or metric" />
+        </Toolbar>
+        {versions.isError && <Notice tone="critical" className="mb-4"><p>Model versions could not be loaded. Check your admin access and connection.</p></Notice>}
+        {setActive.isError && <Notice tone="critical" className="mb-4"><p>{setActive.error?.message || 'The deployment status could not be updated.'}</p></Notice>}
+        {versions.isLoading ? <LoadingRows /> : filtered.length ? (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {filtered.map((item) => (
+              <article key={item.id} className={`flex flex-col rounded-card border p-4 sm:p-5 ${item.is_active ? 'border-2 border-brand' : 'border-border'}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="m-0 text-caption font-bold text-ink-secondary">{item.model_name} model</p>
+                    <h3 className="mb-0 mt-0.5 text-title">{item.version}</h3>
+                  </div>
+                  {item.is_active ? <CountBadge tone="healthy">Active</CountBadge> : <CountBadge>Standby</CountBadge>}
+                </div>
+                {Object.entries(item.metrics ?? {}).length ? (
+                  <dl className="my-4 grid grid-cols-2 gap-2">
+                    {Object.entries(item.metrics).map(([key, value]) => (
+                      <div key={key} className={insetClass}>
+                        <dt className="truncate text-caption capitalize text-ink-secondary">{key.replaceAll('_', ' ')}</dt>
+                        <dd className="mb-0 mt-0.5 truncate text-small font-bold tabular-nums text-ink">{formatMetric(value)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : <p className="my-4 text-small text-ink-secondary">No evaluation metrics recorded.</p>}
+                <button
+                  type="button"
+                  disabled={item.is_active || setActive.isPending}
+                  onClick={() => setActive.mutate({ versionId: item.id, isActive: true })}
+                  className={`mt-auto ${buttonClass({ variant: 'secondary', size: 'sm', block: true })}`}
+                >
+                  {item.is_active ? 'Currently deployed' : setActive.isPending ? 'Updating deployment…' : 'Set as active version'}
+                </button>
+              </article>
+            ))}
           </div>
-          {Object.entries(item.metrics ?? {}).length ? <dl className="my-5 grid grid-cols-2 gap-2">{Object.entries(item.metrics).map(([key, value]) => <div key={key} className="rounded-xl bg-surface/80 p-3"><dt className="truncate text-xs capitalize text-ink-secondary">{key.replaceAll('_', ' ')}</dt><dd className="mb-0 mt-1 truncate text-sm font-bold text-ink">{formatMetric(value)}</dd></div>)}</dl> : <p className="my-5 text-sm text-ink-secondary">No evaluation metrics recorded.</p>}
-          <button type="button" disabled={item.is_active || setActive.isPending} onClick={() => setActive.mutate({ versionId: item.id, isActive: true })} className="min-h-10 w-full rounded-xl border border-brand px-4 py-2 text-sm font-bold text-brand transition hover:bg-brand hover:text-white disabled:cursor-not-allowed disabled:border-border disabled:bg-surface disabled:text-ink-secondary">{item.is_active ? 'Currently deployed' : setActive.isPending ? 'Updating deployment…' : 'Set as active version'}</button>
-        </article>)}</div> : <p className="rounded-xl bg-app-bg p-5 text-center text-sm text-ink-secondary">{search ? 'No model versions match this search.' : 'No model versions have been registered yet.'}</p>}
-        {modelNames.length > 1 && <p className="mb-0 mt-4 text-xs text-ink-secondary">Activating a version replaces the active version for that model family.</p>}
-      </section>
+        ) : (
+          <p className="m-0 rounded-control bg-app-bg p-5 text-center text-small text-ink-secondary">{search ? 'No model versions match this search.' : 'No model versions have been registered yet.'}</p>
+        )}
+        {modelNames.length > 1 && <p className="mb-0 mt-3 text-caption text-ink-secondary">Activating a version replaces the active version for that model family.</p>}
+      </Card>
     </div>
   )
 }
@@ -324,43 +417,69 @@ function RetrainingPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <section aria-label="Retraining summary" className="grid gap-4 sm:grid-cols-3">
-        <OverviewCard label="Recorded runs" query={{ isLoading: jobs.isLoading, isError: jobs.isError, data: sortedJobs }} />
-        <OverviewCard label="Passed quality gate" query={{ isLoading: jobs.isLoading, isError: jobs.isError, data: sortedJobs.filter((job) => job.passed_gate) }} />
-        <OverviewCard label="Deployed outcomes" query={{ isLoading: jobs.isLoading, isError: jobs.isError, data: sortedJobs.filter((job) => job.deployed) }} />
+    <div className="flex flex-col gap-6">
+      <section aria-label="Retraining summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Recorded runs" value={sortedJobs.length} isLoading={jobs.isLoading} isError={jobs.isError} />
+        <StatTile label="Passed quality gate" value={passed} isLoading={jobs.isLoading} isError={jobs.isError} />
+        <StatTile label="Deployed outcomes" value={deployed} isLoading={jobs.isLoading} isError={jobs.isError} />
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(300px,.75fr)_minmax(0,1.4fr)]">
-        <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-          <p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Model operations</p><h2 className="mb-0 mt-1 text-xl font-extrabold">Request retraining</h2>
-          <p className="mb-5 mt-2 text-sm leading-5 text-ink-secondary">Choose a model family to submit a retraining request.</p>
-          {requestResult && <div role="status" className="mb-4 rounded-xl bg-positive-bg p-4 text-sm text-positive-text"><p className="m-0 font-bold">Request accepted</p><p className="mb-0 mt-1">{requestResult.model_name} · {requestResult.status} · Job ID {requestResult.job_id}</p></div>}
-          {requestRun.isError && <p role="alert" className="rounded-xl bg-critical-bg p-4 text-sm text-critical-text">{requestRun.error?.message || 'The retraining request could not be submitted.'}</p>}
+      <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(280px,.7fr)_minmax(0,1.6fr)]">
+        <Card aria-labelledby="request-title">
+          <SectionHeader id="request-title" title="Request retraining" />
+          <p className="mb-4 mt-0 text-small text-ink-secondary">Choose a model family to submit a retraining request.</p>
+          {requestResult && (
+            <Notice tone="positive" title="Request accepted" className="mb-4">
+              <p>{requestResult.model_name} · {requestResult.status} · Job ID {requestResult.job_id}</p>
+            </Notice>
+          )}
+          {requestRun.isError && <Notice tone="critical" className="mb-4"><p>{requestRun.error?.message || 'The retraining request could not be submitted.'}</p></Notice>}
           <form onSubmit={handleRequest} className="flex flex-col gap-4">
-            <label className="text-sm font-semibold">Model family<select value={modelName} onChange={(event) => setModelName(event.target.value)} className="mt-1 block min-h-12 w-full rounded-xl border border-border bg-app-bg px-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"><option value="triage">Triage</option><option value="disease">Disease</option><option value="nutrient">Nutrient</option><option value="sensor">Sensor</option></select></label>
-            <button type="submit" disabled={requestRun.isPending} className="min-h-12 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white shadow-md shadow-brand/20 transition hover:bg-brand/90 disabled:cursor-wait disabled:opacity-60">{requestRun.isPending ? 'Submitting request…' : 'Request retraining'}</button>
+            <label className="text-small font-bold">Model family
+              <select value={modelName} onChange={(event) => setModelName(event.target.value)} className={adminFieldClass}>
+                <option value="triage">Triage</option><option value="disease">Disease</option><option value="nutrient">Nutrient</option><option value="sensor">Sensor</option>
+              </select>
+            </label>
+            <button type="submit" disabled={requestRun.isPending} className={buttonClass({ size: 'sm' })}>{requestRun.isPending ? 'Submitting request…' : 'Request retraining'}</button>
           </form>
-          <p className="mb-0 mt-4 text-xs leading-5 text-ink-secondary">The server response confirms receipt of the request. Job history below shows records returned by the backend.</p>
-        </div>
+          <p className="mb-0 mt-4 text-caption text-ink-secondary">The server response confirms receipt of the request. Job history below shows records returned by the backend.</p>
+        </Card>
 
-        <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Run history</p><h2 className="mb-0 mt-1 text-xl font-extrabold">Quality and deployment</h2></div><span className="text-xs text-ink-secondary">{passed} passed · {deployed} deployed</span></div>
-          {jobs.isError && <p role="alert" className="rounded-xl bg-critical-bg p-4 text-sm text-critical-text">Retraining history could not be loaded. Check your admin access and connection.</p>}
-          {jobs.isLoading ? <p className="py-8 text-center text-sm text-ink-secondary">Loading run history…</p> : sortedJobs.length ? <ul className="m-0 flex flex-col gap-3 p-0">{sortedJobs.map((job) => <li key={job.id} className="rounded-2xl border border-border bg-app-bg/60 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="m-0 text-xs font-bold uppercase tracking-widest text-ink-secondary">{job.model_name}</p><p className="mb-0 mt-1 text-sm font-semibold">{new Date(job.created_at).toLocaleString()}</p></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${job.passed_gate ? 'bg-positive-bg text-positive-text' : 'bg-critical-bg text-critical-text'}`}>{job.passed_gate ? 'Quality gate passed' : 'Quality gate failed'}</span></div>
-            <div className="mt-3 flex flex-wrap gap-2"><span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink-secondary">{job.deployed ? 'Deployed' : 'Not deployed'}</span><span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink-secondary">Job {job.id.slice(0, 8)}</span></div>
-            <div className="mt-3 grid grid-cols-2 gap-3"><MetricSummary title="Previous metrics" metrics={job.old_metrics} /><MetricSummary title="New metrics" metrics={job.new_metrics} /></div>
-          </li>)}</ul> : <p className="rounded-xl bg-app-bg p-5 text-center text-sm text-ink-secondary">No retraining history has been recorded yet.</p>}
-        </section>
+        <Card aria-labelledby="history-title">
+          <SectionHeader id="history-title" title="Quality and deployment" aside={<span className="text-caption text-ink-secondary">{passed} passed · {deployed} deployed</span>} />
+          {jobs.isError && <Notice tone="critical" className="mb-4"><p>Retraining history could not be loaded. Check your admin access and connection.</p></Notice>}
+          {jobs.isLoading ? <LoadingRows /> : (
+            <DataTable
+              caption="Retraining run history"
+              rows={sortedJobs}
+              rowKey={(job) => job.id}
+              initialSort={{ key: 'created', dir: 'desc' }}
+              empty="No retraining history has been recorded yet."
+              columns={[
+                { key: 'model', label: 'Model', sortValue: (job) => job.model_name, render: (job) => <span className="font-bold capitalize text-ink">{job.model_name}</span> },
+                { key: 'created', label: 'Requested', sortValue: (job) => timeValue(job.created_at), render: (job) => <span className="text-ink-secondary">{new Date(job.created_at).toLocaleString()}</span> },
+                { key: 'gate', label: 'Quality gate', sortValue: (job) => (job.passed_gate ? 1 : 0), render: (job) => <CountBadge tone={job.passed_gate ? 'healthy' : 'critical'}>{job.passed_gate ? 'Quality gate passed' : 'Quality gate failed'}</CountBadge> },
+                { key: 'deployed', label: 'Deployed', sortValue: (job) => (job.deployed ? 1 : 0), render: (job) => <span className="text-ink-secondary">{job.deployed ? 'Deployed' : 'Not deployed'}</span> },
+                { key: 'old', label: 'Previous metrics', render: (job) => <MetricSummary metrics={job.old_metrics} /> },
+                { key: 'new', label: 'New metrics', render: (job) => <MetricSummary metrics={job.new_metrics} /> },
+                { key: 'job', label: 'Job', render: (job) => <span className="font-mono text-caption text-ink-secondary" title={job.id}>{job.id.slice(0, 8)}</span> },
+              ]}
+            />
+          )}
+        </Card>
       </section>
     </div>
   )
 }
 
-function MetricSummary({ title, metrics }) {
+function MetricSummary({ metrics }) {
   const entries = Object.entries(metrics ?? {})
-  return <div className="rounded-xl bg-surface p-3"><p className="m-0 text-xs font-bold text-ink-secondary">{title}</p>{entries.length ? <p className="mb-0 mt-1 truncate text-xs text-ink">{entries.slice(0, 3).map(([key, value]) => `${key}: ${typeof value === 'number' ? value.toFixed(2) : value}`).join(' · ')}</p> : <p className="mb-0 mt-1 text-xs text-ink-secondary">No metrics</p>}</div>
+  if (!entries.length) return <span className="text-caption text-ink-secondary">No metrics</span>
+  return (
+    <span className="block max-w-56 text-caption tabular-nums text-ink">
+      {entries.slice(0, 3).map(([key, value]) => `${key}: ${typeof value === 'number' ? value.toFixed(2) : value}`).join(' · ')}
+    </span>
+  )
 }
 
 function SmsPanel() {
@@ -375,31 +494,42 @@ function SmsPanel() {
     if (statusFilter !== 'all' && entry.status?.toLowerCase() !== statusFilter) return false
     return `${entry.severity} ${entry.status} ${entry.farm_id} ${entry.prediction_id} ${entry.id}`.toLowerCase().includes(search.toLowerCase())
   }).sort((a, b) => new Date(b.sent_at ?? 0) - new Date(a.sent_at ?? 0))
+  const statusTone = (status) => (status?.toLowerCase() === 'sent' ? 'healthy' : status?.toLowerCase() === 'failed' ? 'critical' : 'neutral')
+  const idCell = (value) => <span className="block max-w-40 truncate font-mono text-caption text-ink-secondary" title={value}>{value}</span>
 
   return (
-    <div className="flex flex-col gap-5">
-      <section aria-label="SMS delivery summary" className="grid gap-4 sm:grid-cols-3">
-        <OverviewCard label="Messages sent" query={{ isLoading: smsLog.isLoading, isError: smsLog.isError, data: entries.filter((entry) => entry.status?.toLowerCase() === 'sent') }} />
-        <OverviewCard label="Delivery failed" query={{ isLoading: smsLog.isLoading, isError: smsLog.isError, data: entries.filter((entry) => entry.status?.toLowerCase() === 'failed') }} />
-        <OverviewCard label="Awaiting delivery" query={{ isLoading: smsLog.isLoading, isError: smsLog.isError, data: entries.filter((entry) => entry.status?.toLowerCase() === 'pending') }} />
+    <div className="flex flex-col gap-6">
+      <section aria-label="SMS delivery summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Messages sent" value={sentCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Delivery failed" value={failedCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Awaiting delivery" value={pendingCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
       </section>
-      <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-7">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="m-0 text-xs font-bold uppercase tracking-widest text-brand">Communications</p><h2 className="mb-0 mt-1 text-xl font-extrabold">SMS delivery log</h2></div><span className="rounded-full bg-brand-tint px-3 py-1 text-sm font-bold text-brand">{entries.length} records</span></div>
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row">
-          <label className="min-w-0 flex-1"><span className="sr-only">Search SMS log</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search farm, prediction, severity, or ID" className="w-full rounded-xl border border-border bg-app-bg px-4 py-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-          <label className="sr-only" htmlFor="sms-status-filter">Filter SMS status</label><select id="sms-status-filter" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-h-11 rounded-xl border border-border bg-surface px-3 text-sm font-semibold outline-none focus:border-brand"><option value="all">All statuses</option><option value="sent">Sent</option><option value="failed">Failed</option><option value="pending">Pending</option></select>
-        </div>
-        {smsLog.isError && <p role="alert" className="rounded-xl bg-critical-bg p-4 text-sm text-critical-text">SMS records could not be loaded. Check your admin access and connection.</p>}
-        {smsLog.isLoading ? <p className="py-8 text-center text-sm text-ink-secondary">Loading SMS records…</p> : filtered.length ? <div className="overflow-x-auto rounded-2xl border border-border"><table className="w-full min-w-[760px] border-collapse text-left text-sm">
-          <thead className="bg-app-bg text-xs uppercase tracking-wide text-ink-secondary"><tr><th className="px-4 py-3 font-bold">Status</th><th className="px-4 py-3 font-bold">Severity</th><th className="px-4 py-3 font-bold">Farm</th><th className="px-4 py-3 font-bold">Prediction</th><th className="px-4 py-3 font-bold">Sent at</th><th className="px-4 py-3 font-bold">Alert ID</th></tr></thead>
-          <tbody className="divide-y divide-border">{filtered.map((entry) => <tr key={entry.id} className="hover:bg-app-bg/70">
-            <td className="px-4 py-4"><span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${entry.status?.toLowerCase() === 'sent' ? 'bg-positive-bg text-positive-text' : entry.status?.toLowerCase() === 'failed' ? 'bg-critical-bg text-critical-text' : 'bg-neutral-bg text-ink-secondary'}`}>{entry.status}</span></td>
-            <td className="px-4 py-4 font-semibold">{entry.severity}</td><td className="max-w-40 truncate px-4 py-4 font-mono text-xs text-ink-secondary" title={entry.farm_id}>{entry.farm_id}</td><td className="max-w-40 truncate px-4 py-4 font-mono text-xs text-ink-secondary" title={entry.prediction_id}>{entry.prediction_id}</td>
-            <td className="px-4 py-4 text-ink-secondary">{entry.sent_at ? new Date(entry.sent_at).toLocaleString() : '—'}</td><td className="max-w-40 truncate px-4 py-4 font-mono text-xs text-ink-secondary" title={entry.id}>{entry.id}</td>
-          </tr>)}</tbody>
-        </table></div> : <p className="rounded-xl bg-app-bg p-5 text-center text-sm text-ink-secondary">{search || statusFilter !== 'all' ? 'No SMS records match those filters.' : 'No SMS alerts have been recorded yet.'}</p>}
-        {pendingCount + failedCount + sentCount < entries.length && <p className="mb-0 mt-4 text-xs text-ink-secondary">Some records use statuses outside the sent, failed, or pending categories.</p>}
-      </section>
+      <Card aria-labelledby="sms-title">
+        <SectionHeader id="sms-title" title="SMS delivery log" aside={<CountBadge>{entries.length} records</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search SMS log" value={search} onChange={setSearch} placeholder="Search farm, prediction, severity, or ID" />
+          <FilterSelect id="sms-status-filter" label="Filter SMS status" value={statusFilter} onChange={setStatusFilter} options={[['all', 'All statuses'], ['sent', 'Sent'], ['failed', 'Failed'], ['pending', 'Pending']]} />
+        </Toolbar>
+        {smsLog.isError && <Notice tone="critical" className="mb-4"><p>SMS records could not be loaded. Check your admin access and connection.</p></Notice>}
+        {smsLog.isLoading ? <LoadingRows /> : (
+          <DataTable
+            caption="SMS delivery log"
+            rows={filtered}
+            rowKey={(entry) => entry.id}
+            initialSort={{ key: 'sent', dir: 'desc' }}
+            empty={search || statusFilter !== 'all' ? 'No SMS records match those filters.' : 'No SMS alerts have been recorded yet.'}
+            columns={[
+              { key: 'status', label: 'Status', sortValue: (entry) => entry.status, render: (entry) => <CountBadge tone={statusTone(entry.status)}><span className="capitalize">{entry.status}</span></CountBadge> },
+              { key: 'severity', label: 'Severity', sortValue: (entry) => entry.severity, render: (entry) => <span className="font-bold">{entry.severity}</span> },
+              { key: 'farm', label: 'Farm', render: (entry) => idCell(entry.farm_id) },
+              { key: 'prediction', label: 'Prediction', render: (entry) => idCell(entry.prediction_id) },
+              { key: 'sent', label: 'Sent at', sortValue: (entry) => timeValue(entry.sent_at), render: (entry) => <span className="text-ink-secondary">{entry.sent_at ? new Date(entry.sent_at).toLocaleString() : '—'}</span> },
+              { key: 'id', label: 'Alert ID', render: (entry) => idCell(entry.id) },
+            ]}
+          />
+        )}
+        {pendingCount + failedCount + sentCount < entries.length && <p className="mb-0 mt-3 text-caption text-ink-secondary">Some records use statuses outside the sent, failed, or pending categories.</p>}
+      </Card>
     </div>
   )
 }

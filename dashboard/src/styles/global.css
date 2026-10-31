@@ -30,6 +30,10 @@
   --color-neutral-bg: #EDF1EF;
   --color-neutral-text: #2B3532;
 
+  /* "Positive" outcomes in admin views (sent, active, passed) share the healthy colours. */
+  --color-positive-bg: var(--color-healthy-bg);
+  --color-positive-text: var(--color-healthy-text);
+
   --color-primary-tint: #E3F1EF;
   --color-control-border: #7C8782;
   --color-focus: var(--color-brand);

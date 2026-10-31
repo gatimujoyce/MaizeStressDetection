@@ -27,6 +27,10 @@ export default {
                     bg: 'var(--color-neutral-bg)',
                     text: 'var(--color-neutral-text)',
                 },
+                positive: {
+                    bg: 'var(--color-positive-bg)',
+                    text: 'var(--color-positive-text)',
+                },
                 ink: {
                     DEFAULT: 'var(--color-text-primary)',
                     secondary: 'var(--color-text-secondary)',
