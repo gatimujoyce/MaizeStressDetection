@@ -15,12 +15,12 @@ export default function AlertCard({ alert, farmId, arrived = false }) {
   const isSensor = alert.source === 'sensor'
   const label = isSensor
     ? `${STRESS_TITLES[alert.stress_class] || 'Field alert'} · ${alert.severity_label}`
-    : alert.severity_label
+    : `Photo check-in · ${alert.severity_label}`
 
   return (
     <article className={`flex flex-col items-start gap-3 ${cardClass} ${arrived ? 'motion-enter' : ''}`}>
       <Badge tone={severity}>{label}</Badge>
-      {isSensor && alert.message && (
+      {alert.message && (
         <p className="m-0 text-body text-ink">
           {alert.message.includes(': ') ? alert.message.split(': ').slice(1).join(': ') : alert.message}
         </p>

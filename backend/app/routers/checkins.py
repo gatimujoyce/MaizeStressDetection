@@ -20,6 +20,7 @@ from app.services.inference import (
     SensorInput,
     get_checkin_inference_pipeline,
 )
+from app.services.photo_alerts import photo_alert_reason, photo_sms_text
 from app.services.real_inference import InvalidImageUpload, severity_from
 from app.services.recommend import get_recommendation
 from app.services.sms import send_sms
@@ -177,11 +178,19 @@ async def checkin_and_predict(
     db.add(new_prediction)
 
     if new_prediction.severity in ("Medium", "High"):
+        # Say what caused the alert. The severity can come from the sensors while the leaf photo was not sure.
+        fusion_block = inference.model_versions.get("fusion")
+        alert_reason = (
+            photo_alert_reason(fusion_block, inference.disease.label, inference.disease.confidence)
+            if fusion_block
+            else None
+        )
         new_alert = Alert(
             id=uuid.uuid4(),
             prediction_id=new_prediction.id,
             farm_id=farm_id,
             severity=new_prediction.severity,
+            message=alert_reason,
             channel=(
                 ChannelEnum.sms
                 if new_prediction.severity == "High"
@@ -194,9 +203,13 @@ async def checkin_and_predict(
 
         if new_prediction.severity == "High":
             message = (
-                f"MaizeStress Alert: {new_prediction.severity} severity for "
-                f"{new_prediction.disease_label} on {farm.name[:20]}. "
-                f"{new_prediction.recommendation}"
+                photo_sms_text(farm.name, new_prediction.severity, alert_reason)
+                if alert_reason
+                else (
+                    f"MaizeStress Alert: {new_prediction.severity} severity for "
+                    f"{new_prediction.disease_label} on {farm.name[:20]}. "
+                    f"{new_prediction.recommendation}"
+                )
             )
             try:
                 sms_sent = await asyncio.wait_for(
