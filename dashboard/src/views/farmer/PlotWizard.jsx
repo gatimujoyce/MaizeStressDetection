@@ -38,6 +38,7 @@ const EMPTY_ANSWERS = {
   plantingDate: '',
   notPlanted: false,
   seedVariety: '',
+  hasNpkSensor: false,
 }
 
 const STEP_TITLES = ['Your plot', 'What is the soil like?', 'Water and planting', 'Check your answers']
@@ -245,6 +246,7 @@ export default function PlotWizard({ mode = 'onboarding' }) {
         waterSource: answers.waterSource,
         plantingDate: answers.notPlanted ? null : answers.plantingDate,
         seedVariety: answers.seedVariety.trim(),
+        hasNpkSensor: answers.hasNpkSensor,
       })
       await queryClient.invalidateQueries({ queryKey: ['farmerFarms', userId] })
       selectFarm(farm.id ?? farm.farm_id)
@@ -274,6 +276,7 @@ export default function PlotWizard({ mode = 'onboarding' }) {
     { label: 'Water', value: WATER_SOURCES.find((water) => water.value === answers.waterSource)?.label || '—', step: 2 },
     { label: 'Planting date', value: answers.notPlanted ? 'Not planted yet' : answers.plantingDate || '—', step: 2 },
     { label: 'Seed variety', value: answers.seedVariety.trim() || 'Not provided', step: 2 },
+    { label: 'NPK sensor', value: answers.hasNpkSensor ? 'Yes' : 'No', step: 2 },
   ]
 
   return (
@@ -494,6 +497,24 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   className="min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 />
               </div>
+
+              <fieldset>
+                <legend className="mb-3 text-body font-bold">
+                  Soil nutrient sensor <span className="font-normal text-ink-secondary">(optional)</span>
+                </legend>
+                <label className="flex min-h-12 cursor-pointer items-center gap-3 text-body">
+                  <input
+                    type="checkbox"
+                    checked={answers.hasNpkSensor}
+                    onChange={(event) => setAnswer('hasNpkSensor', event.target.checked)}
+                    className="h-5 w-5 accent-brand"
+                  />
+                  This plot has an NPK sensor
+                </label>
+                <p className="m-0 mt-1 text-small text-ink-secondary">
+                  An NPK sensor measures nitrogen, phosphorus and potassium in the soil. You can change this later on the Trends page.
+                </p>
+              </fieldset>
             </div>
           )}
 

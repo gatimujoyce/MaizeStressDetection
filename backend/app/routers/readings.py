@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 import uuid
 from typing import List
 from datetime import datetime, timedelta, timezone
 
 from app.core.deps import get_db, require_farmer
-from app.models import SensorReading, Farm, User
+from app.models import Alert, SensorReading, Farm, User
 from app.schemas.readings import SensorReadingCreate, SensorReadingResponse
+from app.services.nutrient_rules import LEVELS_BY_FIELD, NPK_FIELDS
 
 router = APIRouter(prefix="/farms/{farm_id}/readings", tags=["readings"])
 
@@ -26,8 +27,12 @@ async def create_reading(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    await check_farm_access(farm_id, current_user.id, db)
+    farm = await check_farm_access(farm_id, current_user.id, db)
     data = reading_in.model_dump()
+    if not farm.has_npk_sensor and any(data.get(f) is not None for f in NPK_FIELDS):
+        raise HTTPException(
+            status_code=422,
+            detail="This plot is not set up with an NPK sensor. Turn on the NPK sensor setting for the plot first.")
     recorded_at = data.pop("recorded_at", None)
     now = datetime.now(timezone.utc)
     if recorded_at is None:
@@ -63,6 +68,41 @@ async def get_latest_reading(
     if not reading:
         raise HTTPException(status_code=404, detail="No readings found")
     return reading
+
+@router.get("/trend")
+async def reading_trend(
+    farm_id: uuid.UUID,
+    span: str = Query("7d", alias="range", pattern="^(24h|7d|30d)$"),
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    """Readings grouped into time buckets for the Trends page, with the day-on-day change and the sensor alerts that were
+    open in the period. range is 24h, 7d or 30d."""
+    from app.services.trends import DAY, FIELDS, RANGES, build_trend
+    farm = await check_farm_access(farm_id, current_user.id, db)
+    now = datetime.now(timezone.utc)
+    window, _ = RANGES[span]
+    fetch_start = now - max(window, 2 * DAY)  # two days are needed for the day-on-day change
+    rows = (await db.execute(
+        select(SensorReading)
+        .where(SensorReading.farm_id == farm_id,
+               SensorReading.recorded_at >= fetch_start,
+               SensorReading.recorded_at <= now + timedelta(minutes=5))
+        .order_by(SensorReading.recorded_at)
+    )).scalars().all()
+    fields = FIELDS + NPK_FIELDS if farm.has_npk_sensor else FIELDS
+    readings = [{"recorded_at": r.recorded_at, **{f: getattr(r, f) for f in fields}} for r in rows]
+    alert_rows = (await db.execute(
+        select(Alert).where(Alert.farm_id == farm_id, Alert.source == "sensor", Alert.created_at <= now,
+                            or_(Alert.resolved_at.is_(None), Alert.resolved_at >= now - window))
+    )).scalars().all()
+    alerts = [{"id": a.id, "stress_class": a.stress_class, "severity": a.severity,
+               "created_at": a.created_at, "resolved_at": a.resolved_at} for a in alert_rows]
+    from app.services.sensor_status import label_readings
+    labels = await label_readings(readings, getattr(farm.soil_type, "value", farm.soil_type))
+    return build_trend(readings, alerts, span, now, labels, fields=fields,
+                       nutrient_levels=LEVELS_BY_FIELD if farm.has_npk_sensor else None)
+
 
 @router.get("", response_model=List[SensorReadingResponse])
 async def filter_readings(

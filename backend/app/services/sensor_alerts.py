@@ -8,7 +8,8 @@ from sqlalchemy import select, update
 
 from app.core.config import settings
 from app.models import Alert, ChannelEnum, Farm, SensorReading, User
-from app.services.alert_rules import plan_alerts, sms_text
+from app.services.alert_rules import TITLES, plan_alerts, sms_text
+from app.services.nutrient_rules import NUTRIENT_STRESSES, NUTRIENTS, plan_nutrient_alerts
 from app.services.inference import InferenceUnavailableError
 from app.services.sms import send_sms
 
@@ -17,12 +18,18 @@ WINDOW = timedelta(hours=24)
 
 
 async def evaluate_reading(db, reading):
+    farm_id, recorded_at = reading.farm_id, reading.recorded_at   # read now: a commit below expires the reading
     try:
         await _evaluate(db, reading)
     except InferenceUnavailableError as exc:
         log.info("Sensor alerts skipped: %s", exc)
     except Exception:
-        log.exception("Sensor alert check failed for farm %s", reading.farm_id)
+        log.exception("Sensor alert check failed for farm %s", farm_id)
+        await db.rollback()
+    try:
+        await _evaluate_nutrients(db, farm_id, recorded_at)
+    except Exception:
+        log.exception("Nutrient alert check failed for farm %s", farm_id)
         await db.rollback()
 
 
@@ -52,6 +59,7 @@ async def _evaluate(db, reading):
 
     alerts = (await db.execute(
         select(Alert).where(Alert.farm_id == farm_id, Alert.source == "sensor"))).scalars().all()
+    alerts = [a for a in alerts if a.stress_class in TITLES]   # low-nutrient alerts are handled by _evaluate_nutrients
     open_alerts = {a.stress_class: a for a in alerts if a.resolved_at is None}
     last_alert_at = {}
     for a in alerts:
@@ -89,3 +97,33 @@ async def _evaluate(db, reading):
             sent_at=datetime.now(timezone.utc) if sent else None))
     if sms_jobs:
         await db.commit()
+
+
+async def _evaluate_nutrients(db, farm_id, now):
+    """Low-nutrient alerts for a plot with an NPK sensor. In the app only, never an SMS: the warning levels are provisional."""
+    farm = await db.get(Farm, farm_id)
+    if farm is None or not farm.has_npk_sensor:
+        return
+    fields = [cfg["field"] for cfg in NUTRIENTS.values()]
+    rows = (await db.execute(
+        select(SensorReading)
+        .where(SensorReading.farm_id == farm_id, SensorReading.recorded_at > now - WINDOW,
+               SensorReading.recorded_at <= now))).scalars().all()
+    readings = [{"recorded_at": r.recorded_at, **{f: getattr(r, f) for f in fields}} for r in rows]
+    open_rows = (await db.execute(
+        select(Alert).where(Alert.farm_id == farm_id, Alert.source == "sensor",
+                            Alert.stress_class.in_(sorted(NUTRIENT_STRESSES)),
+                            Alert.resolved_at.is_(None)))).scalars().all()
+    open_alerts = {a.stress_class: a for a in open_rows}
+
+    to_open, to_close = plan_nutrient_alerts(readings, set(open_alerts), now)
+    if not (to_open or to_close):
+        return
+    for stress in to_close:
+        open_alerts[stress].resolved_at = now
+    for a in to_open:
+        db.add(Alert(id=uuid.uuid4(), prediction_id=None, farm_id=farm_id, severity=a["severity"],
+                     channel=ChannelEnum.app, status="active", source="sensor",
+                     stress_class=a["stress_class"], message=a["message"], created_at=now))
+    await db.commit()
+    log.info("Farm %s: nutrient alerts opened %s, closed %s", farm_id, [a["stress_class"] for a in to_open], to_close)

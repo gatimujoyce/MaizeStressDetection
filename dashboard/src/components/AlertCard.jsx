@@ -7,6 +7,9 @@ const STRESS_TITLES = {
   heat_stress: 'Heat stress',
   drought_stress: 'Drought stress',
   waterlogging_risk: 'Waterlogging risk',
+  low_nitrogen: 'Low nitrogen',
+  low_phosphorus: 'Low phosphorus',
+  low_potassium: 'Low potassium',
 }
 
 export default function AlertCard({ alert, farmId, arrived = false }) {

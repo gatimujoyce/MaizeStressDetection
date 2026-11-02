@@ -11,6 +11,10 @@ Replay a day quickly: reading times start --replay-hours ago and advance --step-
 24 hour window builds up in about a minute. Once the replay catches up with the clock it continues live.
     python -m simulator.multi_farm --interval 3 --replay-hours 24 --step-minutes 60 --hold heat_stress,normal,waterlogging_risk
 
+Give plots that have the NPK sensor setting on some N, P and K values (mg/kg). "ok" keeps all three healthy; the other
+choices push one nutrient below its warning level, so the in-app low-nutrient alert opens after a few readings:
+    python -m simulator.multi_farm --npk low_nitrogen --replay-hours 24 --step-minutes 30 --interval 3
+
 Stop it with Ctrl+C."""
 import argparse
 import json
@@ -28,6 +32,7 @@ _BACKEND_DIR = Path(__file__).resolve().parent.parent
 if str(_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(_BACKEND_DIR))
 
+from app.services.nutrient_rules import NUTRIENTS  # noqa: E402
 from app.services.sensor import STRESS_CLASSES, generate_reading  # noqa: E402
 from simulator.run import AuthClient  # noqa: E402
 
@@ -53,6 +58,18 @@ def api(base_url, path, auth, payload=None):
             raise
 
 
+NPK_CHOICES = ["ok"] + sorted(NUTRIENTS)
+
+
+def npk_reading(level, rng):
+    """N, P and K in mg/kg: well above every warning level, except the one nutrient the chosen level pushes below it."""
+    values = {}
+    for stress, cfg in NUTRIENTS.items():
+        mean = cfg["low"] * (0.6 if stress == level else 2.2)
+        values[cfg["field"]] = round(max(0.0, rng.gauss(mean, cfg["low"] * 0.08)), 1)
+    return values
+
+
 def parse_hold(text):
     names = [s.strip() for s in (text or "").split(",") if s.strip()]
     bad = [n for n in names if n not in STRESS_CLASSES]
@@ -73,6 +90,8 @@ def main():
     p.add_argument("--step-minutes", type=float, default=60.0,
                    help="simulated minutes between readings while replaying (default 60)")
     p.add_argument("--rounds", type=int, default=0, help="stop after this many rounds (0 = run until Ctrl+C)")
+    p.add_argument("--npk", choices=NPK_CHOICES, default="",
+                   help="send N, P and K values for farms that have the NPK sensor setting on (default: send none)")
     args = p.parse_args()
     if not args.phone or not args.password:
         sys.exit("Set SIM_PHONE and SIM_PASSWORD in this terminal first.")
@@ -99,6 +118,8 @@ def main():
                 for i, farm in enumerate(farms):
                     scenario = hold[i % len(hold)] if hold else STRESS_CLASSES[(tick + i) % len(STRESS_CLASSES)]
                     reading = generate_reading(scenario, farm.get("soil_type") or "loam", rng)
+                    if args.npk and farm.get("has_npk_sensor"):
+                        reading.update(npk_reading(args.npk, rng))
                     if recorded_at is not None:
                         reading["recorded_at"] = recorded_at.isoformat()
                     api(args.base_url, f"/farms/{farm['id']}/readings", auth, reading)

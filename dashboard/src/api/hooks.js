@@ -40,6 +40,18 @@ export function useCreateFarmMutation() {
     })
 }
 
+export function useUpdateFarmMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: ({ farmId, changes }) => client.updateFarm(farmId, changes),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['farmerFarms'] })
+            qc.invalidateQueries({ queryKey: ['readingTrend'] })
+            qc.invalidateQueries({ queryKey: ['alerts'] })
+        },
+    })
+}
+
 export function useFarmStatus(farmId) {
     return useQuery({
         queryKey: ['farmStatus', farmId],
@@ -54,6 +66,16 @@ export function useLatestReadings(farmId) {
         queryFn: () => client.getLatestReadings(farmId),
         enabled: !!farmId,
         refetchInterval: 15000,
+    })
+}
+
+export function useReadingTrend(farmId, range) {
+    return useQuery({
+        queryKey: ['readingTrend', farmId, range],
+        queryFn: () => client.getReadingTrend(farmId, range),
+        enabled: !!farmId,
+        refetchInterval: 60000,
+        placeholderData: (previous) => previous,
     })
 }
 

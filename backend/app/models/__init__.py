@@ -55,6 +55,7 @@ class Farm(Base):
     seed_variety: Mapped[str | None] = mapped_column(String, nullable=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    has_npk_sensor: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     
     __table_args__ = (
         Index(
@@ -81,6 +82,10 @@ class SensorReading(Base):
     leaf_wetness: Mapped[float] = mapped_column(Float, nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     source: Mapped[SourceEnum] = mapped_column(SAEnum(SourceEnum), nullable=False, default=SourceEnum.simulated)
+    # Optional NPK sensor values in mg/kg; only plots with has_npk_sensor send them.
+    nitrogen_mg_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    phosphorus_mg_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    potassium_mg_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
     
     farm = relationship("Farm", back_populates="readings")
 
