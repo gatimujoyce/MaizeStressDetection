@@ -9,6 +9,9 @@ class SensorReadingCreate(BaseModel):
     temperature: float = Field(ge=-20, le=60)    # degrees Celsius
     humidity: float = Field(ge=0, le=100)        # percent relative humidity
     leaf_wetness: float = Field(ge=0)
+    nitrogen_mg_kg: Optional[float] = Field(default=None, ge=0, le=10000)     # NPK sensor values, mg/kg
+    phosphorus_mg_kg: Optional[float] = Field(default=None, ge=0, le=10000)
+    potassium_mg_kg: Optional[float] = Field(default=None, ge=0, le=10000)
     recorded_at: Optional[datetime] = None
 
 class SensorReadingResponse(BaseModel):
@@ -16,6 +19,9 @@ class SensorReadingResponse(BaseModel):
     temperature: float
     humidity: float
     leaf_wetness: float
+    nitrogen_mg_kg: Optional[float] = None
+    phosphorus_mg_kg: Optional[float] = None
+    potassium_mg_kg: Optional[float] = None
     id: uuid.UUID
     farm_id: uuid.UUID
     recorded_at: datetime

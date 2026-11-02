@@ -3,6 +3,7 @@
 //               VITE_USE_MOCK_API=false → calls real backend via httpClient.js
 import * as mock from './mockApi'
 import { httpClient } from './httpClient'
+import { describeNutrient, describeResult } from './resultWording'
 import { adaptFarmStatus, adaptPredictionResponse } from './statusAdapter'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
@@ -70,6 +71,10 @@ function adaptFarmHistoryResponse(response) {
                 year: 'numeric',
             }),
             severity: severityMap[prediction.severity],
+            at: Date.parse(prediction.created_at),
+            result: describeResult(prediction),
+            disease: describeResult(prediction),
+            nutrient: describeNutrient(prediction),
         }))
 }
 
@@ -100,6 +105,7 @@ const mapFarmResponse = (farm) => ({
     plantingDate: farm.planting_date,
     waterSource: farm.water_source,
     seedVariety: farm.seed_variety,
+    hasNpkSensor: Boolean(farm.has_npk_sensor),
 })
 
 export const getFarmerFarms = () =>
@@ -114,7 +120,11 @@ export const createFarm = (data) =>
         planting_date: data.plantingDate,
         water_source: data.waterSource,
         seed_variety: data.seedVariety,
+        has_npk_sensor: Boolean(data.hasNpkSensor),
     }).then(mapFarmResponse)
+
+export const updateFarm = (farmId, changes) =>
+    httpClient.patch(`/farms/${farmId}`, { has_npk_sensor: Boolean(changes.hasNpkSensor) }).then(mapFarmResponse)
 
 export const getFarmStatus = (farmId) =>
     shouldUseMock('status')
@@ -138,6 +148,9 @@ export const getLatestReadingClassification = (farmId) =>
             if (error.status === 404 || error.status === 503) return null
             throw error
         })
+
+export const getReadingTrend = (farmId, range = '7d') =>
+    httpClient.get(`/farms/${farmId}/readings/trend?range=${range}`)
 
 export const getFarmHistory = (farmId, limit = 100, offset = 0) =>
     shouldUseMock('history')

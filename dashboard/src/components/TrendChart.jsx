@@ -15,11 +15,21 @@ export default function TrendChart({ history = [] }) {
     return null
   }
 
+  const toneBadge = (result) => {
+    const tones = {
+      healthy: { Icon: CheckIcon, classes: 'text-healthy-text' },
+      warning: { Icon: WarningIcon, classes: 'text-warning-text' },
+      critical: { Icon: ErrorIcon, classes: 'text-critical-text' },
+      neutral: { Icon: InfoIcon, classes: 'text-ink-secondary' },
+    }
+    return { label: result.label, ...(tones[result.tone] || tones.neutral) }
+  }
+
   return (
     <Card aria-labelledby="trend-title">
       <SectionHeader
         id="trend-title"
-        title="Recent Field Trends"
+        title="Photo check-ins"
         as="h3"
         aside={history.length > 2 && (
           <button
@@ -34,11 +44,11 @@ export default function TrendChart({ history = [] }) {
       />
 
       {displayedHistory.length === 0 ? (
-        <p className="m-0 text-small text-ink-secondary">No history available yet.</p>
+        <p className="m-0 text-small text-ink-secondary">No photo check-ins yet.</p>
       ) : (
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {displayedHistory.map((item, idx) => {
-            const badge = getSeverityBadge(item.severity)
+            const badge = item.result ? toneBadge(item.result) : getSeverityBadge(item.severity)
             return (
               <li key={idx} className={`flex items-center justify-between gap-3 ${insetClass}`}>
                 <div className="min-w-0">
