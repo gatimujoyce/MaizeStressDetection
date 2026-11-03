@@ -189,7 +189,6 @@ export default function Result() {
                 {predictionFarm && (
                     <p className="m-0 mt-1 text-small text-ink-secondary">Plot: {predictionFarm.farm_name}</p>
                 )}
-                <p className="m-0 mt-1 break-all text-small text-ink-secondary">ID: {predictionId}</p>
             </header>
 
             {uploadedImage}

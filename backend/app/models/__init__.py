@@ -139,6 +139,22 @@ class Alert(Base):
     prediction = relationship("Prediction", back_populates="alerts")
     farm = relationship("Farm")
 
+class SmsLog(Base):
+    """One row per text message we tried to send (the admin SMS log)."""
+    __tablename__ = "sms_log"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True,
+                                                 default=lambda: datetime.now(timezone.utc))
+    # The log outlives what it points at: deleting an alert (for example in reset_demo) keeps the log row.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    farm_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("farms.id", ondelete="SET NULL"), nullable=True)
+    alert_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("alerts.id", ondelete="SET NULL"), nullable=True)
+    kind: Mapped[str] = mapped_column(Text, nullable=False)        # sensor_alert or photo_alert
+    phone: Mapped[str] = mapped_column(Text, nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)      # sent or failed
+    severity: Mapped[str | None] = mapped_column(Text, nullable=True)
+
 class Feedback(Base):
     __tablename__ = "feedback"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

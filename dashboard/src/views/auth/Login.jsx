@@ -111,14 +111,6 @@ export default function Login() {
                     </Link>
                 </p>
 
-                {/* Dev hint */}
-                {import.meta.env.VITE_USE_MOCK_API === 'true' && (
-                    <div className="mt-4 p-3 bg-[var(--color-neutral-bg)] rounded-control text-small text-[var(--color-text-secondary)]">
-                        <strong>Mock mode:</strong><br />
-                        Farmer: 712000001 / farmer123<br />
-                        Admin: 712000002 / admin123
-                    </div>
-                )}
         </AuthLayout>
     )
 }

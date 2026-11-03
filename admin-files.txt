@@ -1,0 +1,1407 @@
+﻿=== backend\app\routers\admin.py ===
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from typing import List
+import uuid
+
+from app.core.deps import get_db, require_admin
+from app.models import User, Farm, Feedback, ModelVersion, RetrainingJob, Alert
+from app.schemas.auth import UserResponse
+from app.schemas.farms import FarmResponse
+from app.schemas.predictions import FeedbackResponse
+from app.schemas.admin import ModelVersionResponse, ModelVersionUpdate, RetrainingJobResponse, RetrainRequest
+from app.schemas.admin import AdminUserCreate
+from app.core.security import get_password_hash
+from app.core.utils import normalize_ke_phone
+
+router = APIRouter(prefix="/admin", tags=["admin"])
+
+@router.get("/users", response_model=List[UserResponse])
+async def admin_users(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(User))
+    return res.scalars().all()
+
+@router.post("/users", response_model=UserResponse, status_code=201)
+async def create_admin_user(
+    user_in: AdminUserCreate,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    phone = normalize_ke_phone(user_in.phone)
+    existing = await db.execute(select(User).where(User.phone == phone))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Phone already registered")
+    user = User(
+        name=user_in.name,
+        phone=phone,
+        password_hash=get_password_hash(user_in.password),
+        role="admin",
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+@router.get("/farms", response_model=List[FarmResponse])
+async def admin_farms(
+    include_deleted: bool = False,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Farm)
+    if not include_deleted:
+        query = query.where(Farm.deleted_at.is_(None))
+    res = await db.execute(query)
+    return res.scalars().all()
+
+@router.get("/feedback", response_model=List[FeedbackResponse])
+async def admin_feedback(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(Feedback))
+    return res.scalars().all()
+
+@router.get("/model-versions", response_model=List[ModelVersionResponse])
+async def get_model_versions(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(ModelVersion))
+    return res.scalars().all()
+
+@router.patch("/model-versions/{id}", response_model=ModelVersionResponse)
+async def update_model_version(id: uuid.UUID, update_data: ModelVersionUpdate, current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(ModelVersion).where(ModelVersion.id == id))
+    mv = res.scalar_one_or_none()
+    if not mv: raise HTTPException(404, "Not found")
+    if update_data.is_active:
+        active_versions = await db.execute(
+            select(ModelVersion).where(
+                ModelVersion.model_name == mv.model_name,
+                ModelVersion.is_active.is_(True),
+                ModelVersion.id != mv.id,
+            )
+        )
+        for active_version in active_versions.scalars():
+            active_version.is_active = False
+    mv.is_active = update_data.is_active
+    await db.commit()
+    await db.refresh(mv)
+    return mv
+
+@router.get("/retraining-jobs", response_model=List[RetrainingJobResponse])
+async def get_retraining_jobs(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(RetrainingJob))
+    return res.scalars().all()
+
+@router.post("/retrain")
+async def trigger_retrain(req: RetrainRequest, current_admin: User = Depends(require_admin)):
+    return {"status": "started", "job_id": str(uuid.uuid4()), "model_name": req.model_name}
+
+@router.get("/sms-log")
+async def get_sms_log(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(Alert).where(Alert.channel == 'sms'))
+    # Return as generic dictionaries since there's no specific SMS response schema requested
+    # We can just return exactly Alert schema matches
+    return res.scalars().all()
+
+=== backend\app\schemas\admin.py ===
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+from app.models import ModelNameEnum
+import uuid
+
+class ModelVersionResponse(BaseModel):
+    id: uuid.UUID
+    model_name: ModelNameEnum
+    version: str
+    metrics: dict
+    is_active: bool
+
+    model_config = {"from_attributes": True}
+
+class ModelVersionUpdate(BaseModel):
+    is_active: bool
+
+class RetrainingJobResponse(BaseModel):
+    id: uuid.UUID
+    model_name: str
+    old_metrics: dict
+    new_metrics: dict
+    passed_gate: bool
+    deployed: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+class RetrainRequest(BaseModel):
+    model_name: str
+
+class AdminUserCreate(BaseModel):
+    name: str
+    phone: str
+    password: str
+
+=== backend\app\services\sms.py ===
+"""Send an SMS through Africa's Talking. Never raises: returns True only when the first recipient reports Success (101).
+
+The secure connection uses Python's built-in client and is capped at TLS 1.2. On some networks and security tools the
+newer TLS 1.3 handshake, and the requests library's own connection settings, fail with WRONG_VERSION_NUMBER while a
+plain TLS 1.2 connection works. Africa's Talking supports TLS 1.2."""
+import json
+import os
+import ssl
+import urllib.error
+import urllib.parse
+import urllib.request
+
+TIMEOUT_SECONDS = 10
+
+
+def _endpoint(username: str) -> str:
+    host = "api.sandbox.africastalking.com" if username == "sandbox" else "api.africastalking.com"
+    return f"https://{host}/version1/messaging"
+
+
+def _tls12_context() -> ssl.SSLContext:
+    context = ssl.create_default_context()
+    context.maximum_version = ssl.TLSVersion.TLSv1_2
+    return context
+
+
+def send_sms(phone_number: str, message: str) -> bool:
+    try:
+        username = os.getenv("AFRICASTALKING_USERNAME", "sandbox")
+        api_key = os.getenv("AFRICASTALKING_API_KEY", "dummy_key")
+        body = urllib.parse.urlencode({"username": username, "to": phone_number, "message": message}).encode()
+        request = urllib.request.Request(
+            _endpoint(username),
+            data=body,
+            headers={"apiKey": api_key, "Accept": "application/json",
+                     "Content-Type": "application/x-www-form-urlencoded"},
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS, context=_tls12_context()) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        if not isinstance(payload, dict):
+            return False
+        recipients = payload.get("SMSMessageData", {}).get("Recipients", [])
+        if not recipients or not isinstance(recipients, list):
+            return False
+        first = recipients[0]
+        if not isinstance(first, dict):
+            return False
+        return first.get("status") == "Success" and first.get("statusCode") == 101
+    except Exception as e:
+        print(f"Failed to send SMS to {phone_number}: {str(e)}")
+        return False
+
+=== dashboard\src\views\admin\AdminDashboard.jsx ===
+import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useAdminFarms, useAdminFeedback, useAdminModelVersions, useAdminRetrainingJobs, useAdminSmsLog, useAdminUsers, useCreateAdminUserMutation, useRequestAdminRetrainMutation, useSetAdminModelVersionActiveMutation } from '../../api/hooks'
+import Badge from '../../components/ui/Badge'
+import Card, { SectionHeader } from '../../components/ui/Card'
+import DataTable from '../../components/ui/DataTable'
+import Notice from '../../components/ui/Notice'
+import PageHeader from '../../components/ui/PageHeader'
+import Skeleton from '../../components/ui/Skeleton'
+import StatTile from '../../components/ui/StatTile'
+import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
+import { buttonClass, focusRing, insetClass, linkClass } from '../../components/ui/styles'
+import AdminShell from './AdminShell'
+
+const SECTIONS = {
+  overview: {
+    title: 'Overview',
+    description: 'A live snapshot of farms, users, and SMS alert records.',
+  },
+  farms: {
+    title: 'Farm monitoring',
+    description: 'Review registered farms and their latest field status.',
+  },
+  users: {
+    title: 'Users',
+    description: 'Review farmer and administrator accounts.',
+  },
+  feedback: {
+    title: 'Feedback',
+    description: 'Review farmer responses to prediction results.',
+  },
+  models: {
+    title: 'Model versions',
+    description: 'Review model versions and active deployments.',
+  },
+  retraining: {
+    title: 'Retraining',
+    description: 'Review retraining history and request a run.',
+  },
+  sms: {
+    title: 'SMS log',
+    description: 'Review SMS alert delivery records.',
+  },
+}
+
+const adminFieldClass = `mt-1 block min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-normal text-ink ${focusRing}`
+
+function CountBadge({ children, tone = 'neutral' }) {
+  return <Badge tone={tone} size="sm" icon={false}>{children}</Badge>
+}
+
+function LoadingRows() {
+  return (
+    <div className="flex flex-col gap-2">
+      <Skeleton label="Loading" className="h-11" />
+      <Skeleton className="h-11" />
+      <Skeleton className="h-11" />
+    </div>
+  )
+}
+
+const timeValue = (value) => (value ? Date.parse(value) || null : null)
+
+export default function AdminDashboard() {
+  const [searchParams] = useSearchParams()
+  const requestedSection = searchParams.get('view')
+  const activeSection = Object.hasOwn(SECTIONS, requestedSection) ? requestedSection : 'overview'
+  const section = SECTIONS[activeSection]
+
+  return (
+    <AdminShell activeSection={activeSection}>
+      <div className="mb-6">
+        <PageHeader title={section.title} subtitle={section.description} />
+      </div>
+
+      {activeSection === 'overview'
+        ? <AdminOverview />
+        : activeSection === 'users'
+          ? <UsersPanel />
+        : activeSection === 'farms'
+          ? <FarmsPanel />
+        : activeSection === 'feedback'
+          ? <FeedbackPanel />
+        : activeSection === 'models'
+          ? <ModelsPanel />
+        : activeSection === 'retraining'
+          ? <RetrainingPanel />
+        : activeSection === 'sms'
+          ? <SmsPanel />
+        : <ComingSoonPanel title={section.title} />}
+    </AdminShell>
+  )
+}
+
+function AdminOverview() {
+  const farms = useAdminFarms()
+  const users = useAdminUsers()
+  const smsLog = useAdminSmsLog()
+  const userRows = users.data ?? []
+  const smsRows = smsLog.data ?? []
+  const smsCount = (status) => smsRows.filter((entry) => entry.status?.toLowerCase() === status).length
+  const farmerCount = userRows.filter((user) => user.role === 'farmer').length
+  const adminCount = userRows.filter((user) => user.role === 'admin').length
+
+  return (
+    <div className="flex flex-col gap-6">
+      {(farms.isError || users.isError || smsLog.isError) && (
+        <Notice tone="critical">
+          <p>Some overview data could not be loaded. Check your connection or access, then refresh.</p>
+        </Notice>
+      )}
+
+      <section aria-label="Admin overview counts" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Registered farms" value={farms.data?.length ?? 0} isLoading={farms.isLoading} isError={farms.isError} />
+        <StatTile
+          label="User accounts"
+          value={userRows.length}
+          isLoading={users.isLoading}
+          isError={users.isError}
+          detail={`${farmerCount} ${farmerCount === 1 ? 'farmer' : 'farmers'} · ${adminCount} ${adminCount === 1 ? 'admin' : 'admins'}`}
+        />
+        <StatTile
+          label="SMS alert records"
+          value={smsRows.length}
+          isLoading={smsLog.isLoading}
+          isError={smsLog.isError}
+          detail={`${smsCount('sent')} sent · ${smsCount('failed')} failed · ${smsCount('pending')} pending`}
+        />
+      </section>
+
+      <Card aria-labelledby="recent-farms-title">
+        <SectionHeader
+          id="recent-farms-title"
+          title="Registered farms"
+          aside={<span className="text-small text-ink-secondary">{farms.data?.length ?? 0} total</span>}
+        />
+        {farms.isLoading ? (
+          <LoadingRows />
+        ) : farms.data?.length ? (
+          <>
+            <ul className="m-0 list-none divide-y divide-border p-0">
+              {farms.data.slice(0, 5).map((farm) => (
+                <li key={farm.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 first:pt-0">
+                  <span className="text-small font-bold text-ink">{farm.name}</span>
+                  <span className="text-small text-ink-secondary">
+                    {[farm.location, farm.soil_type?.replaceAll('_', ' ')].filter(Boolean).join(' · ')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {farms.data.length > 5 && (
+              <Link to="/admin?view=farms" className={`mt-2 inline-flex min-h-11 items-center text-small ${linkClass}`}>
+                All {farms.data.length} farms →
+              </Link>
+            )}
+          </>
+        ) : (
+          <p className="m-0 text-small text-ink-secondary">
+            {farms.isError ? 'Farm records are unavailable.' : 'No farms have been registered yet.'}
+          </p>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+function ComingSoonPanel({ title }) {
+  return (
+    <Card>
+      <p className="m-0 text-small text-ink-secondary">
+        The {title.toLowerCase()} panel will be connected in its implementation task.
+      </p>
+    </Card>
+  )
+}
+
+function UsersPanel() {
+  const users = useAdminUsers()
+  const createAdmin = useCreateAdminUserMutation()
+  const [form, setForm] = useState({ name: '', phone: '', password: '' })
+  const [search, setSearch] = useState('')
+  const [createdName, setCreatedName] = useState('')
+  const filteredUsers = (users.data ?? []).filter((user) => `${user.name} ${user.phone} ${user.role}`.toLowerCase().includes(search.toLowerCase()))
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setCreatedName('')
+    try {
+      const result = await createAdmin.mutateAsync(form)
+      setCreatedName(result.name)
+      setForm({ name: '', phone: '', password: '' })
+    } catch { /* Mutation state displays the API error below. */ }
+  }
+
+  return (
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,.8fr)]">
+      <Card aria-labelledby="users-title">
+        <SectionHeader id="users-title" title="People with access" aside={<CountBadge>{users.data?.length ?? 0} accounts</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search users" value={search} onChange={setSearch} placeholder="Search name, phone, or role" />
+        </Toolbar>
+        {users.isError && <Notice tone="critical" className="mb-4"><p>Could not load users. Check your admin access and connection.</p></Notice>}
+        {users.isLoading ? <LoadingRows /> : (
+          <DataTable
+            caption="User accounts"
+            rows={filteredUsers}
+            rowKey={(user) => user.id}
+            initialSort={{ key: 'name', dir: 'asc' }}
+            empty={search ? 'No accounts match this search.' : 'No accounts found.'}
+            columns={[
+              { key: 'name', label: 'Name', sortValue: (user) => user.name, render: (user) => <span className="font-bold text-ink">{user.name}</span> },
+              { key: 'phone', label: 'Phone', sortValue: (user) => user.phone, render: (user) => <span className="tabular-nums text-ink-secondary">{user.phone}</span> },
+              { key: 'role', label: 'Role', sortValue: (user) => user.role, render: (user) => <CountBadge tone={user.role === 'admin' ? 'healthy' : 'neutral'}><span className="capitalize">{user.role}</span></CountBadge> },
+            ]}
+          />
+        )}
+      </Card>
+
+      <Card aria-labelledby="add-admin-title">
+        <SectionHeader id="add-admin-title" title="Add an administrator" />
+        <p className="mb-4 mt-0 text-small text-ink-secondary">Create a separate admin login for a trusted team member.</p>
+        {createdName && <Notice tone="positive" className="mb-4"><p>Administrator account created for {createdName}.</p></Notice>}
+        {createAdmin.isError && <Notice tone="critical" className="mb-4"><p>{createAdmin.error?.message || 'Could not create the administrator. Check whether the phone is already registered.'}</p></Notice>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="text-small font-bold">Full name<input required autoComplete="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className={adminFieldClass} /></label>
+          <label className="text-small font-bold">Kenyan phone number<input required type="tel" autoComplete="tel" placeholder="07… or +254…" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className={adminFieldClass} /></label>
+          <label className="text-small font-bold">Temporary password<input required minLength={8} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className={adminFieldClass} /></label>
+          <button disabled={createAdmin.isPending} type="submit" className={`mt-1 ${buttonClass({ size: 'sm' })}`}>{createAdmin.isPending ? 'Creating account…' : 'Create admin account'}</button>
+        </form>
+      </Card>
+    </div>
+  )
+}
+
+function FarmsPanel() {
+  const [includeDeleted, setIncludeDeleted] = useState(false)
+  const [search, setSearch] = useState('')
+  const farms = useAdminFarms(includeDeleted)
+  const visibleFarms = (farms.data ?? []).filter((farm) => {
+    const fields = [farm.name, farm.location, farm.soil_type, farm.seed_variety, farm.water_source]
+    return fields.filter(Boolean).join(' ').toLowerCase().includes(search.toLowerCase())
+  })
+
+  return (
+    <Card aria-labelledby="farms-title">
+      <SectionHeader id="farms-title" title="Registered farms" aside={<CountBadge>{farms.data?.length ?? 0} {includeDeleted ? 'records' : 'active farms'}</CountBadge>} />
+      <Toolbar>
+        <SearchField label="Search farms" value={search} onChange={setSearch} placeholder="Search farm, location, crop, or soil" />
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-bold text-ink">
+          <input type="checkbox" checked={includeDeleted} onChange={(event) => setIncludeDeleted(event.target.checked)} className="h-4 w-4 min-h-0 accent-brand" />
+          Include archived farms
+        </label>
+      </Toolbar>
+      {farms.isError && <Notice tone="critical" className="mb-4"><p>Farm records could not be loaded. Check your admin access and connection.</p></Notice>}
+      {farms.isLoading ? <LoadingRows /> : (
+        <DataTable
+          caption="Registered farms"
+          rows={visibleFarms}
+          rowKey={(farm) => farm.id}
+          initialSort={{ key: 'name', dir: 'asc' }}
+          empty={search ? 'No farms match this search.' : 'No farm records found.'}
+          columns={[
+            {
+              key: 'name', label: 'Farm', sortValue: (farm) => farm.name,
+              render: (farm) => <><span className="block font-bold text-ink">{farm.name}</span><span className="mt-0.5 block text-caption text-ink-secondary">{farm.size_acres ? `${farm.size_acres} acres` : 'Size not set'}</span></>,
+            },
+            { key: 'location', label: 'Location', sortValue: (farm) => farm.location, render: (farm) => <span className="text-ink-secondary">{farm.location}</span> },
+            {
+              key: 'land', label: 'Land', sortValue: (farm) => farm.soil_type,
+              render: (farm) => <><span className="capitalize text-ink">{farm.soil_type?.replaceAll('_', ' ') || 'Not recorded'}</span>{farm.planting_date && <span className="mt-0.5 block text-caption text-ink-secondary">Planted {farm.planting_date}</span>}</>,
+            },
+            { key: 'crop', label: 'Crop details', sortValue: (farm) => farm.seed_variety, render: (farm) => <span className="text-ink-secondary">{farm.seed_variety || 'Not recorded'}</span> },
+            { key: 'water', label: 'Water source', sortValue: (farm) => farm.water_source, render: (farm) => <span className="text-ink-secondary">{farm.water_source || 'Not recorded'}</span> },
+            {
+              key: 'status', label: 'Status', sortValue: (farm) => (farm.deleted_at ? 'Archived' : 'Active'),
+              render: (farm) => (farm.deleted_at ? <CountBadge>Archived</CountBadge> : <CountBadge tone="healthy">Active</CountBadge>),
+            },
+          ]}
+        />
+      )}
+      <p className="mb-0 mt-3 text-caption text-ink-secondary">Showing {visibleFarms.length} of {farms.data?.length ?? 0} returned records.</p>
+    </Card>
+  )
+}
+
+function FeedbackPanel() {
+  const feedback = useAdminFeedback()
+  const [filter, setFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const rows = feedback.data ?? []
+  const inaccurateCount = rows.filter((item) => !item.accurate).length
+  const filtered = rows.filter((item) => {
+    if (filter === 'inaccurate' && item.accurate) return false
+    if (filter === 'useful' && item.useful !== true) return false
+    return `${item.correct_label ?? ''} ${item.comment ?? ''} ${item.prediction_id}`.toLowerCase().includes(search.toLowerCase())
+  })
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-label="Feedback summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Responses received" value={rows.length} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Marked inaccurate" value={inaccurateCount} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Marked useful" value={rows.filter((item) => item.useful === true).length} isLoading={feedback.isLoading} isError={feedback.isError} />
+      </section>
+      <Card aria-labelledby="feedback-title">
+        <SectionHeader id="feedback-title" title="Prediction feedback" aside={<CountBadge tone={inaccurateCount ? 'warning' : 'neutral'}>{inaccurateCount} flagged inaccurate</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search feedback" value={search} onChange={setSearch} placeholder="Search comments, labels, or prediction ID" />
+          <FilterSelect id="feedback-filter" label="Filter feedback" value={filter} onChange={setFilter} options={[['all', 'All feedback'], ['inaccurate', 'Marked inaccurate'], ['useful', 'Marked useful']]} />
+        </Toolbar>
+        {feedback.isError && <Notice tone="critical" className="mb-4"><p>Feedback could not be loaded. Check your admin access and connection.</p></Notice>}
+        {feedback.isLoading ? <LoadingRows /> : filtered.length ? (
+          <ul className="m-0 flex list-none flex-col divide-y divide-border p-0">
+            {filtered.map((item) => (
+              <li key={item.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <CountBadge tone={item.accurate ? 'healthy' : 'critical'}>{item.accurate ? 'Prediction accurate' : 'Marked inaccurate'}</CountBadge>
+                    {item.useful != null && <CountBadge>{item.useful ? 'Useful' : 'Not useful'}</CountBadge>}
+                  </div>
+                  <time className="text-caption text-ink-secondary" dateTime={item.created_at}>{new Date(item.created_at).toLocaleString()}</time>
+                </div>
+                {item.correct_label && <p className="mb-0 mt-2 text-small"><span className="font-bold">Suggested label:</span> {item.correct_label}</p>}
+                {item.comment && <blockquote className="mx-0 mb-0 mt-2 border-l-2 border-control pl-3 text-small text-ink-secondary">{item.comment}</blockquote>}
+                <p className="mb-0 mt-2 truncate text-caption text-ink-secondary">Prediction ID: {item.prediction_id}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="m-0 rounded-control bg-app-bg p-5 text-center text-small text-ink-secondary">{search || filter !== 'all' ? 'No feedback matches those filters.' : 'No farmer feedback has been submitted yet.'}</p>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+function ModelsPanel() {
+  const versions = useAdminModelVersions()
+  const setActive = useSetAdminModelVersionActiveMutation()
+  const [search, setSearch] = useState('')
+  const records = versions.data ?? []
+  const modelNames = [...new Set(records.map((item) => item.model_name))]
+  const filtered = records.filter((item) => `${item.model_name} ${item.version} ${Object.keys(item.metrics ?? {}).join(' ')}`.toLowerCase().includes(search.toLowerCase()))
+  const activeTotal = records.filter((item) => item.is_active).length
+  const formatMetric = (value) => typeof value === 'number' ? (value <= 1 ? `${(value * 100).toFixed(1)}%` : value.toFixed(2)) : String(value)
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-label="Model version summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Model families" value={modelNames.length} isLoading={versions.isLoading} isError={versions.isError} />
+        <StatTile label="Registered versions" value={records.length} isLoading={versions.isLoading} isError={versions.isError} />
+        <StatTile label="Active deployments" value={activeTotal} isLoading={versions.isLoading} isError={versions.isError} />
+      </section>
+      <Card aria-labelledby="models-title">
+        <SectionHeader id="models-title" title="Model versions" aside={<CountBadge tone="healthy">{activeTotal} active</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search model versions" value={search} onChange={setSearch} placeholder="Search model, version, or metric" />
+        </Toolbar>
+        {versions.isError && <Notice tone="critical" className="mb-4"><p>Model versions could not be loaded. Check your admin access and connection.</p></Notice>}
+        {setActive.isError && <Notice tone="critical" className="mb-4"><p>{setActive.error?.message || 'The deployment status could not be updated.'}</p></Notice>}
+        {versions.isLoading ? <LoadingRows /> : filtered.length ? (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {filtered.map((item) => (
+              <article key={item.id} className={`flex flex-col rounded-card border p-4 sm:p-5 ${item.is_active ? 'border-2 border-brand' : 'border-border'}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="m-0 text-caption font-bold text-ink-secondary">{item.model_name} model</p>
+                    <h3 className="mb-0 mt-0.5 text-title">{item.version}</h3>
+                  </div>
+                  {item.is_active ? <CountBadge tone="healthy">Active</CountBadge> : <CountBadge>Standby</CountBadge>}
+                </div>
+                {Object.entries(item.metrics ?? {}).length ? (
+                  <dl className="my-4 grid grid-cols-2 gap-2">
+                    {Object.entries(item.metrics).map(([key, value]) => (
+                      <div key={key} className={insetClass}>
+                        <dt className="truncate text-caption capitalize text-ink-secondary">{key.replaceAll('_', ' ')}</dt>
+                        <dd className="mb-0 mt-0.5 truncate text-small font-bold tabular-nums text-ink">{formatMetric(value)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : <p className="my-4 text-small text-ink-secondary">No evaluation metrics recorded.</p>}
+                <button
+                  type="button"
+                  disabled={item.is_active || setActive.isPending}
+                  onClick={() => setActive.mutate({ versionId: item.id, isActive: true })}
+                  className={`mt-auto ${buttonClass({ variant: 'secondary', size: 'sm', block: true })}`}
+                >
+                  {item.is_active ? 'Currently deployed' : setActive.isPending ? 'Updating deployment…' : 'Set as active version'}
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="m-0 rounded-control bg-app-bg p-5 text-center text-small text-ink-secondary">{search ? 'No model versions match this search.' : 'No model versions have been registered yet.'}</p>
+        )}
+        {modelNames.length > 1 && <p className="mb-0 mt-3 text-caption text-ink-secondary">Activating a version replaces the active version for that model family.</p>}
+      </Card>
+    </div>
+  )
+}
+
+function RetrainingPanel() {
+  const [modelName, setModelName] = useState('triage')
+  const jobs = useAdminRetrainingJobs()
+  const requestRun = useRequestAdminRetrainMutation()
+  const [requestResult, setRequestResult] = useState(null)
+  const sortedJobs = [...(jobs.data ?? [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  const deployed = sortedJobs.filter((job) => job.deployed).length
+  const passed = sortedJobs.filter((job) => job.passed_gate).length
+
+  async function handleRequest(event) {
+    event.preventDefault()
+    setRequestResult(null)
+    try {
+      setRequestResult(await requestRun.mutateAsync(modelName))
+    } catch { /* Mutation error appears below the form. */ }
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-label="Retraining summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Recorded runs" value={sortedJobs.length} isLoading={jobs.isLoading} isError={jobs.isError} />
+        <StatTile label="Passed quality gate" value={passed} isLoading={jobs.isLoading} isError={jobs.isError} />
+        <StatTile label="Deployed outcomes" value={deployed} isLoading={jobs.isLoading} isError={jobs.isError} />
+      </section>
+
+      <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(280px,.7fr)_minmax(0,1.6fr)]">
+        <Card aria-labelledby="request-title">
+          <SectionHeader id="request-title" title="Request retraining" />
+          <p className="mb-4 mt-0 text-small text-ink-secondary">Choose a model family to submit a retraining request.</p>
+          {requestResult && (
+            <Notice tone="positive" title="Request accepted" className="mb-4">
+              <p>{requestResult.model_name} · {requestResult.status} · Job ID {requestResult.job_id}</p>
+            </Notice>
+          )}
+          {requestRun.isError && <Notice tone="critical" className="mb-4"><p>{requestRun.error?.message || 'The retraining request could not be submitted.'}</p></Notice>}
+          <form onSubmit={handleRequest} className="flex flex-col gap-4">
+            <label className="text-small font-bold">Model family
+              <select value={modelName} onChange={(event) => setModelName(event.target.value)} className={adminFieldClass}>
+                <option value="triage">Triage</option><option value="disease">Disease</option><option value="nutrient">Nutrient</option><option value="sensor">Sensor</option>
+              </select>
+            </label>
+            <button type="submit" disabled={requestRun.isPending} className={buttonClass({ size: 'sm' })}>{requestRun.isPending ? 'Submitting request…' : 'Request retraining'}</button>
+          </form>
+          <p className="mb-0 mt-4 text-caption text-ink-secondary">The server response confirms receipt of the request. Job history below shows records returned by the backend.</p>
+        </Card>
+
+        <Card aria-labelledby="history-title">
+          <SectionHeader id="history-title" title="Quality and deployment" aside={<span className="text-caption text-ink-secondary">{passed} passed · {deployed} deployed</span>} />
+          {jobs.isError && <Notice tone="critical" className="mb-4"><p>Retraining history could not be loaded. Check your admin access and connection.</p></Notice>}
+          {jobs.isLoading ? <LoadingRows /> : (
+            <DataTable
+              caption="Retraining run history"
+              rows={sortedJobs}
+              rowKey={(job) => job.id}
+              initialSort={{ key: 'created', dir: 'desc' }}
+              empty="No retraining history has been recorded yet."
+              columns={[
+                { key: 'model', label: 'Model', sortValue: (job) => job.model_name, render: (job) => <span className="font-bold capitalize text-ink">{job.model_name}</span> },
+                { key: 'created', label: 'Requested', sortValue: (job) => timeValue(job.created_at), render: (job) => <span className="text-ink-secondary">{new Date(job.created_at).toLocaleString()}</span> },
+                { key: 'gate', label: 'Quality gate', sortValue: (job) => (job.passed_gate ? 1 : 0), render: (job) => <CountBadge tone={job.passed_gate ? 'healthy' : 'critical'}>{job.passed_gate ? 'Quality gate passed' : 'Quality gate failed'}</CountBadge> },
+                { key: 'deployed', label: 'Deployed', sortValue: (job) => (job.deployed ? 1 : 0), render: (job) => <span className="text-ink-secondary">{job.deployed ? 'Deployed' : 'Not deployed'}</span> },
+                { key: 'old', label: 'Previous metrics', render: (job) => <MetricSummary metrics={job.old_metrics} /> },
+                { key: 'new', label: 'New metrics', render: (job) => <MetricSummary metrics={job.new_metrics} /> },
+                { key: 'job', label: 'Job', render: (job) => <span className="font-mono text-caption text-ink-secondary" title={job.id}>{job.id.slice(0, 8)}</span> },
+              ]}
+            />
+          )}
+        </Card>
+      </section>
+    </div>
+  )
+}
+
+function MetricSummary({ metrics }) {
+  const entries = Object.entries(metrics ?? {})
+  if (!entries.length) return <span className="text-caption text-ink-secondary">No metrics</span>
+  return (
+    <span className="block max-w-56 text-caption tabular-nums text-ink">
+      {entries.slice(0, 3).map(([key, value]) => `${key}: ${typeof value === 'number' ? value.toFixed(2) : value}`).join(' · ')}
+    </span>
+  )
+}
+
+function SmsPanel() {
+  const smsLog = useAdminSmsLog()
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const entries = smsLog.data ?? []
+  const sentCount = entries.filter((entry) => entry.status?.toLowerCase() === 'sent').length
+  const failedCount = entries.filter((entry) => entry.status?.toLowerCase() === 'failed').length
+  const pendingCount = entries.filter((entry) => entry.status?.toLowerCase() === 'pending').length
+  const filtered = entries.filter((entry) => {
+    if (statusFilter !== 'all' && entry.status?.toLowerCase() !== statusFilter) return false
+    return `${entry.severity} ${entry.status} ${entry.farm_id} ${entry.prediction_id} ${entry.id}`.toLowerCase().includes(search.toLowerCase())
+  }).sort((a, b) => new Date(b.sent_at ?? 0) - new Date(a.sent_at ?? 0))
+  const statusTone = (status) => (status?.toLowerCase() === 'sent' ? 'healthy' : status?.toLowerCase() === 'failed' ? 'critical' : 'neutral')
+  const idCell = (value) => <span className="block max-w-40 truncate font-mono text-caption text-ink-secondary" title={value}>{value}</span>
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-label="SMS delivery summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile label="Messages sent" value={sentCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Delivery failed" value={failedCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Awaiting delivery" value={pendingCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+      </section>
+      <Card aria-labelledby="sms-title">
+        <SectionHeader id="sms-title" title="SMS delivery log" aside={<CountBadge>{entries.length} records</CountBadge>} />
+        <Toolbar>
+          <SearchField label="Search SMS log" value={search} onChange={setSearch} placeholder="Search farm, prediction, severity, or ID" />
+          <FilterSelect id="sms-status-filter" label="Filter SMS status" value={statusFilter} onChange={setStatusFilter} options={[['all', 'All statuses'], ['sent', 'Sent'], ['failed', 'Failed'], ['pending', 'Pending']]} />
+        </Toolbar>
+        {smsLog.isError && <Notice tone="critical" className="mb-4"><p>SMS records could not be loaded. Check your admin access and connection.</p></Notice>}
+        {smsLog.isLoading ? <LoadingRows /> : (
+          <DataTable
+            caption="SMS delivery log"
+            rows={filtered}
+            rowKey={(entry) => entry.id}
+            initialSort={{ key: 'sent', dir: 'desc' }}
+            empty={search || statusFilter !== 'all' ? 'No SMS records match those filters.' : 'No SMS alerts have been recorded yet.'}
+            columns={[
+              { key: 'status', label: 'Status', sortValue: (entry) => entry.status, render: (entry) => <CountBadge tone={statusTone(entry.status)}><span className="capitalize">{entry.status}</span></CountBadge> },
+              { key: 'severity', label: 'Severity', sortValue: (entry) => entry.severity, render: (entry) => <span className="font-bold">{entry.severity}</span> },
+              { key: 'farm', label: 'Farm', render: (entry) => idCell(entry.farm_id) },
+              { key: 'prediction', label: 'Prediction', render: (entry) => idCell(entry.prediction_id) },
+              { key: 'sent', label: 'Sent at', sortValue: (entry) => timeValue(entry.sent_at), render: (entry) => <span className="text-ink-secondary">{entry.sent_at ? new Date(entry.sent_at).toLocaleString() : '—'}</span> },
+              { key: 'id', label: 'Alert ID', render: (entry) => idCell(entry.id) },
+            ]}
+          />
+        )}
+        {pendingCount + failedCount + sentCount < entries.length && <p className="mb-0 mt-3 text-caption text-ink-secondary">Some records use statuses outside the sent, failed, or pending categories.</p>}
+      </Card>
+    </div>
+  )
+}
+
+=== dashboard\src\views\admin\AdminShell.jsx ===
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
+import { focusRing } from '../../components/ui/styles'
+
+const ICON_PATHS = {
+  overview: <><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>,
+  farms: <><path d="m3 10 9-7 9 7" /><path d="M5 9v12h14V9" /><path d="M9 21v-6h6v6" /></>,
+  users: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" /></>,
+  feedback: <><path d="M4 5h16v11H9l-5 4z" /><path d="M8 9h8M8 12h5" /></>,
+  models: <><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" /></>,
+  retraining: <><path d="M20 12a8 8 0 1 1-2.3-5.7" /><path d="M20 4v5h-5" /></>,
+  sms: <><rect x="6" y="2" width="12" height="20" rx="2" /><path d="M10 18h4" /></>,
+}
+
+const NAV_ITEMS = [
+  ['overview', 'Overview'], ['farms', 'Farms'], ['users', 'Users'],
+  ['feedback', 'Feedback'], ['models', 'Models'], ['retraining', 'Retraining'], ['sms', 'SMS log'],
+]
+
+function NavIcon({ section }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {ICON_PATHS[section]}
+    </svg>
+  )
+}
+
+function NavItem({ section, label, activeSection, onNavigate }) {
+  const active = activeSection === section
+  return (
+    <Link
+      to={section === 'overview' ? '/admin' : `/admin?view=${section}`}
+      onClick={onNavigate}
+      aria-current={active ? 'page' : undefined}
+      className={`relative flex min-h-11 items-center gap-3 rounded-control px-3 text-small font-bold no-underline transition-colors duration-fast ${focusRing} ${active ? 'bg-brand-tint text-brand' : 'text-ink-secondary hover:bg-app-bg hover:text-ink'}`}
+    >
+      {active && <span aria-hidden="true" className="absolute inset-y-2 left-0 w-1 rounded-full bg-brand" />}
+      <NavIcon section={section} />
+      <span>{label}</span>
+    </Link>
+  )
+}
+
+const isWide = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+
+export default function AdminShell({ activeSection, children }) {
+  const { name, phone, logout } = useAuth()
+  const navigate = useNavigate()
+  // Open beside the content on wide screens; on phones it starts closed and opens over the content.
+  const [sidebarVisible, setSidebarVisible] = useState(isWide)
+  const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
+  const closeOnNarrow = () => { if (!isWide()) setSidebarVisible(false) }
+
+  useEffect(() => {
+    if (!sidebarVisible) return
+    const onKey = (event) => { if (event.key === 'Escape' && !isWide()) setSidebarVisible(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [sidebarVisible])
+
+  return (
+    <div className="min-h-screen bg-app-bg text-ink">
+      <div className="flex min-h-screen">
+        {sidebarVisible && (
+          <>
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setSidebarVisible(false)}
+              className="fixed inset-0 z-20 min-h-0 rounded-none bg-ink/40 lg:hidden"
+            />
+            <aside className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-border bg-surface shadow-raised lg:sticky lg:top-0 lg:h-screen lg:shadow-none">
+              <Link to="/admin" onClick={closeOnNarrow} className={`flex items-baseline gap-2 px-5 pb-4 pt-6 text-ink no-underline ${focusRing}`}>
+                <span className="text-heading">Maize Monitor</span>
+                <span className="text-caption font-bold text-ink-secondary">Admin</span>
+              </Link>
+              <nav aria-label="Admin sections" className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-2">
+                {NAV_ITEMS.map(([section, label]) => (
+                  <NavItem key={section} section={section} label={label} activeSection={activeSection} onNavigate={closeOnNarrow} />
+                ))}
+              </nav>
+              <div className="border-t border-border p-4">
+                <p className="m-0 truncate text-small font-bold">{name || 'Administrator'}</p>
+                {phone && <p className="m-0 truncate text-caption text-ink-secondary">{phone}</p>}
+                <button type="button" onClick={handleLogout} className={`mt-3 min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-left text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
+                  Log out
+                </button>
+              </div>
+            </aside>
+          </>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface px-4 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSidebarVisible((visible) => !visible)}
+                aria-label={sidebarVisible ? 'Hide menu' : 'Show menu'}
+                aria-expanded={sidebarVisible}
+                className={`flex h-11 w-11 min-h-11 items-center justify-center rounded-control border-[1.5px] border-control bg-surface text-ink hover:bg-app-bg ${focusRing}`}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  {sidebarVisible ? <path d="M15 6l-6 6 6 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+                </svg>
+              </button>
+              <span className="truncate text-small text-ink-secondary">
+                Admin <span aria-hidden="true" className="mx-1">/</span> <span className="font-bold text-ink">{NAV_ITEMS.find(([key]) => key === activeSection)?.[1]}</span>
+              </span>
+            </div>
+            {!sidebarVisible && (
+              <button type="button" onClick={handleLogout} className={`min-h-11 rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
+                Log out
+              </button>
+            )}
+          </div>
+          <main id="main-content" className="mx-auto w-full max-w-[1440px] p-4 sm:p-6 lg:p-8">{children}</main>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+=== dashboard\src\views\auth\Login.jsx ===
+import { useState } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useLoginMutation } from '../../api/hooks'
+import { useAuth } from '../../auth/AuthContext'
+import { EyeIcon, EyeOffIcon } from '../../components/Icons'
+import AuthLayout from '../../components/AuthLayout'
+
+export default function Login() {
+    const [phone, setPhone] = useState('')
+    const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [error, setError] = useState('')
+    const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const { login } = useAuth()
+    const loginMutation = useLoginMutation()
+    const registered = searchParams.get('registered') === 'true'
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setError('')
+        try {
+            if (!/^\d{9}$/.test(phone)) {
+                setError('Enter the 9 digits after +254')
+                return
+            }
+            const data = await loginMutation.mutateAsync({ phone: `+254${phone}`, password })
+            const token = data.access_token
+            const profile = await login(token)
+            navigate(profile?.role === 'admin' ? '/admin' : '/', { replace: true })
+        } catch (err) {
+            setError(err.message || 'Phone number or password is incorrect')
+        }
+    }
+
+    return (
+        <AuthLayout subtitle="Field monitoring & disease detection">
+                {registered && (
+                    <div className="mb-4 px-3 py-2 bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)] rounded-control text-small">
+                        Account created successfully. You can now log in.
+                    </div>
+                )}
+
+                {error && (
+                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="phone" className="text-small font-normal text-[var(--color-text-primary)]">
+                            Phone number
+                        </label>
+                        <div className="relative">
+                            <span className="absolute inset-y-0 left-3 flex items-center text-body text-[var(--color-text-secondary)]" aria-hidden="true">
+                                +254
+                            </span>
+                            <input
+                                id="phone"
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={9}
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                                placeholder="712345678"
+                                required
+                                className="min-h-12 border-[1.5px] border-control px-3 py-2 pl-16 rounded-control text-body w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="password" className="text-small font-normal text-[var(--color-text-primary)]">
+                            Password
+                        </label>
+                        <div className="relative">
+                            <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="min-h-12 border-[1.5px] border-control px-3 py-2 pr-16 rounded-control text-body w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((visible) => !visible)}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                aria-pressed={showPassword}
+                                className="absolute inset-y-0 right-3 min-h-12 min-w-12 text-small font-normal text-[var(--color-brand)]"
+                            >
+                                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loginMutation.isPending}
+                        className="min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold py-2 px-4 rounded-control transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
+                    </button>
+                </form>
+
+                <p className="mt-5 text-center text-small text-[var(--color-text-secondary)]">
+                    Don&apos;t have an account?{' '}
+                    <Link to="/register" className="inline-flex min-h-12 items-center text-[var(--color-brand)] font-normal underline">
+                        Register
+                    </Link>
+                </p>
+
+                {/* Dev hint */}
+                {import.meta.env.VITE_USE_MOCK_API === 'true' && (
+                    <div className="mt-4 p-3 bg-[var(--color-neutral-bg)] rounded-control text-small text-[var(--color-text-secondary)]">
+                        <strong>Mock mode:</strong><br />
+                        Farmer: 712000001 / farmer123<br />
+                        Admin: 712000002 / admin123
+                    </div>
+                )}
+        </AuthLayout>
+    )
+}
+
+=== dashboard\src\views\farmer\Result.jsx ===
+import { useParams, useLocation, Link } from 'react-router-dom'
+import { useLatestReadingClassification, useLatestReadings, usePrediction } from '../../api/hooks'
+import FeedbackControl from '../../components/FeedbackControl'
+import { useFarm } from '../../farm/FarmContext'
+import { getFusedPredictionCopy } from '../../content/farmerCopy'
+import { WarningIcon } from '../../components/Icons'
+import { CameraIcon } from '../../components/NavIcons'
+import Badge from '../../components/ui/Badge'
+import Card from '../../components/ui/Card'
+import Notice from '../../components/ui/Notice'
+import Skeleton from '../../components/ui/Skeleton'
+import { buttonClass, insetClass, linkClass } from '../../components/ui/styles'
+
+const SEVERITY_STYLES = {
+    healthy: { tone: 'healthy', label: 'Healthy' },
+    warning: { tone: 'warning', label: 'Stress Detected' },
+    critical: { tone: 'critical', label: 'Disease Confirmed' },
+    neutral: { tone: 'neutral', label: 'Needs review' },
+}
+
+function SeverityBadge({ level }) {
+    const s = SEVERITY_STYLES[level] || SEVERITY_STYLES.neutral
+    return <Badge tone={s.tone}>{s.label}</Badge>
+}
+
+const BAND_BADGES = {
+    weak: { tone: 'warning', label: 'Possible, please check' },
+    none: { tone: 'neutral', label: 'Not sure' },
+}
+
+// Shows "Disease Confirmed" only when the model is confident. A weaker result gets a softer badge.
+function DiseaseBadge({ band, label, level }) {
+    const isDisease = Boolean(label) && label.toLowerCase() !== 'healthy'
+    const style = isDisease ? BAND_BADGES[band] : null
+    if (!style) return <SeverityBadge level={level} />
+    return <Badge tone={style.tone}>{style.label}</Badge>
+}
+
+function UploadedImage({ imageUrl }) {
+    return (
+        <Card>
+            <h2 className="mb-3 mt-0 text-heading text-ink-secondary">Uploaded leaf image</h2>
+            <img
+                src={imageUrl}
+                alt="Uploaded maize leaf for analysis"
+                className="max-h-[28rem] w-full rounded-control object-contain"
+            />
+        </Card>
+    )
+}
+
+function ReadingGrid({ tiles }) {
+    return (
+        <dl className="m-0 grid grid-cols-2 gap-3">
+            {tiles.map(([name, value]) => (
+                <div key={name} className={insetClass}>
+                    <dt className="text-small text-ink-secondary">{name}</dt>
+                    <dd className="m-0 mt-0.5 text-heading tabular-nums text-ink">{value}</dd>
+                </div>
+            ))}
+        </dl>
+    )
+}
+
+function PlotReadingsCard({ farmId }) {
+    const { data: reading } = useLatestReadings(farmId)
+    const { data: label } = useLatestReadingClassification(farmId)
+    if (!reading) return null
+    const tiles = [
+        ['Temperature', `${reading.temperature} °C`],
+        ['Humidity', `${reading.humidity}%`],
+        ['Soil moisture', `${reading.soil_moisture}%`],
+        ['Leaf wetness', `${reading.leaf_wetness}`],
+    ]
+    return (
+        <Card>
+            <h2 className="m-0 text-heading text-ink-secondary">Latest field reading for this plot</h2>
+            <p className="mb-3 mt-1 text-small text-ink-secondary">
+                Simulated sensor · {reading.recorded_at ? new Date(reading.recorded_at).toLocaleString('en-GB') : ''}
+            </p>
+            <ReadingGrid tiles={tiles} />
+            {label && (
+                <p className="mb-0 mt-3 text-small">
+                    <span className="text-ink-secondary">Sensor model, this reading: </span>
+                    <strong>{label.title}</strong>{' '}
+                    <span className="text-ink-secondary">({Math.round(label.confidence * 100)}%)</span>
+                </p>
+            )}
+        </Card>
+    )
+}
+
+export default function Result() {
+    const { farmId: routeFarmId, predictionId } = useParams()
+    const location = useLocation()
+    const uploadedImageUrl = location.state?.uploadedImageUrl
+    const uploadedImage = uploadedImageUrl && <UploadedImage imageUrl={uploadedImageUrl} />
+    const { farms, selectedFarmId } = useFarm()
+    const farmId = routeFarmId || location.state?.farmId || selectedFarmId
+    const { data: prediction, isLoading, isError } = usePrediction(farmId, predictionId)
+
+    if (isLoading) {
+        return (
+            <div className="mx-auto flex max-w-xl flex-col gap-4">
+                <Skeleton label="Loading result…" className="h-10 w-2/3" />
+                <Skeleton className="h-56" />
+                <Skeleton className="h-32" />
+            </div>
+        )
+    }
+    if (isError || !prediction) {
+        return (
+            <div className="mx-auto max-w-lg">
+                <Notice tone="critical" action={<Link to="/" className={buttonClass({ variant: 'secondary', size: 'sm' })}>Back to dashboard</Link>}>
+                    <p>Could not load this result.</p>
+                </Notice>
+            </div>
+        )
+    }
+
+    const {
+        status,
+        fused_prediction,
+        disease_label,
+        disease_confidence,
+        disease_band,
+        severity_level,
+        sensor_conditions,
+        recommendation,
+        nutrient_status,
+        nutrient_confidence,
+    } = prediction
+    const copy = getFusedPredictionCopy(fused_prediction)
+
+    // How sure the model is about the disease decides the wording of the Disease Detection card.
+    const diseaseName = disease_label?.replace(/_/g, ' ') || 'Unknown'
+    const isDiseaseLabel = diseaseName.toLowerCase() !== 'healthy' && diseaseName !== 'Unknown'
+    const diseaseUnsure = isDiseaseLabel && disease_band === 'none'
+    const diseaseHeadline = !isDiseaseLabel
+        ? diseaseName
+        : diseaseUnsure
+            ? 'Not sure what this is'
+            : disease_band === 'weak'
+                ? `Possible: ${diseaseName}`
+                : diseaseName
+    const hasNutrientDeficiency = /deficiency/i.test(nutrient_status || '') && !/^no[ _]deficiency$/i.test(nutrient_status || '')
+    const predictionFarm = farms.find((farm) => farm.farm_id === prediction.farm_id)
+
+    // Three status states
+    if (status === 'uncertain') {
+        return (
+            <div className="mx-auto flex max-w-lg flex-col gap-4">
+                <div className="motion-reveal flex gap-3 rounded-card bg-neutral-bg p-5 text-neutral-text">
+                    <CameraIcon className="h-6 w-6 shrink-0" />
+                    <div>
+                        <h1 className="m-0 text-title">{copy.headline}</h1>
+                        <p className="mb-0 mt-1 text-body text-ink">{copy.support}</p>
+                    </div>
+                </div>
+                {uploadedImage}
+                <Card><FeedbackControl alertId={predictionId} /></Card>
+                <Link to="/check-in" className={buttonClass({ block: true })}>Take a new photo</Link>
+            </div>
+        )
+    }
+
+    if (status === 'out_of_scope') {
+        return (
+            <div className="mx-auto flex max-w-lg flex-col gap-4">
+                <div className="motion-reveal flex gap-3 rounded-card bg-warning-bg p-5 text-warning-text">
+                    <span aria-hidden="true" className="mt-1 flex shrink-0"><WarningIcon size={20} /></span>
+                    <div>
+                        <h1 className="m-0 text-title">{copy.headline}</h1>
+                        <p className="mb-0 mt-1 text-body text-ink">{copy.support}</p>
+                    </div>
+                </div>
+                {uploadedImage}
+                <Card><FeedbackControl alertId={predictionId} /></Card>
+                <Link to="/" className={`inline-flex min-h-11 items-center self-center text-small ${linkClass}`}>Back to dashboard</Link>
+            </div>
+        )
+    }
+
+    // Confirmed result
+    return (
+        <div className="mx-auto flex max-w-xl flex-col gap-6">
+            <header>
+                <h1 className="m-0 text-display text-ink">Analysis Result</h1>
+                {predictionFarm && (
+                    <p className="m-0 mt-1 text-small text-ink-secondary">Plot: {predictionFarm.farm_name}</p>
+                )}
+                <p className="m-0 mt-1 break-all text-small text-ink-secondary">ID: {predictionId}</p>
+            </header>
+
+            {uploadedImage}
+
+            {/* Severity + Disease */}
+            <Card className="motion-reveal flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="m-0 text-heading text-ink-secondary">Disease Detection</h2>
+                    <DiseaseBadge band={disease_band} label={disease_label} level={severity_level} />
+                </div>
+                <div>
+                    <p className="m-0 text-title capitalize text-ink">
+                        {diseaseHeadline}
+                    </p>
+                    {disease_confidence != null && (
+                        diseaseUnsure ? (
+                            <p className="mb-0 mt-1 text-small normal-case text-ink-secondary">
+                                Closest match: <span className="font-normal capitalize">{diseaseName}</span> ({Math.round(disease_confidence * 100)}%). This is too low to rely on.
+                            </p>
+                        ) : (
+                            <p className="mb-0 mt-1 text-small text-ink-secondary">
+                                Confidence: <span className="font-bold">{Math.round(disease_confidence * 100)}%</span>
+                            </p>
+                        )
+                    )}
+                </div>
+                {diseaseUnsure && (
+                    <div className={`${insetClass} text-body text-ink`}>
+                        <strong>What to do:</strong> The photo did not give a clear answer. Take another photo in daylight with one leaf held flat. If the leaf looks sick to you, ask your extension officer to have a look.
+                    </div>
+                )}
+                {recommendation && !diseaseUnsure && (
+                    <div className={`${insetClass} text-body text-ink`}>
+                        <strong>Recommended action:</strong> {recommendation}
+                    </div>
+                )}
+            </Card>
+
+            {/* Sensor conditions */}
+            {sensor_conditions && (
+                <Card>
+                    <h2 className="mb-3 mt-0 text-heading text-ink-secondary">Sensor Conditions at Time of Capture</h2>
+                    <ReadingGrid
+                        tiles={[
+                            ['Temperature', `${sensor_conditions.temperature_c} °C`],
+                            ['Humidity', `${sensor_conditions.humidity_pct}%`],
+                            ['Soil Moisture', `${sensor_conditions.soil_moisture_pct}%`],
+                            ['Leaf Wetness', sensor_conditions.leaf_wetness ? 'Yes' : 'No'],
+                        ]}
+                    />
+                </Card>
+            )}
+
+            <PlotReadingsCard farmId={farmId} />
+
+            {/* Nutrient is shown in a separate section */}
+            {nutrient_status != null && (
+            <Card className="border-2 border-dashed !border-control">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="m-0 text-heading text-ink-secondary">Nutrient Assessment</h2>
+                    <Badge tone="neutral" icon={false}>Independent model</Badge>
+                </div>
+                <p className="m-0 text-heading capitalize text-ink">
+                    {nutrient_status?.replace(/_/g, ' ') || 'No deficiency detected'}
+                </p>
+                {nutrient_confidence != null && (
+                    <p className="mb-0 mt-1 text-small text-ink-secondary">
+                        Confidence: {Math.round(nutrient_confidence * 100)}%
+                    </p>
+                )}
+                {hasNutrientDeficiency && (
+                    <p className={`mb-0 mt-3 ${insetClass} text-body text-ink`}>
+                        This is an early sign only. Ask your extension officer to confirm it before you apply fertiliser.
+                    </p>
+                )}
+            </Card>
+            )}
+
+            {/* Feedback */}
+            <Card>
+                <h2 className="m-0 text-heading text-ink-secondary">Was this result accurate?</h2>
+                <FeedbackControl alertId={predictionId} />
+            </Card>
+
+            <Link to="/" className={`inline-flex min-h-11 items-center self-center text-small ${linkClass}`}>
+                Back to dashboard
+            </Link>
+        </div>
+    )
+}
+
+=== dashboard\src\components\ui\DataTable.jsx ===
+import { useState } from 'react'
+import { focusRing } from './styles'
+
+function compare(a, b) {
+  if (a == null && b == null) return 0
+  if (a == null) return 1
+  if (b == null) return -1
+  if (typeof a === 'number' && typeof b === 'number') return a - b
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' })
+}
+
+function SortArrow({ dir }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 12 12" className={`h-3 w-3 shrink-0 ${dir ? 'opacity-100' : 'opacity-40'}`} fill="currentColor">
+      {dir !== 'desc' && <path d="M6 1.5 9.5 5h-7z" />}
+      {dir !== 'asc' && <path d="M6 10.5 2.5 7h7z" />}
+    </svg>
+  )
+}
+
+// Dense admin table: header stays visible while the body scrolls, sortable columns announce
+// their state with aria-sort, numbers right-align in tabular figures.
+// columns: [{ key, label, render(row), sortValue?(row), align?: 'right', className? }]
+export default function DataTable({ caption, columns, rows, rowKey, initialSort, empty, maxHeight = 'max-h-[70vh]' }) {
+  const [sort, setSort] = useState(initialSort ?? null)
+  const sortColumn = columns.find((column) => column.key === sort?.key)
+  const sorted = sortColumn?.sortValue
+    ? [...rows].sort((a, b) => compare(sortColumn.sortValue(a), sortColumn.sortValue(b)) * (sort.dir === 'desc' ? -1 : 1))
+    : rows
+
+  const toggle = (key) =>
+    setSort((current) => (current?.key === key ? { key, dir: current.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
+
+  if (rows.length === 0) {
+    return <p className="m-0 rounded-control bg-app-bg p-5 text-center text-small text-ink-secondary">{empty}</p>
+  }
+
+  return (
+    <div className={`overflow-auto rounded-control border border-border ${maxHeight}`}>
+      <table className="w-full min-w-[720px] border-collapse text-left text-small">
+        <caption className="sr-only">{caption}</caption>
+        <thead>
+          <tr>
+            {columns.map((column) => {
+              const dir = sort?.key === column.key ? sort.dir : null
+              return (
+                <th
+                  key={column.key}
+                  scope="col"
+                  aria-sort={column.sortValue ? (dir === 'asc' ? 'ascending' : dir === 'desc' ? 'descending' : 'none') : undefined}
+                  className={`sticky top-0 z-10 border-b border-border bg-app-bg px-4 text-caption font-bold text-ink-secondary ${column.align === 'right' ? 'text-right' : ''}`}
+                >
+                  {column.sortValue ? (
+                    <button
+                      type="button"
+                      onClick={() => toggle(column.key)}
+                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-control bg-transparent px-0 text-caption font-bold text-ink-secondary hover:text-ink ${focusRing} ${column.align === 'right' ? 'flex-row-reverse' : ''}`}
+                    >
+                      {column.label}
+                      <SortArrow dir={dir} />
+                    </button>
+                  ) : (
+                    <span className="inline-flex min-h-11 items-center">{column.label}</span>
+                  )}
+                </th>
+              )
+            })}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border bg-surface">
+          {sorted.map((row) => (
+            <tr key={rowKey(row)} className="hover:bg-app-bg">
+              {columns.map((column) => (
+                <td
+                  key={column.key}
+                  className={`px-4 py-3 align-top ${column.align === 'right' ? 'text-right tabular-nums' : ''} ${column.className ?? ''}`}
+                >
+                  {column.render(row)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+=== dashboard\src\components\ui\StatTile.jsx ===
+import { cardClass } from './styles'
+
+// One headline number from a real query.
+export default function StatTile({ label, value, isLoading, isError, detail }) {
+  return (
+    <article className={cardClass}>
+      <p className="m-0 text-small font-bold text-ink-secondary">{label}</p>
+      <p className="mb-0 mt-2 text-stat tabular-nums text-ink">
+        {isLoading ? (
+          <span role="status" aria-label="Loading" className="inline-block h-8 w-16 rounded-control bg-neutral-bg motion-safe:animate-pulse" />
+        ) : isError ? (
+          <span className="text-title text-ink-secondary">Unavailable</span>
+        ) : (
+          value
+        )}
+      </p>
+      {detail && !isLoading && !isError && <p className="mb-0 mt-1 text-caption text-ink-secondary">{detail}</p>}
+    </article>
+  )
+}
+
+=== dashboard\src\components\ui\Toolbar.jsx ===
+import { focusRing } from './styles'
+
+const controlClass = `min-h-11 rounded-control border-[1.5px] border-control bg-surface px-3 text-small text-ink ${focusRing}`
+
+// The same search + filter row on every admin panel.
+export function SearchField({ label, value, onChange, placeholder }) {
+  return (
+    <label className="min-w-0 flex-1">
+      <span className="sr-only">{label}</span>
+      <input type="search" value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={`w-full ${controlClass}`} />
+    </label>
+  )
+}
+
+export function FilterSelect({ id, label, value, onChange, options }) {
+  return (
+    <>
+      <label className="sr-only" htmlFor={id}>{label}</label>
+      <select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={`font-bold ${controlClass}`}>
+        {options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}
+      </select>
+    </>
+  )
+}
+
+export default function Toolbar({ children }) {
+  return <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">{children}</div>
+}
+
