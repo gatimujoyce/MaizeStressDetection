@@ -12,6 +12,7 @@ import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
 import { buttonClass, focusRing, insetClass, linkClass } from '../../components/ui/styles'
 import { DATE_RANGES, inDateRange, uniqueOptions } from '../../components/ui/adminFilters'
 import AdminShell from './AdminShell'
+import { AuditPanel, FarmEditor, UserEditor } from './ManagePanels'
 
 const SECTIONS = {
   overview: {
@@ -41,6 +42,10 @@ const SECTIONS = {
   sms: {
     title: 'SMS log',
     description: 'Review SMS alert delivery records.',
+  },
+  audit: {
+    title: 'Activity log',
+    description: 'A permanent record of what administrators changed, and when.',
   },
 }
 
@@ -88,6 +93,8 @@ export default function AdminDashboard() {
           ? <RetrainingPanel />
         : activeSection === 'sms'
           ? <SmsPanel />
+        : activeSection === 'audit'
+          ? <AuditPanel />
         : <ComingSoonPanel title={section.title} />}
     </AdminShell>
   )
@@ -181,6 +188,8 @@ function UsersPanel() {
   const [form, setForm] = useState({ name: '', phone: '', password: '' })
   const [search, setSearch] = useState('')
   const [createdName, setCreatedName] = useState('')
+  const [managedId, setManagedId] = useState(null)
+  const managed = (users.data ?? []).find((user) => user.id === managedId)
   const filteredUsers = (users.data ?? []).filter((user) => `${user.name} ${user.phone} ${user.role}`.toLowerCase().includes(search.toLowerCase()))
 
   async function handleSubmit(event) {
@@ -212,6 +221,12 @@ function UsersPanel() {
               { key: 'name', label: 'Name', sortValue: (user) => user.name, render: (user) => <span className="font-bold text-ink">{user.name}</span> },
               { key: 'phone', label: 'Phone', sortValue: (user) => user.phone, render: (user) => <span className="tabular-nums text-ink-secondary">{user.phone}</span> },
               { key: 'role', label: 'Role', sortValue: (user) => user.role, render: (user) => <CountBadge tone={user.role === 'admin' ? 'healthy' : 'neutral'}><span className="capitalize">{user.role}</span></CountBadge> },
+              {
+                key: 'manage', label: '',
+                render: (user) => user.role === 'farmer'
+                  ? <button type="button" onClick={() => setManagedId(user.id)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>Manage</button>
+                  : null,
+              },
             ]}
           />
         )}
@@ -229,6 +244,7 @@ function UsersPanel() {
           <button disabled={createAdmin.isPending} type="submit" className={`mt-1 ${buttonClass({ size: 'sm' })}`}>{createAdmin.isPending ? 'Creating account…' : 'Create admin account'}</button>
         </form>
       </Card>
+      {managed && <div className="xl:col-span-2"><UserEditor key={managed.id} user={managed} onClose={() => setManagedId(null)} /></div>}
     </div>
   )
 }
@@ -236,6 +252,7 @@ function UsersPanel() {
 function FarmsPanel() {
   const [includeDeleted, setIncludeDeleted] = useState(false)
   const [search, setSearch] = useState('')
+  const [editing, setEditing] = useState(null) // a farm, 'new', or null
   const farms = useAdminFarms(includeDeleted)
   const visibleFarms = (farms.data ?? []).filter((farm) => {
     const fields = [farm.name, farm.owner_name, farm.owner_phone, farm.location, farm.soil_type, farm.seed_variety, farm.water_source]
@@ -251,7 +268,13 @@ function FarmsPanel() {
           <input type="checkbox" checked={includeDeleted} onChange={(event) => setIncludeDeleted(event.target.checked)} className="h-4 w-4 min-h-0 accent-brand" />
           Include archived farms
         </label>
+        <button type="button" onClick={() => setEditing('new')} className={buttonClass({ size: 'sm' })}>Add a farm</button>
       </Toolbar>
+      {editing && (
+        <div className="mb-4">
+          <FarmEditor key={editing === 'new' ? 'new' : editing.id} farm={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
+        </div>
+      )}
       {farms.isError && <Notice tone="critical" className="mb-4"><p>Farm records could not be loaded. Check your admin access and connection.</p></Notice>}
       {farms.isLoading ? <LoadingRows /> : (
         <DataTable
@@ -279,6 +302,14 @@ function FarmsPanel() {
             {
               key: 'status', label: 'Status', sortValue: (farm) => (farm.deleted_at ? 'Archived' : 'Active'),
               render: (farm) => (farm.deleted_at ? <CountBadge>Archived</CountBadge> : <CountBadge tone="healthy">Active</CountBadge>),
+            },
+            {
+              key: 'npk', label: 'NPK sensor', sortValue: (farm) => (farm.has_npk_sensor ? 1 : 0),
+              render: (farm) => (farm.has_npk_sensor ? <CountBadge tone="healthy">On</CountBadge> : <span className="text-ink-secondary">Off</span>),
+            },
+            {
+              key: 'edit', label: '',
+              render: (farm) => <button type="button" onClick={() => setEditing(farm)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>Edit</button>,
             },
           ]}
         />

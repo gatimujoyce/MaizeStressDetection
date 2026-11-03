@@ -512,7 +512,7 @@ export default function PlotWizard({ mode = 'onboarding' }) {
                   This plot has an NPK sensor
                 </label>
                 <p className="m-0 mt-1 text-small text-ink-secondary">
-                  An NPK sensor measures nitrogen, phosphorus and potassium in the soil. You can change this later on the Trends page.
+                  An NPK sensor measures nitrogen, phosphorus and potassium in the soil. To add or change it later, contact your administrator.
                 </p>
               </fieldset>
             </div>

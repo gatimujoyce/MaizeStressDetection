@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useFarmHistory, useReadingTrend } from '../../api/hooks'
 import { CheckIcon, WarningIcon } from '../../components/Icons'
 import TrendChart from '../../components/TrendChart'
-import NpkSetting from '../../components/trends/NpkSetting'
 import ReadingTrendCard, { FIELD_ORDER, NPK_FIELD_ORDER } from '../../components/trends/ReadingTrendCard'
 import StatusTimeline from '../../components/trends/StatusTimeline'
 import { RANGES } from '../../components/trends/trendTime'
@@ -159,7 +158,14 @@ export default function TrendsPage() {
                 </>
             )}
 
-            <NpkSetting farm={selectedFarm} />
+            {selectedFarm && !selectedFarm.hasNpkSensor && (
+                <Card aria-labelledby="npk-off-title">
+                    <SectionHeader id="npk-off-title" title="Soil nutrient sensor" as="h2" />
+                    <p className="m-0 text-body text-ink-secondary">
+                        No NPK sensor is set up for this plot. To add one, contact your administrator.
+                    </p>
+                </Card>
+            )}
             <TrendChart history={history} />
         </div>
     )

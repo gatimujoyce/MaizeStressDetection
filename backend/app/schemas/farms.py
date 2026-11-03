@@ -29,7 +29,6 @@ class FarmUpdate(BaseModel):
     seed_variety: Optional[str] = None
     latitude: Optional[float] = Field(default=None, ge=-90.0, le=90.0)
     longitude: Optional[float] = Field(default=None, ge=-180.0, le=180.0)
-    has_npk_sensor: Optional[bool] = None
 
 class FarmResponse(BaseModel):
     id: uuid.UUID
