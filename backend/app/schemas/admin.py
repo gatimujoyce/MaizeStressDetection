@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from app.models import ModelNameEnum
-from app.schemas.farms import FarmResponse
+from app.schemas.farms import FarmResponse, FarmUpdate
 from app.schemas.predictions import FeedbackResponse
 import uuid
 
@@ -36,6 +36,28 @@ class AdminUserCreate(BaseModel):
     name: str
     phone: str
     password: str
+
+class AdminUserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+
+class AdminPasswordReset(BaseModel):
+    password: str = Field(min_length=8)
+
+class AdminFarmUpdate(FarmUpdate):
+    has_npk_sensor: Optional[bool] = None
+
+class AuditLogEntry(BaseModel):
+    id: uuid.UUID
+    created_at: datetime
+    admin_name: str
+    action: str
+    target_type: str
+    target_id: Optional[uuid.UUID] = None
+    target_label: str
+    changes: dict = {}
+
+    model_config = {"from_attributes": True}
 
 class AdminFarmResponse(FarmResponse):
     owner_name: Optional[str] = None

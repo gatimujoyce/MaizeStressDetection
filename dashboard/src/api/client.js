@@ -123,9 +123,6 @@ export const createFarm = (data) =>
         has_npk_sensor: Boolean(data.hasNpkSensor),
     }).then(mapFarmResponse)
 
-export const updateFarm = (farmId, changes) =>
-    httpClient.patch(`/farms/${farmId}`, { has_npk_sensor: Boolean(changes.hasNpkSensor) }).then(mapFarmResponse)
-
 export const getFarmStatus = (farmId) =>
     shouldUseMock('status')
         ? mock.getFarmStatus(farmId)

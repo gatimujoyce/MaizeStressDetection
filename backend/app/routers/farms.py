@@ -8,7 +8,7 @@ from typing import List
 from datetime import datetime, timezone
 
 from app.core.deps import get_db, require_farmer
-from app.models import Alert, Farm, User, RoleEnum, Checkin, Prediction, SensorReading
+from app.models import Farm, User, RoleEnum, Checkin, Prediction, SensorReading
 from app.schemas.farms import (
     FarmCreate,
     FarmUpdate,
@@ -133,16 +133,6 @@ async def update_farm(
         raise HTTPException(status_code=404, detail="Farm not found")
 
     update_data = farm_in.model_dump(exclude_unset=True)
-    if update_data.get("has_npk_sensor", True) is None:
-        update_data.pop("has_npk_sensor")          # the column cannot be empty: ignore an explicit null
-    if update_data.get("has_npk_sensor") is False and farm.has_npk_sensor:
-        # Turning the sensor off: close its open low-nutrient alerts, because nothing would ever close them afterwards.
-        from app.services.nutrient_rules import NUTRIENT_STRESSES
-        open_nutrient = await db.execute(select(Alert).where(
-            Alert.farm_id == farm.id, Alert.source == "sensor",
-            Alert.stress_class.in_(list(NUTRIENT_STRESSES)), Alert.resolved_at.is_(None)))
-        for alert in open_nutrient.scalars().all():
-            alert.resolved_at = datetime.now(timezone.utc)
     for k, v in update_data.items():
         setattr(farm, k, v)
 

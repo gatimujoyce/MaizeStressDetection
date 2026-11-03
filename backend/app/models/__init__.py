@@ -155,6 +155,20 @@ class SmsLog(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False)      # sent or failed
     severity: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+class AdminAuditLog(Base):
+    """What an administrator changed, and when. Rows are only ever added."""
+    __tablename__ = "admin_audit_log"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True,
+                                                 default=lambda: datetime.now(timezone.utc))
+    admin_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    admin_name: Mapped[str] = mapped_column(Text, nullable=False)        # a copy, so the entry still reads right later
+    action: Mapped[str] = mapped_column(Text, nullable=False)            # for example farm.update
+    target_type: Mapped[str] = mapped_column(Text, nullable=False)       # user or farm
+    target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    target_label: Mapped[str] = mapped_column(Text, nullable=False)
+    changes: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)   # {field: [old, new]}
+
 class Feedback(Base):
     __tablename__ = "feedback"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
