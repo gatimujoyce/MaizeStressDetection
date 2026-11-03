@@ -274,5 +274,9 @@ export function useRequestAdminRetrainMutation() {
 }
 
 export function useAdminSmsLog() {
-    return useQuery({ queryKey: ['admin', 'smsLog'], queryFn: client.getAdminSmsLog })
+    return useQuery({
+        queryKey: ['admin', 'smsLog'],
+        queryFn: client.getAdminSmsLog,
+        refetchInterval: 10000,
+    })
 }

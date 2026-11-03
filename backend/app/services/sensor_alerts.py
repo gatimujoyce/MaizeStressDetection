@@ -12,6 +12,7 @@ from app.services.alert_rules import TITLES, plan_alerts, sms_text
 from app.services.nutrient_rules import NUTRIENT_STRESSES, NUTRIENTS, plan_nutrient_alerts
 from app.services.inference import InferenceUnavailableError
 from app.services.sms import send_sms
+from app.services.sms_log import record_sms
 
 log = logging.getLogger(__name__)
 WINDOW = timedelta(hours=24)
@@ -44,6 +45,7 @@ async def _evaluate(db, reading):
     farm_id, farm_name = farm.id, farm.name
     owner = await db.get(User, farm.user_id)
     phone = owner.phone if owner is not None else None
+    owner_id = owner.id if owner is not None else None
     now = reading.recorded_at
     rows = (await db.execute(
         select(SensorReading)
@@ -95,6 +97,8 @@ async def _evaluate(db, reading):
         await db.execute(update(Alert).where(Alert.id == alert_id).values(
             status="sent" if sent else "failed",
             sent_at=datetime.now(timezone.utc) if sent else None))
+        record_sms(db, user_id=owner_id, farm_id=farm_id, alert_id=alert_id, kind="sensor_alert", phone=phone,
+                   message=text, status="sent" if sent else "failed", severity="High")
     if sms_jobs:
         await db.commit()
 

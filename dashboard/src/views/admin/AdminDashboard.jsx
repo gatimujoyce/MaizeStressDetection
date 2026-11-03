@@ -10,6 +10,7 @@ import Skeleton from '../../components/ui/Skeleton'
 import StatTile from '../../components/ui/StatTile'
 import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
 import { buttonClass, focusRing, insetClass, linkClass } from '../../components/ui/styles'
+import { DATE_RANGES, inDateRange, uniqueOptions } from '../../components/ui/adminFilters'
 import AdminShell from './AdminShell'
 
 const SECTIONS = {
@@ -237,7 +238,7 @@ function FarmsPanel() {
   const [search, setSearch] = useState('')
   const farms = useAdminFarms(includeDeleted)
   const visibleFarms = (farms.data ?? []).filter((farm) => {
-    const fields = [farm.name, farm.location, farm.soil_type, farm.seed_variety, farm.water_source]
+    const fields = [farm.name, farm.owner_name, farm.owner_phone, farm.location, farm.soil_type, farm.seed_variety, farm.water_source]
     return fields.filter(Boolean).join(' ').toLowerCase().includes(search.toLowerCase())
   })
 
@@ -245,7 +246,7 @@ function FarmsPanel() {
     <Card aria-labelledby="farms-title">
       <SectionHeader id="farms-title" title="Registered farms" aside={<CountBadge>{farms.data?.length ?? 0} {includeDeleted ? 'records' : 'active farms'}</CountBadge>} />
       <Toolbar>
-        <SearchField label="Search farms" value={search} onChange={setSearch} placeholder="Search farm, location, crop, or soil" />
+        <SearchField label="Search farms" value={search} onChange={setSearch} placeholder="Search farm, farmer, location, crop, or soil" />
         <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-bold text-ink">
           <input type="checkbox" checked={includeDeleted} onChange={(event) => setIncludeDeleted(event.target.checked)} className="h-4 w-4 min-h-0 accent-brand" />
           Include archived farms
@@ -263,6 +264,10 @@ function FarmsPanel() {
             {
               key: 'name', label: 'Farm', sortValue: (farm) => farm.name,
               render: (farm) => <><span className="block font-bold text-ink">{farm.name}</span><span className="mt-0.5 block text-caption text-ink-secondary">{farm.size_acres ? `${farm.size_acres} acres` : 'Size not set'}</span></>,
+            },
+            {
+              key: 'owner', label: 'Farmer', sortValue: (farm) => farm.owner_name,
+              render: (farm) => <><span className="block font-bold text-ink">{farm.owner_name || 'Unknown farmer'}</span><span className="mt-0.5 block text-caption tabular-nums text-ink-secondary">{farm.owner_phone}</span></>,
             },
             { key: 'location', label: 'Location', sortValue: (farm) => farm.location, render: (farm) => <span className="text-ink-secondary">{farm.location}</span> },
             {
@@ -286,13 +291,16 @@ function FarmsPanel() {
 function FeedbackPanel() {
   const feedback = useAdminFeedback()
   const [filter, setFilter] = useState('all')
+  const [farmFilter, setFarmFilter] = useState('all')
   const [search, setSearch] = useState('')
   const rows = feedback.data ?? []
+  const farmOptions = uniqueOptions(rows, (item) => item.farm_id, (item) => `${item.farm_name} (${item.farmer_name})`, 'All farms')
   const inaccurateCount = rows.filter((item) => !item.accurate).length
   const filtered = rows.filter((item) => {
     if (filter === 'inaccurate' && item.accurate) return false
     if (filter === 'useful' && item.useful !== true) return false
-    return `${item.correct_label ?? ''} ${item.comment ?? ''} ${item.prediction_id}`.toLowerCase().includes(search.toLowerCase())
+    if (farmFilter !== 'all' && item.farm_id !== farmFilter) return false
+    return `${item.correct_label ?? ''} ${item.comment ?? ''} ${item.farm_name ?? ''} ${item.farmer_name ?? ''} ${item.disease_label ?? ''}`.toLowerCase().includes(search.toLowerCase())
   })
 
   return (
@@ -305,8 +313,9 @@ function FeedbackPanel() {
       <Card aria-labelledby="feedback-title">
         <SectionHeader id="feedback-title" title="Prediction feedback" aside={<CountBadge tone={inaccurateCount ? 'warning' : 'neutral'}>{inaccurateCount} flagged inaccurate</CountBadge>} />
         <Toolbar>
-          <SearchField label="Search feedback" value={search} onChange={setSearch} placeholder="Search comments, labels, or prediction ID" />
+          <SearchField label="Search feedback" value={search} onChange={setSearch} placeholder="Search farm, farmer, comment, or result" />
           <FilterSelect id="feedback-filter" label="Filter feedback" value={filter} onChange={setFilter} options={[['all', 'All feedback'], ['inaccurate', 'Marked inaccurate'], ['useful', 'Marked useful']]} />
+          <FilterSelect id="feedback-farm-filter" label="Filter by farm" value={farmFilter} onChange={setFarmFilter} options={farmOptions} />
         </Toolbar>
         {feedback.isError && <Notice tone="critical" className="mb-4"><p>Feedback could not be loaded. Check your admin access and connection.</p></Notice>}
         {feedback.isLoading ? <LoadingRows /> : filtered.length ? (
@@ -322,7 +331,7 @@ function FeedbackPanel() {
                 </div>
                 {item.correct_label && <p className="mb-0 mt-2 text-small"><span className="font-bold">Suggested label:</span> {item.correct_label}</p>}
                 {item.comment && <blockquote className="mx-0 mb-0 mt-2 border-l-2 border-control pl-3 text-small text-ink-secondary">{item.comment}</blockquote>}
-                <p className="mb-0 mt-2 truncate text-caption text-ink-secondary">Prediction ID: {item.prediction_id}</p>
+                <p className="mb-0 mt-2 text-caption text-ink-secondary">{item.farmer_name} / {item.farm_name}{item.disease_label ? ` / result: ${item.disease_label.replaceAll('_', ' ')}` : ''}</p>
               </li>
             ))}
           </ul>
@@ -485,50 +494,65 @@ function MetricSummary({ metrics }) {
 function SmsPanel() {
   const smsLog = useAdminSmsLog()
   const [statusFilter, setStatusFilter] = useState('all')
+  const [farmerFilter, setFarmerFilter] = useState('all')
+  const [farmFilter, setFarmFilter] = useState('all')
+  const [rangeFilter, setRangeFilter] = useState('all')
   const [search, setSearch] = useState('')
   const entries = smsLog.data ?? []
-  const sentCount = entries.filter((entry) => entry.status?.toLowerCase() === 'sent').length
-  const failedCount = entries.filter((entry) => entry.status?.toLowerCase() === 'failed').length
-  const pendingCount = entries.filter((entry) => entry.status?.toLowerCase() === 'pending').length
+  const countStatus = (status) => entries.filter((entry) => entry.status?.toLowerCase() === status).length
+  const last24h = entries.filter((entry) => inDateRange(entry.created_at, '24h')).length
   const filtered = entries.filter((entry) => {
     if (statusFilter !== 'all' && entry.status?.toLowerCase() !== statusFilter) return false
-    return `${entry.severity} ${entry.status} ${entry.farm_id} ${entry.prediction_id} ${entry.id}`.toLowerCase().includes(search.toLowerCase())
-  }).sort((a, b) => new Date(b.sent_at ?? 0) - new Date(a.sent_at ?? 0))
+    if (farmerFilter !== 'all' && entry.farmer_id !== farmerFilter) return false
+    if (farmFilter !== 'all' && entry.farm_id !== farmFilter) return false
+    if (!inDateRange(entry.created_at, rangeFilter)) return false
+    return `${entry.farmer_name ?? ''} ${entry.farm_name ?? ''} ${entry.phone} ${entry.message}`.toLowerCase().includes(search.toLowerCase())
+  })
+  const farmerOptions = uniqueOptions(entries, (entry) => entry.farmer_id, (entry) => entry.farmer_name || 'Unknown farmer', 'All farmers')
+  const farmOptions = uniqueOptions(entries, (entry) => entry.farm_id, (entry) => `${entry.farm_name || 'Unknown farm'} (${entry.farmer_name || 'unknown'})`, 'All farms')
   const statusTone = (status) => (status?.toLowerCase() === 'sent' ? 'healthy' : status?.toLowerCase() === 'failed' ? 'critical' : 'neutral')
-  const idCell = (value) => <span className="block max-w-40 truncate font-mono text-caption text-ink-secondary" title={value}>{value}</span>
+  const kindLabel = (kind) => (kind === 'photo_alert' ? 'Photo check-in' : 'Sensor alert')
+  const filtersOn = search || statusFilter !== 'all' || farmerFilter !== 'all' || farmFilter !== 'all' || rangeFilter !== 'all'
 
   return (
     <div className="flex flex-col gap-6">
       <section aria-label="SMS delivery summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatTile label="Messages sent" value={sentCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
-        <StatTile label="Delivery failed" value={failedCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
-        <StatTile label="Awaiting delivery" value={pendingCount} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Messages sent" value={countStatus('sent')} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Failed to send" value={countStatus('failed')} isLoading={smsLog.isLoading} isError={smsLog.isError} />
+        <StatTile label="Last 24 hours" value={last24h} isLoading={smsLog.isLoading} isError={smsLog.isError} />
       </section>
       <Card aria-labelledby="sms-title">
-        <SectionHeader id="sms-title" title="SMS delivery log" aside={<CountBadge>{entries.length} records</CountBadge>} />
+        <SectionHeader id="sms-title" title="SMS log" aside={<CountBadge>{filtered.length} of {entries.length} messages</CountBadge>} />
         <Toolbar>
-          <SearchField label="Search SMS log" value={search} onChange={setSearch} placeholder="Search farm, prediction, severity, or ID" />
-          <FilterSelect id="sms-status-filter" label="Filter SMS status" value={statusFilter} onChange={setStatusFilter} options={[['all', 'All statuses'], ['sent', 'Sent'], ['failed', 'Failed'], ['pending', 'Pending']]} />
+          <SearchField label="Search SMS log" value={search} onChange={setSearch} placeholder="Search farmer, farm, phone, or message" />
+          <FilterSelect id="sms-status-filter" label="Filter by status" value={statusFilter} onChange={setStatusFilter} options={[['all', 'All statuses'], ['sent', 'Sent'], ['failed', 'Failed']]} />
         </Toolbar>
-        {smsLog.isError && <Notice tone="critical" className="mb-4"><p>SMS records could not be loaded. Check your admin access and connection.</p></Notice>}
+        <Toolbar>
+          <FilterSelect id="sms-farmer-filter" label="Filter by farmer" value={farmerFilter} onChange={setFarmerFilter} options={farmerOptions} />
+          <FilterSelect id="sms-farm-filter" label="Filter by farm" value={farmFilter} onChange={setFarmFilter} options={farmOptions} />
+          <FilterSelect id="sms-range-filter" label="Filter by date" value={rangeFilter} onChange={setRangeFilter} options={DATE_RANGES} />
+        </Toolbar>
+        {smsLog.isError && <Notice tone="critical" className="mb-4"><p>The SMS log could not be loaded. Check your admin access and connection.</p></Notice>}
         {smsLog.isLoading ? <LoadingRows /> : (
           <DataTable
-            caption="SMS delivery log"
+            caption="SMS log"
             rows={filtered}
             rowKey={(entry) => entry.id}
-            initialSort={{ key: 'sent', dir: 'desc' }}
-            empty={search || statusFilter !== 'all' ? 'No SMS records match those filters.' : 'No SMS alerts have been recorded yet.'}
+            initialSort={{ key: 'when', dir: 'desc' }}
+            empty={filtersOn ? 'No messages match those filters.' : 'No text messages have been sent yet.'}
             columns={[
+              { key: 'when', label: 'When', sortValue: (entry) => timeValue(entry.created_at), render: (entry) => <span className="whitespace-nowrap text-ink-secondary">{new Date(entry.created_at).toLocaleString()}</span> },
               { key: 'status', label: 'Status', sortValue: (entry) => entry.status, render: (entry) => <CountBadge tone={statusTone(entry.status)}><span className="capitalize">{entry.status}</span></CountBadge> },
-              { key: 'severity', label: 'Severity', sortValue: (entry) => entry.severity, render: (entry) => <span className="font-bold">{entry.severity}</span> },
-              { key: 'farm', label: 'Farm', render: (entry) => idCell(entry.farm_id) },
-              { key: 'prediction', label: 'Prediction', render: (entry) => idCell(entry.prediction_id) },
-              { key: 'sent', label: 'Sent at', sortValue: (entry) => timeValue(entry.sent_at), render: (entry) => <span className="text-ink-secondary">{entry.sent_at ? new Date(entry.sent_at).toLocaleString() : '—'}</span> },
-              { key: 'id', label: 'Alert ID', render: (entry) => idCell(entry.id) },
+              { key: 'farmer', label: 'Farmer', sortValue: (entry) => entry.farmer_name, render: (entry) => <><span className="block font-bold text-ink">{entry.farmer_name || 'Unknown farmer'}</span><span className="mt-0.5 block text-caption tabular-nums text-ink-secondary">{entry.phone}</span></> },
+              { key: 'farm', label: 'Farm', sortValue: (entry) => entry.farm_name, render: (entry) => <span className="text-ink">{entry.farm_name || 'Unknown farm'}</span> },
+              { key: 'kind', label: 'Reason', sortValue: (entry) => entry.kind, render: (entry) => <span className="text-ink-secondary">{kindLabel(entry.kind)}{entry.severity ? `, ${entry.severity}` : ''}</span> },
+              { key: 'message', label: 'Message', render: (entry) => <span className="block max-w-md text-small text-ink">{entry.message}</span> },
             ]}
           />
         )}
-        {pendingCount + failedCount + sentCount < entries.length && <p className="mb-0 mt-3 text-caption text-ink-secondary">Some records use statuses outside the sent, failed, or pending categories.</p>}
+        <p className="mb-0 mt-3 text-caption text-ink-secondary">
+          This list updates every 10 seconds. A message shows as Failed when the SMS service did not accept it, for example when the API key is missing or wrong.
+        </p>
       </Card>
     </div>
   )
