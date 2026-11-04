@@ -35,14 +35,11 @@ class RetrainRequest(BaseModel):
 class AdminUserCreate(BaseModel):
     name: str
     phone: str
-    password: str
+    password: str = Field(min_length=8)
 
 class AdminUserUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
-
-class AdminPasswordReset(BaseModel):
-    password: str = Field(min_length=8)
 
 class AdminFarmUpdate(FarmUpdate):
     has_npk_sensor: Optional[bool] = None

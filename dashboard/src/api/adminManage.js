@@ -3,7 +3,7 @@ import { httpClient } from './httpClient'
 
 // Admin management calls: edit farmers and farms, reset a password, read the action log.
 export const updateAdminUser = ({ id, data }) => httpClient.patch(`/admin/users/${id}`, data)
-export const resetAdminUserPassword = ({ id, password }) => httpClient.post(`/admin/users/${id}/reset-password`, { password })
+export const resetAdminUserPassword = ({ id }) => httpClient.post(`/admin/users/${id}/reset-password`, {})
 export const createAdminFarm = ({ userId, data }) => httpClient.post(`/admin/users/${userId}/farms`, data)
 export const updateAdminFarm = ({ id, data }) => httpClient.patch(`/admin/farms/${id}`, data)
 export const archiveAdminFarm = ({ id }) => httpClient.post(`/admin/farms/${id}/archive`, {})

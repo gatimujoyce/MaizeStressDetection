@@ -14,7 +14,7 @@ async def test_register_duplicate_phone_across_formats():
     mock_result.scalar_one_or_none.return_value = User() # Simulating existing user
     mock_db.execute.return_value = mock_result
 
-    user_in = UserCreate(name="Test", phone="0712345678", password="pw", role=RoleEnum.farmer)
+    user_in = UserCreate(name="Test", phone="0712345678", password="longenough1", role=RoleEnum.farmer)
     
     with pytest.raises(HTTPException) as exc:
         await register(user_in, db=mock_db)

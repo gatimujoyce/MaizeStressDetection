@@ -102,6 +102,7 @@ export function AuthProvider({ children }) {
         farmId: claims?.farm_id ?? null,
         isAuthenticated: !!claims && !isExpired(claims),
         login,
+        refreshProfile: () => (token ? loadProfile(token) : Promise.resolve(null)),
         logout,
       }}
     >

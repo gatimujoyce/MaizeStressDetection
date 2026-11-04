@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.core.config import settings
 from app.core.deps import get_db
 from app.core.security import get_password_hash, verify_password
 from app.db import Base
@@ -98,7 +99,8 @@ async def test_promote_changes_role_but_preserves_password_and_other_fields():
 
 
 @pytest.mark.asyncio
-async def test_admin_login_and_route_access_while_farmer_is_forbidden():
+async def test_admin_login_and_route_access_while_farmer_is_forbidden(monkeypatch):
+    monkeypatch.setattr(settings, "PHONE_VERIFICATION_REQUIRED", False)  # sign-up codes are tested in test_sign_in_safety.py
     async with TestSessionLocal() as db:
         await create_or_promote_admin(db, "0712345678", "Admin", "admin-password")
 

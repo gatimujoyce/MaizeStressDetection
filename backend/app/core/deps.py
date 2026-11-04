@@ -45,6 +45,8 @@ class RoleChecker:
         self.allowed_roles = allowed_roles
 
     def __call__(self, user: Annotated[User, Depends(get_current_user)]) -> User:
+        if user.must_change_password:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Choose a new password before continuing")
         if user.role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
+import asyncio
 from typing import List
 from datetime import datetime, timezone
 import uuid
@@ -14,10 +15,13 @@ from app.schemas.farms import FarmCreate, FarmResponse
 from app.schemas.predictions import FeedbackResponse
 from app.schemas.admin import ModelVersionResponse, ModelVersionUpdate, RetrainingJobResponse, RetrainRequest
 from app.schemas.admin import AdminUserCreate, AdminFarmResponse, AdminFeedbackResponse, SmsLogEntry
-from app.schemas.admin import AdminUserUpdate, AdminPasswordReset, AdminFarmUpdate, AuditLogEntry
+from app.schemas.admin import AdminUserUpdate, AdminFarmUpdate, AuditLogEntry
 from app.core.security import get_password_hash
 from app.core.utils import normalize_ke_phone
 from app.services.audit import record_admin_action
+from app.services.auth_codes import make_temp_password
+from app.services.sms import send_sms
+from app.services.sms_log import record_sms
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -37,12 +41,15 @@ async def create_admin_user(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Phone already registered")
     user = User(
+        id=uuid.uuid4(),
         name=user_in.name,
         phone=phone,
         password_hash=get_password_hash(user_in.password),
         role="admin",
+        must_change_password=True,  # the new administrator replaces this temporary password at first sign-in
     )
     db.add(user)
+    record_admin_action(db, current_admin, "user.create_admin", "user", user.id, f"{user.name} ({user.phone})")
     await db.commit()
     await db.refresh(user)
     return user
@@ -217,15 +224,28 @@ async def admin_update_user(
 @router.post("/users/{user_id}/reset-password")
 async def admin_reset_password(
     user_id: uuid.UUID,
-    data_in: AdminPasswordReset,
     current_admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    """Text the farmer a random temporary password. The administrator never sees it, and the farmer must replace it
+    the first time they sign in. The SMS log and the activity log do not keep the password."""
     user = await _load_farmer(db, user_id)
-    user.password_hash = get_password_hash(data_in.password)
-    record_admin_action(db, current_admin, "user.password_reset", "user", user.id, f"{user.name} ({user.phone})")
+    farmer_id, name, phone = user.id, user.name, user.phone
+    temporary = make_temp_password()
+    sent = await asyncio.to_thread(
+        send_sms, phone, f"MaizeStressMonitor: your temporary password is\n{temporary}\nSign in with it, then choose your own password.")
+    record_sms(db, user_id=farmer_id, farm_id=None, alert_id=None, kind="password_reset", phone=phone,
+               message="Temporary password sent (hidden)", status="sent" if sent else "failed")
+    if not sent:
+        await db.commit()  # keep the failed attempt in the SMS log; the old password still works
+        raise HTTPException(status_code=502, detail="The text message could not be sent, so the password was not changed.")
+    user.password_hash = get_password_hash(temporary)
+    user.must_change_password = True
+    user.failed_login_count = 0
+    user.locked_until = None
+    record_admin_action(db, current_admin, "user.password_reset", "user", farmer_id, f"{name} ({phone})")
     await db.commit()
-    return {"status": "ok"}
+    return {"status": "sent"}
 
 
 @router.post("/users/{user_id}/farms", response_model=AdminFarmResponse, status_code=201)
