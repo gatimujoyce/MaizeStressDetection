@@ -241,10 +241,11 @@ function UsersPanel() {
           <label className="text-small font-bold">Full name<input required autoComplete="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className={adminFieldClass} /></label>
           <label className="text-small font-bold">Kenyan phone number<input required type="tel" autoComplete="tel" placeholder="07… or +254…" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className={adminFieldClass} /></label>
           <label className="text-small font-bold">Temporary password<input required minLength={8} type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className={adminFieldClass} /></label>
+          <p className="m-0 -mt-2 text-caption text-ink-secondary">At least 8 characters. They must choose their own password the first time they sign in.</p>
           <button disabled={createAdmin.isPending} type="submit" className={`mt-1 ${buttonClass({ size: 'sm' })}`}>{createAdmin.isPending ? 'Creating account…' : 'Create admin account'}</button>
         </form>
       </Card>
-      {managed && <div className="xl:col-span-2"><UserEditor key={managed.id} user={managed} onClose={() => setManagedId(null)} /></div>}
+      {managed && <UserEditor key={managed.id} user={managed} onClose={() => setManagedId(null)} />}
     </div>
   )
 }
@@ -270,11 +271,7 @@ function FarmsPanel() {
         </label>
         <button type="button" onClick={() => setEditing('new')} className={buttonClass({ size: 'sm' })}>Add a farm</button>
       </Toolbar>
-      {editing && (
-        <div className="mb-4">
-          <FarmEditor key={editing === 'new' ? 'new' : editing.id} farm={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
-        </div>
-      )}
+      {editing && <FarmEditor key={editing === 'new' ? 'new' : editing.id} farm={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
       {farms.isError && <Notice tone="critical" className="mb-4"><p>Farm records could not be loaded. Check your admin access and connection.</p></Notice>}
       {farms.isLoading ? <LoadingRows /> : (
         <DataTable
@@ -542,7 +539,8 @@ function SmsPanel() {
   const farmerOptions = uniqueOptions(entries, (entry) => entry.farmer_id, (entry) => entry.farmer_name || 'Unknown farmer', 'All farmers')
   const farmOptions = uniqueOptions(entries, (entry) => entry.farm_id, (entry) => `${entry.farm_name || 'Unknown farm'} (${entry.farmer_name || 'unknown'})`, 'All farms')
   const statusTone = (status) => (status?.toLowerCase() === 'sent' ? 'healthy' : status?.toLowerCase() === 'failed' ? 'critical' : 'neutral')
-  const kindLabel = (kind) => (kind === 'photo_alert' ? 'Photo check-in' : 'Sensor alert')
+  const KIND_LABELS = { photo_alert: 'Photo check-in', sensor_alert: 'Sensor alert', password_reset: 'Temporary password', verification_code: 'Verification code' }
+  const kindLabel = (kind) => KIND_LABELS[kind] ?? 'Sensor alert'
   const filtersOn = search || statusFilter !== 'all' || farmerFilter !== 'all' || farmFilter !== 'all' || rangeFilter !== 'all'
 
   return (

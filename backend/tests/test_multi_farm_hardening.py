@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.future import select
 
 from app.db import Base
+from app.core.config import settings
 from app.core.deps import get_db
 from app.main import app
 from app.models import SensorReading
@@ -34,14 +35,15 @@ async def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 
 @pytest_asyncio.fixture(autouse=True)
-async def setup_db():
+async def setup_db(monkeypatch):
+    monkeypatch.setattr(settings, "PHONE_VERIFICATION_REQUIRED", False)  # sign-up codes are tested in test_sign_in_safety.py
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
-async def create_user(ac, name, phone, password="p"):
+async def create_user(ac, name, phone, password="password123"):
     await ac.post("/auth/register", json={"name": name, "phone": phone, "password": password})
     r = await ac.post("/auth/login", data={"username": phone, "password": password})
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
@@ -142,7 +144,7 @@ async def test_get_current_user_profile_with_valid_token():
     assert response.json()["name"] == "Profile User"
     assert response.json()["phone"] == "+254712345678"
     assert response.json()["role"] == "farmer"
-    assert set(response.json()) == {"id", "name", "phone", "role"}
+    assert set(response.json()) == {"id", "name", "phone", "role", "must_change_password"}
     assert "password_hash" not in response.json()
 
 @pytest.mark.asyncio
@@ -216,7 +218,7 @@ async def test_farm_isolation_integration():
         resp = await ac.post("/auth/register", json={
             "name": "User A",
             "phone": "0712345678",
-            "password": "secretA",
+            "password": "secret-pass-A",
         })
         assert resp.status_code == 200, resp.json()
         assert resp.json()["phone"] == "+254712345678"  # stored normalised
@@ -225,7 +227,7 @@ async def test_farm_isolation_integration():
         resp = await ac.post("/auth/register", json={
             "name": "User B",
             "phone": "0112345678",
-            "password": "secretB",
+            "password": "secret-pass-B",
         })
         assert resp.status_code == 200, resp.json()
         assert resp.json()["phone"] == "+254112345678"
@@ -233,7 +235,7 @@ async def test_farm_isolation_integration():
         # --- 3. Login as A using +254712345678 (E.164) must succeed ---
         resp = await ac.post("/auth/login", data={
             "username": "+254712345678",
-            "password": "secretA",
+            "password": "secret-pass-A",
         })
         assert resp.status_code == 200, resp.json()
         token_a = resp.json()["access_token"]
@@ -242,14 +244,14 @@ async def test_farm_isolation_integration():
         resp = await ac.post("/auth/register", json={
             "name": "Duplicate A",
             "phone": "+254712345678",
-            "password": "x",
+            "password": "longenough1",
         })
         assert resp.status_code == 400, resp.json()
 
         # --- 5. Login as B ---
         resp = await ac.post("/auth/login", data={
             "username": "0112345678",
-            "password": "secretB",
+            "password": "secret-pass-B",
         })
         assert resp.status_code == 200, resp.json()
         token_b = resp.json()["access_token"]

@@ -7,6 +7,7 @@ import {
 import Badge from '../../components/ui/Badge'
 import Card, { SectionHeader } from '../../components/ui/Card'
 import DataTable from '../../components/ui/DataTable'
+import Modal from '../../components/ui/Modal'
 import Notice from '../../components/ui/Notice'
 import Skeleton from '../../components/ui/Skeleton'
 import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
@@ -21,51 +22,58 @@ function Field({ label, children }) {
   return <label className="text-small font-bold">{label}{children}</label>
 }
 
-// Edit a farmer's name and phone, or set a new password.
+// Edit a farmer's name and phone, or text them a temporary password. Opens as a floating card.
 export function UserEditor({ user, onClose }) {
   const [form, setForm] = useState({ name: user.name, phone: user.phone })
-  const [password, setPassword] = useState('')
   const [done, setDone] = useState('')
+  const [confirming, setConfirming] = useState(false)
   const save = useAdminManageMutation(updateAdminUser)
   const reset = useAdminManageMutation(resetAdminUserPassword)
 
   async function handleSave(event) {
     event.preventDefault()
     setDone('')
+    reset.reset()
     try {
       await save.mutateAsync({ id: user.id, data: { name: form.name, phone: form.phone } })
       setDone('Details saved.')
     } catch { /* The error is shown below. */ }
   }
 
-  async function handleReset(event) {
-    event.preventDefault()
+  async function handleReset() {
     setDone('')
+    setConfirming(false)
+    save.reset()
     try {
-      await reset.mutateAsync({ id: user.id, password })
-      setPassword('')
-      setDone('Password changed. Tell the farmer the new password directly. It is not shown again.')
+      await reset.mutateAsync({ id: user.id })
+      setDone(`A temporary password was texted to ${form.phone}. You cannot see it, and they must choose their own when they sign in.`)
     } catch { /* The error is shown below. */ }
   }
 
   return (
-    <Card aria-labelledby="user-editor-title">
-      <SectionHeader id="user-editor-title" title={`Manage ${user.name}`} aside={<button type="button" onClick={onClose} className={buttonClass({ variant: 'quiet', size: 'sm' })}>Close</button>} />
+    <Modal title={`Manage ${user.name}`} onClose={onClose}>
       {done && <Notice tone="positive" className="mb-4"><p>{done}</p></Notice>}
       {(save.isError || reset.isError) && <Notice tone="critical" className="mb-4"><p>{(save.error || reset.error)?.message || 'That change could not be saved.'}</p></Notice>}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <form onSubmit={handleSave} className="flex flex-col gap-4">
-          <Field label="Full name"><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className={fieldClass} /></Field>
-          <Field label="Phone number"><input required type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className={fieldClass} /></Field>
-          <button type="submit" disabled={save.isPending} className={buttonClass({ size: 'sm' })}>{save.isPending ? 'Saving…' : 'Save details'}</button>
-        </form>
-        <form onSubmit={handleReset} className="flex flex-col gap-4">
-          <Field label="New password"><input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className={fieldClass} /></Field>
-          <p className="m-0 text-caption text-ink-secondary">At least 8 characters. The farmer's old password stops working straight away.</p>
-          <button type="submit" disabled={reset.isPending} className={buttonClass({ variant: 'secondary', size: 'sm' })}>{reset.isPending ? 'Changing…' : 'Set new password'}</button>
-        </form>
-      </div>
-    </Card>
+      <form onSubmit={handleSave} className="flex flex-col gap-4">
+        <Field label="Full name"><input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className={fieldClass} /></Field>
+        <Field label="Phone number"><input required type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className={fieldClass} /></Field>
+        <button type="submit" disabled={save.isPending} className={buttonClass({ size: 'sm' })}>{save.isPending ? 'Saving…' : 'Save details'}</button>
+      </form>
+      <hr className="my-5 border-0 border-t border-border" />
+      <h3 className="m-0 text-small font-bold text-ink">Forgotten password</h3>
+      <p className="mb-3 mt-1 text-caption text-ink-secondary">
+        Sends a random temporary password to the farmer by text message. You will not see it. Their old password stops working, and they must choose a new one the next time they sign in.
+      </p>
+      {confirming ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-small text-ink">Text a temporary password to {user.phone}?</span>
+          <button type="button" disabled={reset.isPending} onClick={handleReset} className={buttonClass({ size: 'sm' })}>{reset.isPending ? 'Sending…' : 'Yes, send it'}</button>
+          <button type="button" onClick={() => setConfirming(false)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>Cancel</button>
+        </div>
+      ) : (
+        <button type="button" disabled={reset.isPending} onClick={() => setConfirming(true)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>Send temporary password by SMS</button>
+      )}
+    </Modal>
   )
 }
 
@@ -119,12 +127,7 @@ export function FarmEditor({ farm, onClose }) {
   }
 
   return (
-    <Card aria-labelledby="farm-editor-title">
-      <SectionHeader
-        id="farm-editor-title"
-        title={farm ? `Edit ${farm.name}` : 'Add a farm for a farmer'}
-        aside={<button type="button" onClick={onClose} className={buttonClass({ variant: 'quiet', size: 'sm' })}>Close</button>}
-      />
+    <Modal title={farm ? `Edit ${farm.name}` : 'Add a farm for a farmer'} onClose={onClose} wide>
       {farm && <p className="mb-4 mt-0 text-small text-ink-secondary">Farmer: <span className="font-bold text-ink">{farm.owner_name}</span> {farm.owner_phone}</p>}
       {failure && <Notice tone="critical" className="mb-4"><p>{failure.message || 'That change could not be saved.'}</p></Notice>}
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -165,13 +168,14 @@ export function FarmEditor({ farm, onClose }) {
         </div>
       </form>
       {farm && !farm.deleted_at && <p className="mb-0 mt-3 text-caption text-ink-secondary">Archiving hides the farm from the farmer. Its readings and history are kept.</p>}
-    </Card>
+    </Modal>
   )
 }
 
 const ACTION_LABELS = {
   'user.update': 'Edited farmer',
-  'user.password_reset': 'Reset password',
+  'user.create_admin': 'Added administrator',
+  'user.password_reset': 'Sent temporary password',
   'farm.create': 'Added farm',
   'farm.update': 'Edited farm',
   'farm.archive': 'Archived farm',
@@ -228,7 +232,7 @@ export function AuditPanel() {
               key: 'changes', label: 'What changed',
               render: (entry) => {
                 const items = Object.entries(entry.changes ?? {})
-                if (!items.length) return <span className="text-caption text-ink-secondary">{entry.action === 'user.password_reset' ? 'A new password was set (not recorded)' : 'No details'}</span>
+                if (!items.length) return <span className="text-caption text-ink-secondary">{entry.action === 'user.password_reset' ? 'A temporary password was texted to the farmer (not recorded)' : 'No details'}</span>
                 return (
                   <ul className="m-0 list-none p-0 text-caption text-ink">
                     {items.map(([field, [from, to]]) => <li key={field}>{FIELD_LABELS[field] ?? field}: {showValue(from)} → {showValue(to)}</li>)}

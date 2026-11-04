@@ -1,7 +1,7 @@
 import uuid
 import enum
 from datetime import datetime, date, timezone
-from sqlalchemy import String, Float, Boolean, ForeignKey, DateTime, Enum as SAEnum, Text, Date, Index, text
+from sqlalchemy import String, Float, Boolean, Integer, ForeignKey, DateTime, Enum as SAEnum, Text, Date, Index, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.db import Base
@@ -37,6 +37,10 @@ class User(Base):
     phone: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[RoleEnum] = mapped_column(SAEnum(RoleEnum), nullable=False, default=RoleEnum.farmer)
+    # True after an administrator sends a temporary password; the person must choose their own before doing anything else.
+    must_change_password: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+    failed_login_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     
     farms = relationship("Farm", back_populates="user", cascade="all, delete-orphan")
 
@@ -154,6 +158,19 @@ class SmsLog(Base):
     message: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(Text, nullable=False)      # sent or failed
     severity: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+class OneTimeCode(Base):
+    """A 6-digit code texted to a phone (sign-up check or forgotten password). Only a keyed hash is stored."""
+    __tablename__ = "one_time_codes"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True,
+                                                 default=lambda: datetime.now(timezone.utc))
+    phone: Mapped[str] = mapped_column(Text, nullable=False, index=True)
+    purpose: Mapped[str] = mapped_column(Text, nullable=False)           # register or reset
+    code_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
+    used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
 
 class AdminAuditLog(Base):
     """What an administrator changed, and when. Rows are only ever added."""

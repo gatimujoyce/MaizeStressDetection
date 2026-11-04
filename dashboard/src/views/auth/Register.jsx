@@ -1,67 +1,34 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useRegisterMutation } from '../../api/hooks'
-import { EyeIcon, EyeOffIcon } from '../../components/Icons'
+import { requestRegisterCode } from '../../api/authFlow'
+import AuthField from '../../components/AuthField'
 import AuthLayout from '../../components/AuthLayout'
 
-function Field({ id, label, type = 'text', placeholder, value, error, onChange, visible, onToggleVisibility, prefix, inputMode, maxLength }) {
-    const isPassword = type === 'password'
-
-    return (
-        <div className="flex flex-col gap-1">
-            <label htmlFor={id} className="text-small font-normal text-[var(--color-text-primary)]">
-                {label}
-            </label>
-            <div className={isPassword || prefix ? 'relative' : undefined}>
-                <input
-                    id={id}
-                    type={isPassword && visible ? 'text' : type}
-                    value={value}
-                    onChange={onChange}
-                    placeholder={placeholder}
-                    inputMode={inputMode}
-                    maxLength={maxLength}
-                    className={`min-h-12 border-[1.5px] px-3 py-2 ${isPassword ? 'pr-16' : ''} ${prefix ? 'pl-16' : ''} rounded-control text-body w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${error
-                        ? 'border-[var(--color-critical-text)]'
-                        : 'border-control'
-                        }`}
-                />
-                {prefix && (
-                    <span className="absolute inset-y-0 left-3 flex items-center text-body text-[var(--color-text-secondary)]" aria-hidden="true">
-                        {prefix}
-                    </span>
-                )}
-                {isPassword && (
-                    <button
-                        type="button"
-                        onClick={onToggleVisibility}
-                        aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
-                        aria-pressed={visible}
-                        className="absolute inset-y-0 right-3 min-h-12 min-w-12 text-small font-normal text-[var(--color-brand)]"
-                    >
-                        {visible ? <EyeOffIcon /> : <EyeIcon />}
-                    </button>
-                )}
-            </div>
-            {error && (
-                <p className="text-small text-[var(--color-critical-text)]">{error}</p>
-            )}
-        </div>
-    )
-}
+const RESEND_SECONDS = 60
 
 export default function Register() {
     const [form, setForm] = useState({ name: '', phone: '', password: '', confirm: '' })
     const [errors, setErrors] = useState({})
     const [visiblePasswords, setVisiblePasswords] = useState({ password: false, confirm: false })
+    const [step, setStep] = useState('details')
+    const [code, setCode] = useState('')
+    const [sending, setSending] = useState(false)
+    const [wait, setWait] = useState(0)
     const navigate = useNavigate()
     const registerMutation = useRegisterMutation()
+
+    useEffect(() => {
+        if (wait <= 0) return undefined
+        const timer = setTimeout(() => setWait((seconds) => seconds - 1), 1000)
+        return () => clearTimeout(timer)
+    }, [wait])
 
     const validate = () => {
         const e = {}
         if (!form.name.trim()) e.name = 'Name is required'
         if (!/^[17]\d{8}$/.test(form.phone)) e.phone = 'Enter 9 digits starting with 7 or 1, like 712345678'
-        if (form.password.length < 6) e.password = 'Password must be at least 6 characters'
+        if (form.password.length < 8) e.password = 'Password must be at least 8 characters'
         if (form.password !== form.confirm) e.confirm = 'Passwords do not match'
         return e
     }
@@ -82,15 +49,36 @@ export default function Register() {
         setVisiblePasswords((prev) => ({ ...prev, [field]: !prev[field] }))
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
+    // Step 1: check the details, then text a code to the phone.
+    const sendCode = async (e) => {
+        e?.preventDefault()
         const e2 = validate()
         if (Object.keys(e2).length > 0) { setErrors(e2); return }
+        setSending(true)
+        setErrors({})
+        try {
+            await requestRegisterCode(`+254${form.phone}`)
+            setStep('code')
+            setCode('')
+            setWait(RESEND_SECONDS)
+        } catch (err) {
+            setErrors({ server: err.message || 'We could not send the code. Please try again.' })
+        } finally {
+            setSending(false)
+        }
+    }
+
+    // Step 2: the code proves the number is theirs; then the account is made.
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!/^\d{6}$/.test(code)) { setErrors({ code: 'The code is 6 digits' }); return }
+        setErrors({})
         try {
             await registerMutation.mutateAsync({
                 name: form.name,
                 phone: `+254${form.phone}`,
                 password: form.password,
+                code,
             })
             navigate('/login?registered=true', { replace: true })
         } catch (err) {
@@ -98,28 +86,46 @@ export default function Register() {
         }
     }
 
+    const submitClass = 'min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold py-2 px-4 rounded-control transition-colors disabled:opacity-60'
+    const linkClass = 'inline-flex min-h-12 items-center justify-center text-[var(--color-brand)] font-normal underline disabled:no-underline disabled:opacity-60'
+
     return (
-        <AuthLayout subtitle="Create your farmer account">
+        <AuthLayout subtitle={step === 'details' ? 'Create your farmer account' : 'Check your phone'}>
                 {errors.server && (
-                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
+                    <div role="alert" className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
                         {errors.server}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <Field id="name" label="Full name" value={form.name} error={errors.name} onChange={handleChange('name')} placeholder="Jane Doe or John Doe" />
-                    <Field id="phone" label="Phone number" type="tel" prefix="+254" inputMode="numeric" maxLength={16} value={form.phone} error={errors.phone} onChange={handleChange('phone')} placeholder="712345678" />
-                    <Field id="password" label="Password" type="password" value={form.password} error={errors.password} onChange={handleChange('password')} visible={visiblePasswords.password} onToggleVisibility={() => togglePasswordVisibility('password')} />
-                    <Field id="confirm" label="Confirm password" type="password" value={form.confirm} error={errors.confirm} onChange={handleChange('confirm')} visible={visiblePasswords.confirm} onToggleVisibility={() => togglePasswordVisibility('confirm')} />
+                {step === 'details' ? (
+                    <form onSubmit={sendCode} className="flex flex-col gap-4">
+                        <AuthField id="name" label="Full name" autoComplete="name" value={form.name} error={errors.name} onChange={handleChange('name')} placeholder="Jane Doe or John Doe" />
+                        <AuthField id="phone" label="Phone number" type="tel" prefix="+254" inputMode="numeric" maxLength={16} autoComplete="tel-national" value={form.phone} error={errors.phone} onChange={handleChange('phone')} placeholder="712345678" hint="We will text a code to this number." />
+                        <AuthField id="password" label="Password" type="password" autoComplete="new-password" hint="At least 8 characters." value={form.password} error={errors.password} onChange={handleChange('password')} visible={visiblePasswords.password} onToggleVisibility={() => togglePasswordVisibility('password')} />
+                        <AuthField id="confirm" label="Confirm password" type="password" autoComplete="new-password" value={form.confirm} error={errors.confirm} onChange={handleChange('confirm')} visible={visiblePasswords.confirm} onToggleVisibility={() => togglePasswordVisibility('confirm')} />
 
-                    <button
-                        type="submit"
-                        disabled={registerMutation.isPending}
-                        className="min-h-12 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold py-2 px-4 rounded-control transition-colors disabled:opacity-60"
-                    >
-                        {registerMutation.isPending ? 'Creating account…' : 'Create account'}
-                    </button>
-                </form>
+                        <button type="submit" disabled={sending} className={submitClass}>
+                            {sending ? 'Sending code…' : 'Send code'}
+                        </button>
+                    </form>
+                ) : (
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <p className="m-0 text-small text-[var(--color-text-secondary)]">
+                            We sent a 6-digit code to +254{form.phone}. It works for 10 minutes.
+                        </p>
+                        <AuthField id="register-code" label="6-digit code" inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={code} error={errors.code}
+                            onChange={(event) => { setCode(event.target.value.replace(/\D/g, '').slice(0, 6)); setErrors((prev) => ({ ...prev, code: undefined })) }} />
+                        <button type="submit" disabled={registerMutation.isPending} className={submitClass}>
+                            {registerMutation.isPending ? 'Creating account…' : 'Create account'}
+                        </button>
+                        <button type="button" disabled={sending || wait > 0} onClick={sendCode} className={linkClass}>
+                            {wait > 0 ? `Send a new code in ${wait}s` : 'Send a new code'}
+                        </button>
+                        <button type="button" onClick={() => { setStep('details'); setErrors({}) }} className={linkClass}>
+                            Change my number or details
+                        </button>
+                    </form>
+                )}
 
                 <p className="mt-5 text-center text-small text-[var(--color-text-secondary)]">
                     Already have an account?{' '}

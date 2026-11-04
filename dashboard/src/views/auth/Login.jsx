@@ -4,6 +4,7 @@ import { useLoginMutation } from '../../api/hooks'
 import { useAuth } from '../../auth/AuthContext'
 import { EyeIcon, EyeOffIcon } from '../../components/Icons'
 import AuthLayout from '../../components/AuthLayout'
+import ForgotPassword from './ForgotPassword'
 
 export default function Login() {
     const [phone, setPhone] = useState('')
@@ -15,6 +16,8 @@ export default function Login() {
     const { login } = useAuth()
     const loginMutation = useLoginMutation()
     const registered = searchParams.get('registered') === 'true'
+    const passwordReset = searchParams.get('reset') === 'true'
+    const forgotMode = searchParams.get('mode') === 'forgot'
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -33,6 +36,8 @@ export default function Login() {
         }
     }
 
+    if (forgotMode) return <ForgotPassword />
+
     return (
         <AuthLayout subtitle="Field monitoring & disease detection">
                 {registered && (
@@ -41,8 +46,14 @@ export default function Login() {
                     </div>
                 )}
 
+                {passwordReset && (
+                    <div className="mb-4 px-3 py-2 bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)] rounded-control text-small">
+                        Password changed. Sign in with your new password.
+                    </div>
+                )}
+
                 {error && (
-                    <div className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
+                    <div role="alert" className="mb-4 px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">
                         {error}
                     </div>
                 )}
@@ -93,6 +104,12 @@ export default function Login() {
                                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                             </button>
                         </div>
+                    </div>
+
+                    <div className="-mt-2 text-right">
+                        <Link to="/login?mode=forgot" className="inline-flex min-h-12 items-center text-small text-[var(--color-brand)] underline">
+                            Forgot password?
+                        </Link>
                     </div>
 
                     <button

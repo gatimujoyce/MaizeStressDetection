@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { focusRing } from '../../components/ui/styles'
+import ChangePasswordDialog from '../../components/ChangePasswordDialog'
 
 const ICON_PATHS = {
   overview: <><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>,
@@ -50,6 +51,7 @@ export default function AdminShell({ activeSection, children }) {
   const navigate = useNavigate()
   // Open beside the content on wide screens; on phones it starts closed and opens over the content.
   const [sidebarVisible, setSidebarVisible] = useState(isWide)
+  const [changingPassword, setChangingPassword] = useState(false)
   const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
   const closeOnNarrow = () => { if (!isWide()) setSidebarVisible(false) }
 
@@ -84,7 +86,10 @@ export default function AdminShell({ activeSection, children }) {
               <div className="border-t border-border p-4">
                 <p className="m-0 truncate text-small font-bold">{name || 'Administrator'}</p>
                 {phone && <p className="m-0 truncate text-caption text-ink-secondary">{phone}</p>}
-                <button type="button" onClick={handleLogout} className={`mt-3 min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-left text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
+                <button type="button" onClick={() => setChangingPassword(true)} className={`mt-3 min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-left text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
+                  Change password
+                </button>
+                <button type="button" onClick={handleLogout} className={`mt-2 min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-left text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
                   Log out
                 </button>
               </div>
@@ -116,6 +121,7 @@ export default function AdminShell({ activeSection, children }) {
             )}
           </div>
           <main id="main-content" className="mx-auto w-full max-w-[1440px] p-4 sm:p-6 lg:p-8">{children}</main>
+          {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
         </div>
       </div>
     </div>
