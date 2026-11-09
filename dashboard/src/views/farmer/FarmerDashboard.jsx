@@ -3,6 +3,7 @@ import { useAlerts, useFarmHistory, useFarmStatus, useLatestReadingClassificatio
 import AlertCard from '../../components/AlertCard'
 import AttentionAlert from '../../components/AttentionAlert'
 import EmptyPlotState from '../../components/EmptyPlotState'
+import GrowthStageCard from '../../components/GrowthStageCard'
 import PlotSwitcher from '../../components/PlotSwitcher'
 import ReadingTile from '../../components/ReadingTile'
 import TrendChart from '../../components/TrendChart'
@@ -164,6 +165,7 @@ export default function FarmerDashboard() {
         title={selectedFarm?.farm_name || status?.farm_name || 'Your field'}
         aside={<PlotSwitcher />}
       />
+      <GrowthStageCard />
 
       {readingIsStale && (
         <Notice tone="neutral">

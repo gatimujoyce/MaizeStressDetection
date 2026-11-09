@@ -156,6 +156,23 @@ async def read_farm(
         raise HTTPException(status_code=404, detail="Farm not found")
     return farm
 
+@router.get("/{id}/growth-stage")
+async def growth_stage(
+    id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    """Maize growth stage worked out from the planting date. known is false when no planting date is recorded."""
+    from app.services.growth_stage import stage_for
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    stage = stage_for(farm.planting_date, datetime.now(timezone.utc).date())
+    if stage is None:
+        return {"known": False}
+    return {"known": True, **stage}
+
 @router.delete("/{id}", response_model=dict)
 async def delete_farm(
     id: uuid.UUID,

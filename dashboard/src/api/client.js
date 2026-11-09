@@ -262,3 +262,5 @@ export const requestAdminRetrain = (modelName) =>
 
 export const getAdminSmsLog = () =>
     httpClient.get('/admin/sms-log')
+
+export const getGrowthStage = (farmId) => httpClient.get(`/farms/${farmId}/growth-stage`)
