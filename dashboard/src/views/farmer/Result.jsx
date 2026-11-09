@@ -14,7 +14,7 @@ import { buttonClass, insetClass, linkClass } from '../../components/ui/styles'
 const SEVERITY_STYLES = {
     healthy: { tone: 'healthy', label: 'Healthy' },
     warning: { tone: 'warning', label: 'Stress Detected' },
-    critical: { tone: 'critical', label: 'Disease Confirmed' },
+    critical: { tone: 'critical', label: 'Urgent' },
     neutral: { tone: 'neutral', label: 'Needs review' },
 }
 
@@ -28,7 +28,7 @@ const BAND_BADGES = {
     none: { tone: 'neutral', label: 'Not sure' },
 }
 
-// Shows "Disease Confirmed" only when the model is confident. A weaker result gets a softer badge.
+// The severity badge (Urgent, Stress detected) shows only when the model is confident. A weaker result gets a softer badge.
 function DiseaseBadge({ band, label, level }) {
     const isDisease = Boolean(label) && label.toLowerCase() !== 'healthy'
     const style = isDisease ? BAND_BADGES[band] : null

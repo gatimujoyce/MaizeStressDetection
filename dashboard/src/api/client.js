@@ -37,7 +37,7 @@ function adaptAlertResponse(alert) {
             : normalizedSeverity === 'medium'
                 ? 'warning'
                 : 'neutral',
-        severity_label: alert.severity,
+        severity_label: normalizedSeverity === 'high' ? 'Urgent' : normalizedSeverity === 'medium' ? 'Act soon' : 'Note',
     }
 }
 
