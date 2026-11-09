@@ -79,13 +79,16 @@ async def admin_feedback(current_admin: User = Depends(require_admin), db: Async
         .join(User, User.id == Farm.user_id)
         .order_by(desc(Feedback.created_at))
     )
+    # One row per result: the farmer's latest answers.
+    seen = set()
+    rows = [row for row in res.all() if not (row[0].prediction_id in seen or seen.add(row[0].prediction_id))]
     return [
         AdminFeedbackResponse(
             **FeedbackResponse.model_validate(feedback).model_dump(),
             farm_id=farm.id, farm_name=farm.name, farmer_name=owner.name, farmer_phone=owner.phone,
             disease_label=prediction.disease_label, severity=prediction.severity,
         )
-        for feedback, prediction, farm, owner in res.all()
+        for feedback, prediction, farm, owner in rows
     ]
 
 @router.get("/model-versions", response_model=List[ModelVersionResponse])

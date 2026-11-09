@@ -30,7 +30,7 @@ export default function AlertCard({ alert, farmId, arrived = false }) {
       )}
       {alert.prediction_id && (
         <div className="w-full">
-          <FeedbackControl alertId={alert.alert_id} />
+          <FeedbackControl predictionId={alert.prediction_id} />
         </div>
       )}
       {farmId && alert.status !== 'acknowledged' && (

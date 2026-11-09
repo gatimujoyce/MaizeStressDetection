@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     PHONE_VERIFICATION_REQUIRED: bool = True
     # Testing only: also print each texted code in the server window. Leave off in real use.
     AUTH_LOG_CODES: bool = False
+    # Days after a farmer answers the questions before we ask "How did it go?". Use 0 to try it out.
+    FOLLOW_UP_DAYS: int = 7
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

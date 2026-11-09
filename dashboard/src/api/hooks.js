@@ -144,12 +144,32 @@ export function useAcknowledgeAlertMutation(farmId) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-export function useConfirmPredictionMutation() {
+export function useSubmitFeedbackMutation() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: ({ alertId, farmerId, confirmed, comment }) =>
-            client.confirmPrediction(alertId, farmerId, confirmed, comment),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['feedbackList'] }),
+        mutationFn: client.submitFeedback,
+        onSuccess: () => {
+            // The photo alert is now read, so refresh the alert lists.
+            qc.invalidateQueries({ queryKey: ['alerts'] })
+            qc.invalidateQueries({ queryKey: ['feedbackList'] })
+        },
+    })
+}
+
+export function useFollowUps(farmId) {
+    return useQuery({
+        queryKey: ['followUps', farmId],
+        queryFn: () => client.getFollowUps(farmId),
+        enabled: !!farmId,
+        staleTime: 60000,
+    })
+}
+
+export function useSubmitFollowUpMutation(farmId) {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: client.submitFollowUp,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['followUps', farmId] }),
     })
 }
 

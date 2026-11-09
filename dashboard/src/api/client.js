@@ -192,10 +192,19 @@ export const acknowledgeAlert = (farmId, alertId) =>
     httpClient.patch(`/farms/${farmId}/alerts/${alertId}`, {})
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-export const confirmPrediction = (alertId, farmerId, confirmed, comment = '') =>
-    shouldUseMock('feedback')
-        ? mock.confirmPrediction(alertId, farmerId, confirmed, comment)
-        : httpClient.post('/feedback', { prediction_id: alertId, farmer_id: farmerId, farmer_confirmed: confirmed, comment })
+// Feedback always goes to the real server (it needs a real result to attach to).
+export const submitFeedback = ({ predictionId, matched, actionTaken, correctLabel, comment }) =>
+    httpClient.post(`/predictions/${predictionId}/feedback`, {
+        matched,
+        action_taken: actionTaken,
+        correct_label: correctLabel,
+        comment,
+    })
+
+export const getFollowUps = (farmId) => httpClient.get(`/farms/${farmId}/follow-ups`)
+
+export const submitFollowUp = ({ predictionId, outcome }) =>
+    httpClient.post(`/predictions/${predictionId}/follow-up`, { outcome })
 
 export const getFeedbackList = (filterNotAccurate = false) =>
     shouldUseMock('feedback') ? mock.getFeedbackList(filterNotAccurate) : httpClient.get(`/feedback${filterNotAccurate ? '?not_accurate=true' : ''}`)
