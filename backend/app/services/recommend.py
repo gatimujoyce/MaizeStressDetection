@@ -4,7 +4,7 @@ Recommendation service.
 
 RECOMMENDATION_TABLE = {
     # Healthy cases
-    ("Healthy", "Low"): "Your crop appears healthy with no signs of environmental stress. Continue standard standard farming practices. [NEEDS KALRO/extension-service source citation]",
+    ("Healthy", "Low"): "Your crop appears healthy with no signs of environmental stress. Continue standard farming practices. [NEEDS KALRO/extension-service source citation]",
     ("Healthy", "Medium"): "Your crop appears healthy, but sensors indicate early signs of environmental stress (like drought, heat, or waterlogging). Monitor the field closely. [NEEDS KALRO/extension-service source citation]",
     ("Healthy", "High"): "Your crop has no visible disease, but extreme environmental stress is detected. Take immediate preventive action to manage the stress. [NEEDS KALRO/extension-service source citation] Consider contacting your local agricultural extension officer.",
     ("Healthy", "Inconclusive"): "Unable to determine a clear recommendation based on the current readings. Inspect the field manually. [NEEDS KALRO/extension-service source citation]",
@@ -28,6 +28,15 @@ RECOMMENDATION_TABLE = {
     ("Gray Leaf Spot", "Inconclusive"): "Gray Leaf Spot prediction is uncertain. Verify visually for small tan spots on leaves. [NEEDS KALRO/extension-service source citation]",
 }
 
+# The table keeps the "[NEEDS KALRO/extension-service source citation]" marker so we can find every line that still needs
+# a source. Farmers must never see it, so it is removed from the text that is returned.
+CITATION_MARKER = "[NEEDS KALRO/extension-service source citation]"
+
+
+def _farmer_text(text: str) -> str:
+    return " ".join(text.replace(CITATION_MARKER, " ").split())
+
+
 def get_recommendation(disease_label: str, severity: str) -> str:
     """
     Looks up the recommendation corresponding to the disease label and severity.
@@ -43,9 +52,9 @@ def get_recommendation(disease_label: str, severity: str) -> str:
     
     # Provide a safe fallback if an unmapped combination occurs
     if key in RECOMMENDATION_TABLE:
-        return RECOMMENDATION_TABLE[key]
+        return _farmer_text(RECOMMENDATION_TABLE[key])
     
     default_msg = f"No specific recommendation available for {disease_label} with {severity} severity. [NEEDS KALRO/extension-service source citation]"
     if severity == "High":
         default_msg += " Consider contacting your local agricultural extension officer."
-    return default_msg
+    return _farmer_text(default_msg)
