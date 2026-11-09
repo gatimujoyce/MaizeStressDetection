@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import PasswordGate from './PasswordGate'
 import ChangePasswordDialog from './ChangePasswordDialog'
+import FollowUpCard from './FollowUpCard'
 
 export default function Layout({ children }) {
   const { role, isAuthenticated } = useAuth()
@@ -33,6 +34,7 @@ export default function Layout({ children }) {
             </div>
           )}
           {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
+          {isAuthenticated && !isAdmin && (pathname === '/' || pathname === '/alerts') && <FollowUpCard />}
           {children}
         </main>
       )}

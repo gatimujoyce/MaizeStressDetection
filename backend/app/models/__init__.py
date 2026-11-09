@@ -194,6 +194,10 @@ class Feedback(Base):
     useful: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     correct_label: Mapped[str | None] = mapped_column(Text, nullable=True)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    matched: Mapped[str | None] = mapped_column(Text, nullable=True)             # yes / partly / no
+    action_taken: Mapped[str | None] = mapped_column(Text, nullable=True)        # followed / other / none
+    follow_up_outcome: Mapped[str | None] = mapped_column(Text, nullable=True)   # better / same / worse / not_acted
+    follow_up_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     
     prediction = relationship("Prediction", back_populates="feedback")

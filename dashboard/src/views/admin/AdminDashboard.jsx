@@ -316,6 +316,11 @@ function FarmsPanel() {
   )
 }
 
+const MATCH_LABELS = { yes: 'Matched what they saw', partly: 'Partly matched', no: 'Did not match' }
+const ACTION_LABELS = { followed: 'Followed the advice', other: 'Did something else', none: 'Has not acted yet' }
+const OUTCOME_LABELS = { better: 'Field got better', same: 'No change', worse: 'Field got worse', not_acted: 'Did not act' }
+const MATCH_TONES = { yes: 'healthy', partly: 'warning', no: 'critical' }
+
 function FeedbackPanel() {
   const feedback = useAdminFeedback()
   const [filter, setFilter] = useState('all')
@@ -324,25 +329,30 @@ function FeedbackPanel() {
   const rows = feedback.data ?? []
   const farmOptions = uniqueOptions(rows, (item) => item.farm_id, (item) => `${item.farm_name} (${item.farmer_name})`, 'All farms')
   const inaccurateCount = rows.filter((item) => !item.accurate).length
+  const matchedCount = rows.filter((item) => item.matched === 'yes' || (item.matched == null && item.accurate)).length
+  const actedCount = rows.filter((item) => item.action_taken === 'followed' || item.action_taken === 'other').length
+  const followUps = rows.filter((item) => item.follow_up_outcome)
+  const betterCount = followUps.filter((item) => item.follow_up_outcome === 'better').length
   const filtered = rows.filter((item) => {
     if (filter === 'inaccurate' && item.accurate) return false
-    if (filter === 'useful' && item.useful !== true) return false
+    if (filter === 'acted' && item.action_taken !== 'followed' && item.action_taken !== 'other') return false
     if (farmFilter !== 'all' && item.farm_id !== farmFilter) return false
     return `${item.correct_label ?? ''} ${item.comment ?? ''} ${item.farm_name ?? ''} ${item.farmer_name ?? ''} ${item.disease_label ?? ''}`.toLowerCase().includes(search.toLowerCase())
   })
 
   return (
     <div className="flex flex-col gap-6">
-      <section aria-label="Feedback summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section aria-label="Feedback summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Responses received" value={rows.length} isLoading={feedback.isLoading} isError={feedback.isError} />
-        <StatTile label="Marked inaccurate" value={inaccurateCount} isLoading={feedback.isLoading} isError={feedback.isError} />
-        <StatTile label="Marked useful" value={rows.filter((item) => item.useful === true).length} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Matched what they saw" value={rows.length ? `${Math.round((100 * matchedCount) / rows.length)}%` : '–'} detail={`${matchedCount} of ${rows.length} results`} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Acted on the advice" value={actedCount} detail={`of ${rows.length} responses`} isLoading={feedback.isLoading} isError={feedback.isError} />
+        <StatTile label="Better after a week" value={followUps.length ? `${betterCount} of ${followUps.length}` : '–'} detail={followUps.length ? 'follow-up answers' : 'no follow-ups answered yet'} isLoading={feedback.isLoading} isError={feedback.isError} />
       </section>
       <Card aria-labelledby="feedback-title">
         <SectionHeader id="feedback-title" title="Prediction feedback" aside={<CountBadge tone={inaccurateCount ? 'warning' : 'neutral'}>{inaccurateCount} flagged inaccurate</CountBadge>} />
         <Toolbar>
           <SearchField label="Search feedback" value={search} onChange={setSearch} placeholder="Search farm, farmer, comment, or result" />
-          <FilterSelect id="feedback-filter" label="Filter feedback" value={filter} onChange={setFilter} options={[['all', 'All feedback'], ['inaccurate', 'Marked inaccurate'], ['useful', 'Marked useful']]} />
+          <FilterSelect id="feedback-filter" label="Filter feedback" value={filter} onChange={setFilter} options={[['all', 'All feedback'], ['inaccurate', 'Did not fully match'], ['acted', 'Acted on the advice']]} />
           <FilterSelect id="feedback-farm-filter" label="Filter by farm" value={farmFilter} onChange={setFarmFilter} options={farmOptions} />
         </Toolbar>
         {feedback.isError && <Notice tone="critical" className="mb-4"><p>Feedback could not be loaded. Check your admin access and connection.</p></Notice>}
@@ -352,12 +362,13 @@ function FeedbackPanel() {
               <li key={item.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap gap-2">
-                    <CountBadge tone={item.accurate ? 'healthy' : 'critical'}>{item.accurate ? 'Prediction accurate' : 'Marked inaccurate'}</CountBadge>
-                    {item.useful != null && <CountBadge>{item.useful ? 'Useful' : 'Not useful'}</CountBadge>}
+                    <CountBadge tone={MATCH_TONES[item.matched] ?? (item.accurate ? 'healthy' : 'critical')}>{MATCH_LABELS[item.matched] ?? (item.accurate ? 'Prediction accurate' : 'Marked inaccurate')}</CountBadge>
+                    {item.action_taken && <CountBadge>{ACTION_LABELS[item.action_taken]}</CountBadge>}
+                    {item.follow_up_outcome && <CountBadge tone={item.follow_up_outcome === 'better' ? 'healthy' : item.follow_up_outcome === 'worse' ? 'critical' : 'neutral'}>After a week: {OUTCOME_LABELS[item.follow_up_outcome]}</CountBadge>}
                   </div>
                   <time className="text-caption text-ink-secondary" dateTime={item.created_at}>{new Date(item.created_at).toLocaleString()}</time>
                 </div>
-                {item.correct_label && <p className="mb-0 mt-2 text-small"><span className="font-bold">Suggested label:</span> {item.correct_label}</p>}
+                {item.correct_label && <p className="mb-0 mt-2 text-small"><span className="font-bold">Farmer thinks it is:</span> {String(item.correct_label).replaceAll('_', ' ')}</p>}
                 {item.comment && <blockquote className="mx-0 mb-0 mt-2 border-l-2 border-control pl-3 text-small text-ink-secondary">{item.comment}</blockquote>}
                 <p className="mb-0 mt-2 text-caption text-ink-secondary">{item.farmer_name} / {item.farm_name}{item.disease_label ? ` / result: ${item.disease_label.replaceAll('_', ' ')}` : ''}</p>
               </li>
