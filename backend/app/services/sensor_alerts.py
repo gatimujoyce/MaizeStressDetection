@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.models import Alert, ChannelEnum, Farm, SensorReading, User
 from app.services.alert_rules import TITLES, plan_alerts, sms_text
 from app.services.nutrient_rules import NUTRIENT_STRESSES, NUTRIENTS, plan_nutrient_alerts
+from app.services.growth_stage import allow_nutrient_alerts, apply_stage, stage_key
 from app.services.inference import InferenceUnavailableError
 from app.services.sms import send_sms
 from app.services.sms_log import record_sms
@@ -43,6 +44,7 @@ async def _evaluate(db, reading):
     if farm is None:
         return
     farm_id, farm_name = farm.id, farm.name
+    stage = stage_key(farm.planting_date, reading.recorded_at.date())   # None when no planting date: alerts work as before
     owner = await db.get(User, farm.user_id)
     phone = owner.phone if owner is not None else None
     owner_id = owner.id if owner is not None else None
@@ -69,6 +71,7 @@ async def _evaluate(db, reading):
             last_alert_at[a.stress_class] = a.created_at
 
     to_open, to_close = plan_alerts(result, set(open_alerts), last_alert_at, now)
+    to_open = apply_stage(to_open, stage)
     for stress in to_close:
         open_alerts[stress].resolved_at = now
 
@@ -107,6 +110,8 @@ async def _evaluate_nutrients(db, farm_id, now):
     """Low-nutrient alerts for a plot with an NPK sensor. In the app only, never an SMS: the warning levels are provisional."""
     farm = await db.get(Farm, farm_id)
     if farm is None or not farm.has_npk_sensor:
+        return
+    if not allow_nutrient_alerts(stage_key(farm.planting_date, now.date())):
         return
     fields = [cfg["field"] for cfg in NUTRIENTS.values()]
     rows = (await db.execute(

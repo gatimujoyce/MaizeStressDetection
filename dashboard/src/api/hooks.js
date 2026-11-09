@@ -288,3 +288,12 @@ export function useAdminSmsLog() {
         refetchInterval: 10000,
     })
 }
+
+export function useGrowthStage(farmId) {
+    return useQuery({
+        queryKey: ['growthStage', farmId],
+        queryFn: () => client.getGrowthStage(farmId),
+        enabled: !!farmId,
+        staleTime: 60 * 60 * 1000,
+    })
+}

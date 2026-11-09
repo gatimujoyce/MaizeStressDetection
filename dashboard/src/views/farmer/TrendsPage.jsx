@@ -9,6 +9,7 @@ import Card, { SectionHeader } from '../../components/ui/Card'
 import Notice from '../../components/ui/Notice'
 import PageHeader from '../../components/ui/PageHeader'
 import Skeleton from '../../components/ui/Skeleton'
+import GrowthStageCard from '../../components/GrowthStageCard'
 import { useFarm } from '../../farm/FarmContext'
 
 const STRESS_TITLES = {
@@ -99,6 +100,7 @@ export default function TrendsPage() {
     return (
         <div className="mx-auto flex max-w-4xl flex-col gap-6">
             <PageHeader title="Field Trends" subtitle={`Plot: ${selectedFarm?.farm_name || 'Your field'}`} />
+            <GrowthStageCard />
             <RangeTabs value={rangeKey} onChange={setRangeKey} />
 
             {isLoading ? (
