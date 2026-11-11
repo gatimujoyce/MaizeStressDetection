@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     AUTH_LOG_CODES: bool = False
     # Days after a farmer answers the questions before we ask "How did it go?". Use 0 to try it out.
     FOLLOW_UP_DAYS: int = 7
+    # A plot whose sensor sends nothing for this many hours gets a "sensor not reporting" alert. Checked every
+    # SILENT_SENSOR_CHECK_MINUTES minutes (0 switches the check off).
+    SILENT_SENSOR_HOURS: float = 6.0
+    SILENT_SENSOR_CHECK_MINUTES: int = 10
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
