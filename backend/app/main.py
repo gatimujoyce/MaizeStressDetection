@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, farms, readings, checkins, predictions, alerts, admin, device
+from app.routers import auth, farms, readings, checkins, predictions, alerts, admin, device, sms_reports
 
 from app.services.silent_sensor import start_background_check
 
@@ -45,6 +45,7 @@ app.include_router(predictions.router)
 app.include_router(alerts.router)
 app.include_router(admin.router)
 app.include_router(device.router)
+app.include_router(sms_reports.router)
 
 @app.get("/")
 def root():

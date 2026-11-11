@@ -80,6 +80,9 @@ class SmsLogEntry(BaseModel):
     farm_name: Optional[str] = None
     farmer_id: Optional[uuid.UUID] = None
     farmer_name: Optional[str] = None
+    failure_reason: Optional[str] = None
+    delivery_status: Optional[str] = None
+    delivery_reported_at: Optional[datetime] = None
 
 class SensorInstalled(BaseModel):
     has_npk_sensor: Optional[bool] = None

@@ -166,8 +166,12 @@ class SmsLog(Base):
     kind: Mapped[str] = mapped_column(Text, nullable=False)        # sensor_alert or photo_alert
     phone: Mapped[str] = mapped_column(Text, nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[str] = mapped_column(Text, nullable=False)      # sent or failed
+    status: Mapped[str] = mapped_column(Text, nullable=False)      # sent (the SMS service accepted it) or failed
     severity: Mapped[str | None] = mapped_column(Text, nullable=True)
+    provider_message_id: Mapped[str | None] = mapped_column(Text, nullable=True, index=True)   # for the delivery report
+    failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    delivery_status: Mapped[str | None] = mapped_column(Text, nullable=True)   # delivered, failed or in_transit; empty = no report yet
+    delivery_reported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 class OneTimeCode(Base):
     """A 6-digit code texted to a phone (sign-up check or forgotten password). Only a keyed hash is stored."""

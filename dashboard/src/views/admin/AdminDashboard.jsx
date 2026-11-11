@@ -559,6 +559,14 @@ function SmsPanel() {
   const statusTone = (status) => (status?.toLowerCase() === 'sent' ? 'healthy' : status?.toLowerCase() === 'failed' ? 'critical' : 'neutral')
   const KIND_LABELS = { photo_alert: 'Photo check-in', sensor_alert: 'Sensor alert', password_reset: 'Temporary password', verification_code: 'Verification code' }
   const kindLabel = (kind) => KIND_LABELS[kind] ?? 'Sensor alert'
+  // 'Sent' only means the SMS service accepted the message. The phone's delivery report, when it comes, says if it arrived.
+  const delivery = (entry) => {
+    if (entry.status?.toLowerCase() === 'failed') return { tone: 'critical', label: 'Not sent', note: entry.failure_reason || 'The SMS service did not accept it.' }
+    if (entry.delivery_status === 'delivered') return { tone: 'healthy', label: 'Delivered' }
+    if (entry.delivery_status === 'failed') return { tone: 'critical', label: 'Not delivered', note: entry.failure_reason }
+    if (entry.delivery_status === 'in_transit') return { tone: 'neutral', label: 'On its way' }
+    return { tone: 'neutral', label: 'No report yet' }
+  }
   const filtersOn = search || statusFilter !== 'all' || farmerFilter !== 'all' || farmFilter !== 'all' || rangeFilter !== 'all'
 
   return (
@@ -590,6 +598,13 @@ function SmsPanel() {
             columns={[
               { key: 'when', label: 'When', sortValue: (entry) => timeValue(entry.created_at), render: (entry) => <span className="whitespace-nowrap text-ink-secondary">{new Date(entry.created_at).toLocaleString()}</span> },
               { key: 'status', label: 'Status', sortValue: (entry) => entry.status, render: (entry) => <CountBadge tone={statusTone(entry.status)}><span className="capitalize">{entry.status}</span></CountBadge> },
+              {
+                key: 'delivery', label: 'Delivery', sortValue: (entry) => delivery(entry).label,
+                render: (entry) => {
+                  const d = delivery(entry)
+                  return <><CountBadge tone={d.tone}>{d.label}</CountBadge>{d.note && <span className="mt-1 block max-w-[14rem] text-caption text-ink-secondary">{d.note}</span>}</>
+                },
+              },
               { key: 'farmer', label: 'Farmer', sortValue: (entry) => entry.farmer_name, render: (entry) => <><span className="block font-bold text-ink">{entry.farmer_name || 'Unknown farmer'}</span><span className="mt-0.5 block text-caption tabular-nums text-ink-secondary">{entry.phone}</span></> },
               { key: 'farm', label: 'Farm', sortValue: (entry) => entry.farm_name, render: (entry) => <span className="text-ink">{entry.farm_name || 'Unknown farm'}</span> },
               { key: 'kind', label: 'Reason', sortValue: (entry) => entry.kind, render: (entry) => <span className="text-ink-secondary">{kindLabel(entry.kind)}{entry.severity ? `, ${entry.severity}` : ''}</span> },
@@ -598,7 +613,7 @@ function SmsPanel() {
           />
         )}
         <p className="mb-0 mt-3 text-caption text-ink-secondary">
-          This list updates every 10 seconds. A message shows as Failed when the SMS service did not accept it, for example when the API key is missing or wrong.
+          This list updates every 10 seconds. Sent means the SMS service accepted the message; Delivered appears only when the phone's delivery report reaches the server (it needs a public address and a token, so on a laptop it stays at No report yet). A message that was not accepted shows the reason, for example a wrong API key.
         </p>
       </Card>
     </div>
