@@ -156,3 +156,24 @@ async def classify_latest(
     except InferenceUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return {"reading_id": reading.id, "recorded_at": reading.recorded_at, **label}
+
+
+@router.get("/latest-npk")
+async def latest_npk_values(
+    farm_id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    """The newest nitrogen, phosphorus and potassium values for the Home screen, each from its own latest reading."""
+    from app.services.nutrient_rules import latest_npk
+    farm = await check_farm_access(farm_id, current_user.id, db)
+    if not farm.has_npk_sensor:
+        return {"has_npk_sensor": False, "items": []}
+    now = datetime.now(timezone.utc)
+    rows = (await db.execute(
+        select(SensorReading)
+        .where(SensorReading.farm_id == farm_id, SensorReading.recorded_at >= now - timedelta(days=7),
+               SensorReading.recorded_at <= now + timedelta(minutes=5))
+        .order_by(desc(SensorReading.recorded_at)))).scalars().all()
+    readings = [{"recorded_at": r.recorded_at, **{f: getattr(r, f) for f in NPK_FIELDS}} for r in rows]
+    return {"has_npk_sensor": True, "items": latest_npk(readings, now + timedelta(minutes=5))}

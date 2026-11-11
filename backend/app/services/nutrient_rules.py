@@ -61,3 +61,23 @@ def plan_nutrient_alerts(readings, open_stresses, now):
                 ),
             })
     return to_open, to_close
+
+
+def latest_npk(rows, now):
+    """The newest value of each nutrient with how it compares to the warning level, for the Home screen.
+    rows: dicts with recorded_at and the NPK fields (a field can be missing or None; an NPK sensor can miss a reading on its own).
+    A nutrient with no value yet is left out. status is 'low' below the warning level, else 'ok'."""
+    now = _utc(now)
+    items = []
+    for stress, cfg in NUTRIENTS.items():
+        newest = None
+        for r in rows:
+            if r.get(cfg["field"]) is not None and _utc(r["recorded_at"]) <= now and (
+                    newest is None or _utc(r["recorded_at"]) > _utc(newest["recorded_at"])):
+                newest = r
+        if newest is None:
+            continue
+        value = newest[cfg["field"]]
+        items.append({"field": cfg["field"], "name": cfg["name"], "value": round(value, 1), "low": cfg["low"],
+                      "status": "low" if value < cfg["low"] else "ok", "recorded_at": _utc(newest["recorded_at"]).isoformat()})
+    return items

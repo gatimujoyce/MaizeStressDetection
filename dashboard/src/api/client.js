@@ -129,6 +129,8 @@ export const getFarmStatus = (farmId) =>
         ? mock.getFarmStatus(farmId)
         : httpClient.get(`/farms/${farmId}/status`).then(adaptFarmStatus)
 
+export const getLatestNpk = (farmId) => httpClient.get(`/farms/${farmId}/readings/latest-npk`)
+
 export const getLatestReadings = (farmId) =>
     shouldUseMock('readings')
         ? mock.getLatestReadings(farmId)

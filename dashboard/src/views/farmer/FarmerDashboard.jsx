@@ -6,6 +6,7 @@ import EmptyPlotState from '../../components/EmptyPlotState'
 import GrowthStageCard from '../../components/GrowthStageCard'
 import PlotSwitcher from '../../components/PlotSwitcher'
 import ReadingTile from '../../components/ReadingTile'
+import NpkTiles from '../../components/NpkTiles'
 import SensorSetupRow from '../../components/SensorSetupRow'
 import TrendChart from '../../components/TrendChart'
 import VerdictPanel from '../../components/VerdictPanel'
@@ -259,6 +260,7 @@ export default function FarmerDashboard() {
           </div>
         </section>
       )}
+      <NpkTiles farm={selectedFarm} />
       {!readings && readingsLoading && status?.has_data === true && (
         <section aria-label="Loading field readings" aria-busy="true" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[1, 2, 3].map((card) => (
