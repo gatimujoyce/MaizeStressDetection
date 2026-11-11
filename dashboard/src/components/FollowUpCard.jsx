@@ -15,7 +15,7 @@ export default function FollowUpCard() {
   const label = item.label && item.label !== 'healthy' ? item.label.replaceAll('_', ' ') : 'your maize'
 
   return (
-    <section aria-labelledby="follow-up-title" className="mb-4 rounded-card border border-border bg-surface p-4">
+    <section aria-labelledby="follow-up-title" className="rounded-card border border-border bg-surface p-4">
       <h2 id="follow-up-title" className="m-0 text-heading text-ink">How did it go?</h2>
       <p className="mb-3 mt-1 text-body text-ink">
         On {when(item.answered_at)} we gave you advice about {label}. Has the field improved since then?

@@ -3,6 +3,7 @@ import { useAlerts, useFarmHistory, useFarmStatus, useLatestReadingClassificatio
 import AlertCard from '../../components/AlertCard'
 import AttentionAlert from '../../components/AttentionAlert'
 import EmptyPlotState from '../../components/EmptyPlotState'
+import FollowUpCard from '../../components/FollowUpCard'
 import GrowthStageCard from '../../components/GrowthStageCard'
 import PlotSwitcher from '../../components/PlotSwitcher'
 import ReadingTile from '../../components/ReadingTile'
@@ -181,6 +182,7 @@ export default function FarmerDashboard() {
         aside={<PlotSwitcher />}
       />
       <GrowthStageCard />
+      <FollowUpCard />
 
       {readingIsStale && (
         <Notice tone="neutral">

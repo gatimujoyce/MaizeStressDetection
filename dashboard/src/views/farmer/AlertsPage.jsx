@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAcknowledgeAlertMutation, useAlerts } from '../../api/hooks'
 import AttentionAlert from '../../components/AttentionAlert'
+import FollowUpCard from '../../components/FollowUpCard'
 import Notice from '../../components/ui/Notice'
 import PageHeader from '../../components/ui/PageHeader'
 import Skeleton from '../../components/ui/Skeleton'
@@ -127,6 +128,8 @@ export default function AlertsPage() {
                 title="Alerts"
                 subtitle={`${selectedFarm?.farm_name || 'Your field'}${ongoing.length > 0 ? ` · ${ongoing.length} need${ongoing.length === 1 ? 's' : ''} attention now` : ''}`}
             />
+
+            <FollowUpCard />
 
             {isLoading ? (
                 <div className="flex flex-col gap-3">

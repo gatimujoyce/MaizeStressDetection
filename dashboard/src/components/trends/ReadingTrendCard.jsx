@@ -7,7 +7,13 @@ const FIELDS = {
     soil_moisture: { title: 'Soil moisture', unit: '%', decimals: 0, tolerance: 1.5 },
     temperature: { title: 'Temperature', unit: ' °C', decimals: 1, tolerance: 0.5 },
     humidity: { title: 'Humidity', unit: '%', decimals: 0, tolerance: 2 },
-    leaf_wetness: { title: 'Leaf wetness', unit: '', decimals: 2, tolerance: 0.15 },
+    // The sensor's value is the dew point gap (air temperature minus dew point): SMALL means damp air and wet leaves, so the
+    // card says so in words instead of showing a score that rises as the leaves dry.
+    leaf_wetness: {
+        title: 'Leaf dampness', unit: ' \u00b0C', decimals: 1, tolerance: 0.5,
+        note: 'This is the gap between air temperature and dew point. A small gap means damp air and wet leaves; below 3 \u00b0C the leaves are likely wet. The 3 \u00b0C line is provisional.',
+        wording: { up: 'Drier than the day before', down: 'Damper than the day before' },
+    },
     nitrogen_mg_kg: { title: 'Nitrogen', unit: ' mg/kg', decimals: 0, tolerance: 2, alertClass: 'low_nitrogen' },
     phosphorus_mg_kg: { title: 'Phosphorus', unit: ' mg/kg', decimals: 0, tolerance: 1, alertClass: 'low_phosphorus' },
     potassium_mg_kg: { title: 'Potassium', unit: ' mg/kg', decimals: 0, tolerance: 5, alertClass: 'low_potassium' },
@@ -19,13 +25,13 @@ export const FIELD_ORDER = ['soil_moisture', 'temperature', 'humidity', 'leaf_we
 export const NPK_FIELD_ORDER = ['nitrogen_mg_kg', 'phosphorus_mg_kg', 'potassium_mg_kg']
 
 export function describeChange(change, field) {
-    const { tolerance, decimals, unit } = FIELDS[field]
+    const { tolerance, decimals, unit, wording } = FIELDS[field]
     if (change === null || change === undefined) return null
     if (Math.abs(change) < tolerance) return { arrow: '→', text: 'About the same as the day before' }
     const size = `${number(Math.abs(change), decimals)}${unit.trim() === '%' ? ' points' : unit}`
     return change > 0
-        ? { arrow: '↑', text: `${size} higher than the day before` }
-        : { arrow: '↓', text: `${size} lower than the day before` }
+        ? { arrow: '↑', text: wording ? wording.up : `${size} higher than the day before` }
+        : { arrow: '↓', text: wording ? wording.down : `${size} lower than the day before` }
 }
 
 export default function ReadingTrendCard({ field, trend, rangeKey }) {
@@ -74,6 +80,7 @@ export default function ReadingTrendCard({ field, trend, rangeKey }) {
                     </p>
                 </>
             )}
+            {cfg.note && <p className="m-0 mb-3 text-small text-ink-secondary">{cfg.note}</p>}
             {warningLevel !== undefined && (
                 <p className="m-0 mb-3 text-small text-ink-secondary">
                     Warning level: {warningLevel} mg/kg. This level is provisional and has not been reviewed by an agronomist.
