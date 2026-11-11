@@ -9,13 +9,15 @@ from datetime import datetime, timezone
 import uuid
 
 from app.core.deps import get_db, require_admin
-from app.models import User, Farm, Feedback, ModelVersion, RetrainingJob, Alert, Prediction, Checkin, SmsLog, AdminAuditLog
+from app.models import User, Farm, Feedback, ModelVersion, RetrainingJob, Alert, Prediction, Checkin, SmsLog, AdminAuditLog, DeviceKey
 from app.schemas.auth import UserResponse
 from app.schemas.farms import FarmCreate, FarmResponse
 from app.schemas.predictions import FeedbackResponse
 from app.schemas.admin import ModelVersionResponse, ModelVersionUpdate, RetrainingJobResponse, RetrainRequest
 from app.schemas.admin import AdminUserCreate, AdminFarmResponse, AdminFeedbackResponse, SmsLogEntry
 from app.schemas.admin import AdminUserUpdate, AdminFarmUpdate, AuditLogEntry, SensorInstalled, SensorRequestEntry
+from app.schemas.admin import DeviceKeyInfo, DeviceKeyCreated
+from app.services.device_keys import make_key
 from app.core.security import get_password_hash
 from app.core.utils import normalize_ke_phone
 from app.services.audit import record_admin_action
@@ -433,3 +435,53 @@ async def admin_sensor_contacted(
         await db.commit()
         await db.refresh(farm)
     return _admin_farm(farm, owner_name, owner_phone)
+
+
+# ── Device keys: the installer creates one per plot and types it into the sensor box ──────────────────────────────────
+
+async def _active_key(db, farm_id):
+    return (await db.execute(select(DeviceKey).where(DeviceKey.farm_id == farm_id, DeviceKey.revoked_at.is_(None)))).scalar_one_or_none()
+
+
+def _key_info(row):
+    if row is None:
+        return DeviceKeyInfo(has_key=False)
+    return DeviceKeyInfo(has_key=True, prefix=row.key_prefix, created_at=row.created_at, created_by=row.created_by_name,
+                         last_used_at=row.last_used_at)
+
+
+@router.get("/farms/{farm_id}/device-key", response_model=DeviceKeyInfo)
+async def admin_device_key(farm_id: uuid.UUID, current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    await _load_farm(db, farm_id)
+    return _key_info(await _active_key(db, farm_id))
+
+
+@router.post("/farms/{farm_id}/device-key", response_model=DeviceKeyCreated)
+async def admin_create_device_key(farm_id: uuid.UUID, current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Create a key for this plot's sensor box. Any earlier key stops working. The key is returned once and never stored."""
+    farm, owner = await _load_farm(db, farm_id)
+    label = f"{farm.name} ({owner.name})"
+    now = datetime.now(timezone.utc)
+    old = await _active_key(db, farm_id)
+    old_prefix = old.key_prefix if old else "none"
+    if old:
+        old.revoked_at = now
+    key, prefix, key_hash = make_key()
+    row = DeviceKey(id=uuid.uuid4(), farm_id=farm_id, key_hash=key_hash, key_prefix=prefix, created_by_name=current_admin.name, created_at=now)
+    db.add(row)
+    record_admin_action(db, current_admin, "farm.device_key_created", "farm", farm_id, label, {"device_key": [old_prefix, prefix]})
+    await db.commit()
+    return DeviceKeyCreated(key=key, prefix=prefix, created_at=now)
+
+
+@router.delete("/farms/{farm_id}/device-key", response_model=DeviceKeyInfo)
+async def admin_revoke_device_key(farm_id: uuid.UUID, current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    farm, owner = await _load_farm(db, farm_id)
+    label = f"{farm.name} ({owner.name})"
+    old = await _active_key(db, farm_id)
+    if old:
+        prefix = old.key_prefix
+        old.revoked_at = datetime.now(timezone.utc)
+        record_admin_action(db, current_admin, "farm.device_key_revoked", "farm", farm_id, label, {"device_key": [prefix, "revoked"]})
+        await db.commit()
+    return DeviceKeyInfo(has_key=False)

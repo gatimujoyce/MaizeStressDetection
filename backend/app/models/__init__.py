@@ -225,3 +225,16 @@ class RetrainingJob(Base):
     passed_gate: Mapped[bool] = mapped_column(Boolean, nullable=False)
     deployed: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class DeviceKey(Base):
+    """A secret that lets one plot's sensor box post readings. Only a hash is stored; the key is shown once, when created."""
+    __tablename__ = "device_keys"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    farm_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("farms.id"), nullable=False, index=True)
+    key_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    key_prefix: Mapped[str] = mapped_column(String, nullable=False)   # first characters, so an admin can tell keys apart
+    created_by_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
