@@ -48,6 +48,15 @@ export function useFarmStatus(farmId) {
     })
 }
 
+export function useLatestNpk(farmId, enabled = true) {
+    return useQuery({
+        queryKey: ['latestNpk', farmId],
+        queryFn: () => client.getLatestNpk(farmId),
+        enabled: !!farmId && enabled,
+        refetchInterval: 60000,
+    })
+}
+
 export function useLatestReadings(farmId) {
     return useQuery({
         queryKey: ['latestReadings', farmId],
