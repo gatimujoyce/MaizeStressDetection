@@ -13,6 +13,7 @@ import Skeleton from '../../components/ui/Skeleton'
 import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
 import { DATE_RANGES, inDateRange, uniqueOptions } from '../../components/ui/adminFilters'
 import { buttonClass, focusRing } from '../../components/ui/styles'
+import DeviceKeySection from './DeviceKeySection'
 
 const fieldClass = `mt-1 block min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-normal text-ink ${focusRing}`
 const SOIL_TYPES = [['sandy_loam', 'Sandy loam'], ['loam', 'Loam'], ['silt_loam', 'Silt loam'], ['clay', 'Clay']]
@@ -167,6 +168,7 @@ export function FarmEditor({ farm, onClose }) {
           )}
         </div>
       </form>
+      {farm && !farm.deleted_at && <DeviceKeySection farm={farm} />}
       {farm && !farm.deleted_at && <p className="mb-0 mt-3 text-caption text-ink-secondary">Archiving hides the farm from the farmer. Its readings and history are kept.</p>}
     </Modal>
   )
@@ -180,10 +182,12 @@ const ACTION_LABELS = {
   'farm.update': 'Edited farm',
   'farm.archive': 'Archived farm',
   'farm.restore': 'Restored farm',
+  'farm.device_key_created': 'Made sensor box key',
+  'farm.device_key_revoked': 'Revoked sensor box key',
 }
 const FIELD_LABELS = {
   name: 'Name', phone: 'Phone', location: 'County', soil_type: 'Soil', size_acres: 'Size (acres)', planting_date: 'Planting date',
-  water_source: 'Water source', seed_variety: 'Seed variety', has_npk_sensor: 'NPK sensor',
+  water_source: 'Water source', seed_variety: 'Seed variety', has_npk_sensor: 'NPK sensor', device_key: 'Sensor box key',
 }
 const showValue = (value) => (value === null || value === undefined || value === '' ? 'empty' : value === 'True' ? 'on' : value === 'False' ? 'off' : String(value).replaceAll('_', ' '))
 

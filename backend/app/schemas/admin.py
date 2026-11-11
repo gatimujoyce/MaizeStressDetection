@@ -104,3 +104,16 @@ class SensorRequestEntry(BaseModel):
     farmer_id: uuid.UUID
     farmer_name: str
     farmer_phone: str
+
+
+class DeviceKeyInfo(BaseModel):
+    has_key: bool
+    prefix: Optional[str] = None
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    last_used_at: Optional[datetime] = None
+
+class DeviceKeyCreated(BaseModel):
+    key: str          # shown once, never stored
+    prefix: str
+    created_at: datetime

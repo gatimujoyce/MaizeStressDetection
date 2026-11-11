@@ -7,7 +7,7 @@ from typing import List
 from datetime import datetime, timedelta, timezone
 
 from app.core.deps import get_db, require_farmer
-from app.models import Alert, SensorReading, Farm, User
+from app.models import Alert, SensorReading, Farm, SourceEnum, User
 from app.schemas.readings import SensorReadingCreate, SensorReadingResponse
 from app.services.nutrient_rules import LEVELS_BY_FIELD, NPK_FIELDS
 
@@ -28,6 +28,12 @@ async def create_reading(
     db: AsyncSession = Depends(get_db)
 ):
     farm = await check_farm_access(farm_id, current_user.id, db)
+    return await store_reading(db, farm, reading_in, SourceEnum.simulated)
+
+
+async def store_reading(db: AsyncSession, farm: Farm, reading_in: SensorReadingCreate, source):
+    """Check and save one reading for a plot, then run the alert checks. Used by the dashboard and by sensor boxes."""
+    farm_id = farm.id
     data = reading_in.model_dump()
     if not farm.has_npk_sensor and any(data.get(f) is not None for f in NPK_FIELDS):
         raise HTTPException(
@@ -46,6 +52,7 @@ async def create_reading(
         id=uuid.uuid4(),
         farm_id=farm_id,
         recorded_at=recorded_at,
+        source=source,
         **data,
     )
     db.add(new_reading)

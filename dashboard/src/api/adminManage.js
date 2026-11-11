@@ -9,6 +9,9 @@ export const updateAdminFarm = ({ id, data }) => httpClient.patch(`/admin/farms/
 export const archiveAdminFarm = ({ id }) => httpClient.post(`/admin/farms/${id}/archive`, {})
 export const restoreAdminFarm = ({ id }) => httpClient.post(`/admin/farms/${id}/restore`, {})
 export const getAdminAuditLog = () => httpClient.get('/admin/audit-log')
+export const getDeviceKey = (farmId) => httpClient.get(`/admin/farms/${farmId}/device-key`)
+export const createDeviceKey = ({ id }) => httpClient.post(`/admin/farms/${id}/device-key`, {})
+export const revokeDeviceKey = ({ id }) => httpClient.delete(`/admin/farms/${id}/device-key`)
 
 // Every change refreshes the admin lists and the action log.
 export function useAdminManageMutation(mutationFn) {
