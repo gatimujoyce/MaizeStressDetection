@@ -13,6 +13,7 @@ from app.services.nutrient_rules import NUTRIENT_STRESSES, NUTRIENTS, plan_nutri
 from app.services.growth_stage import allow_nutrient_alerts, apply_stage, stage_key
 from app.services.inference import InferenceUnavailableError
 from app.services.sms import send_sms
+from app.services.silent_sensor import close_silence_alert
 from app.services.sms_log import record_sms
 
 log = logging.getLogger(__name__)
@@ -21,6 +22,11 @@ WINDOW = timedelta(hours=24)
 
 async def evaluate_reading(db, reading):
     farm_id, recorded_at = reading.farm_id, reading.recorded_at   # read now: a commit below expires the reading
+    try:
+        await close_silence_alert(db, farm_id, recorded_at)   # the sensor is talking again
+    except Exception:
+        log.exception("Could not close the silent-sensor alert for farm %s", farm_id)
+        await db.rollback()
     try:
         await _evaluate(db, reading)
     except InferenceUnavailableError as exc:

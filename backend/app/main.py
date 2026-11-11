@@ -1,10 +1,24 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, farms, readings, checkins, predictions, alerts, admin
 
-app = FastAPI(title="Maize Stress Detection API", version="0.1.0")
+from app.services.silent_sensor import start_background_check
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    task = start_background_check()   # looks for plots whose sensor has gone quiet
+    try:
+        yield
+    finally:
+        if task:
+            task.cancel()
+
+
+app = FastAPI(title="Maize Stress Detection API", version="0.1.0", lifespan=lifespan)
 
 allowed_origins = [
     origin.strip()

@@ -15,6 +15,7 @@ const STRESS_TITLES = {
     low_nitrogen: 'Low nitrogen',
     low_phosphorus: 'Low phosphorus',
     low_potassium: 'Low potassium',
+    sensor_silent: 'Sensor not reporting',
 }
 
 function timeOf(value) {
