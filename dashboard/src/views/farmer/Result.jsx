@@ -62,6 +62,16 @@ function ReadingGrid({ tiles }) {
     )
 }
 
+// The sensor's leaf_wetness value is the dew point gap: air temperature minus dew point, in degrees C. A SMALL gap means
+// damp air and wet leaves, a large gap means dry air, so the number must not be shown as a score that rises with wetness.
+// The cut-offs are provisional (the disease rules use below 3 as "wet enough to favour disease").
+function leafDampness(gap) {
+    if (!Number.isFinite(gap)) return 'Not known'
+    if (gap < 3) return 'Likely wet'
+    if (gap < 6) return 'Damp'
+    return 'Dry'
+}
+
 function PlotReadingsCard({ farmId }) {
     const { data: reading } = useLatestReadings(farmId)
     const { data: label } = useLatestReadingClassification(farmId)
@@ -70,7 +80,7 @@ function PlotReadingsCard({ farmId }) {
         ['Temperature', `${reading.temperature} °C`],
         ['Humidity', `${reading.humidity}%`],
         ['Soil moisture', `${reading.soil_moisture}%`],
-        ['Leaf wetness', `${reading.leaf_wetness}`],
+        ['Leaves', leafDampness(reading.leaf_wetness)],
     ]
     return (
         <Card>
