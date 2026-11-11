@@ -226,6 +226,7 @@ async def checkin_and_predict(
                 new_alert.sent_at = datetime.now(timezone.utc)
             else:
                 new_alert.status = "failed"
+            await db.flush()   # the alert row must exist before the SMS log row that points at it
             record_sms(db, user_id=current_user.id, farm_id=farm.id, alert_id=new_alert.id, kind="photo_alert",
                        phone=current_user.phone, message=message, status="sent" if sms_sent else "failed",
                        severity=new_prediction.severity)
