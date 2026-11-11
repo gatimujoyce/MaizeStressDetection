@@ -85,5 +85,5 @@ async def send_code(db, phone: str, purpose: str, code: str, user_id=None) -> bo
     if settings.AUTH_LOG_CODES:
         print(f"[auth] {purpose} code for {phone}: {code}")  # testing only; leave AUTH_LOG_CODES off in real use
     record_sms(db, user_id=user_id, farm_id=None, alert_id=None, kind="verification_code", phone=phone,
-               message="Verification code sent (hidden)", status="sent" if sent else "failed")
+               message="Verification code sent (hidden)", status="sent" if sent else "failed", result=sent)
     return sent

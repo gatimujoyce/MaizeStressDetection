@@ -113,7 +113,7 @@ async def _evaluate(db, reading):
             status="sent" if sent else "failed",
             sent_at=datetime.now(timezone.utc) if sent else None))
         record_sms(db, user_id=owner_id, farm_id=farm_id, alert_id=alert_id, kind="sensor_alert", phone=phone,
-                   message=text, status="sent" if sent else "failed", severity="High")
+                   message=text, status="sent" if sent else "failed", severity="High", result=sent)
     if sms_jobs:
         await db.commit()
 

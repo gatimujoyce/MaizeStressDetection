@@ -145,7 +145,8 @@ async def get_sms_log(
         SmsLogEntry(
             id=sms.id, created_at=sms.created_at, status=sms.status, kind=sms.kind, severity=sms.severity,
             message=sms.message, phone=sms.phone, farm_id=sms.farm_id, farm_name=farm_name,
-            farmer_id=sms.user_id, farmer_name=farmer_name,
+            farmer_id=sms.user_id, farmer_name=farmer_name, failure_reason=sms.failure_reason,
+            delivery_status=sms.delivery_status, delivery_reported_at=sms.delivery_reported_at,
         )
         for sms, farm_name, farmer_name in res.all()
     ]
@@ -240,7 +241,7 @@ async def admin_reset_password(
     sent = await asyncio.to_thread(
         send_sms, phone, f"MaizeStressMonitor: your temporary password is\n{temporary}\nSign in with it, then choose your own password.")
     record_sms(db, user_id=farmer_id, farm_id=None, alert_id=None, kind="password_reset", phone=phone,
-               message="Temporary password sent (hidden)", status="sent" if sent else "failed")
+               message="Temporary password sent (hidden)", status="sent" if sent else "failed", result=sent)
     if not sent:
         await db.commit()  # keep the failed attempt in the SMS log; the old password still works
         raise HTTPException(status_code=502, detail="The text message could not be sent, so the password was not changed.")
