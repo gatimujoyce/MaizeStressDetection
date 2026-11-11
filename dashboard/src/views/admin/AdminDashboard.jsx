@@ -12,6 +12,7 @@ import Toolbar, { FilterSelect, SearchField } from '../../components/ui/Toolbar'
 import { buttonClass, focusRing, insetClass, linkClass } from '../../components/ui/styles'
 import { DATE_RANGES, inDateRange, uniqueOptions } from '../../components/ui/adminFilters'
 import AdminShell from './AdminShell'
+import SensorRequestsPanel from './SensorRequestsPanel'
 import { AuditPanel, FarmEditor, UserEditor } from './ManagePanels'
 
 const SECTIONS = {
@@ -42,6 +43,10 @@ const SECTIONS = {
   sms: {
     title: 'SMS log',
     description: 'Review SMS alert delivery records.',
+  },
+  sensors: {
+    title: 'Sensor requests',
+    description: 'Farmers who asked for a sensor to be set up on their plot.',
   },
   audit: {
     title: 'Activity log',
@@ -95,6 +100,8 @@ export default function AdminDashboard() {
           ? <SmsPanel />
         : activeSection === 'audit'
           ? <AuditPanel />
+        : activeSection === 'sensors'
+          ? <SensorRequestsPanel />
         : <ComingSoonPanel title={section.title} />}
     </AdminShell>
   )

@@ -60,6 +60,12 @@ class Farm(Base):
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     has_npk_sensor: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+    # How the plot is monitored: "none" (photo checks only), "requested" (the farmer asked for a sensor), "installed".
+    sensor_status: Mapped[str] = mapped_column(String, nullable=False, default="none", server_default="none")
+    sensor_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sensor_installed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sensor_contacted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sensor_request_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     
     __table_args__ = (
         Index(

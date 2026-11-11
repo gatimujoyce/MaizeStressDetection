@@ -297,3 +297,62 @@ export function useGrowthStage(farmId) {
         staleTime: 60 * 60 * 1000,
     })
 }
+
+function refreshFarms(qc) {
+    qc.invalidateQueries({ queryKey: ['farmerFarm'] })
+    qc.invalidateQueries({ queryKey: ['farmerFarms'] })
+}
+
+export function useRequestSensorMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: ({ farmId, note }) => client.requestSensor(farmId, note),
+        onSuccess: () => refreshFarms(qc),
+    })
+}
+
+export function useCancelSensorRequestMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: (farmId) => client.cancelSensorRequest(farmId),
+        onSuccess: () => refreshFarms(qc),
+    })
+}
+
+export function useAdminSensorRequests() {
+    return useQuery({
+        queryKey: ['admin', 'sensorRequests'],
+        queryFn: client.getAdminSensorRequests,
+        refetchInterval: 60000,
+    })
+}
+
+function refreshAdminSensors(qc) {
+    qc.invalidateQueries({ queryKey: ['admin', 'sensorRequests'] })
+    qc.invalidateQueries({ queryKey: ['admin', 'farms'] })
+    qc.invalidateQueries({ queryKey: ['admin', 'auditLog'] })
+}
+
+export function useMarkSensorInstalledMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: ({ farmId, hasNpkSensor }) => client.markAdminSensorInstalled(farmId, hasNpkSensor),
+        onSuccess: () => refreshAdminSensors(qc),
+    })
+}
+
+export function useCancelAdminSensorRequestMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: (farmId) => client.cancelAdminSensorRequest(farmId),
+        onSuccess: () => refreshAdminSensors(qc),
+    })
+}
+
+export function useMarkSensorContactedMutation() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: (farmId) => client.markAdminSensorContacted(farmId),
+        onSuccess: () => refreshAdminSensors(qc),
+    })
+}

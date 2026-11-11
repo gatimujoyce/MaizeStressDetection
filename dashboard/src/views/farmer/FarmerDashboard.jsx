@@ -6,6 +6,7 @@ import EmptyPlotState from '../../components/EmptyPlotState'
 import GrowthStageCard from '../../components/GrowthStageCard'
 import PlotSwitcher from '../../components/PlotSwitcher'
 import ReadingTile from '../../components/ReadingTile'
+import SensorSetupRow from '../../components/SensorSetupRow'
 import TrendChart from '../../components/TrendChart'
 import VerdictPanel from '../../components/VerdictPanel'
 import Card, { SectionHeader } from '../../components/ui/Card'
@@ -104,6 +105,7 @@ function PlotDetailsCard({ farm }) {
     },
     waterSource && { label: 'Water source', value: waterSource },
     seedVariety && { label: 'Seed variety', value: seedVariety },
+    { label: 'Sensors', value: <SensorSetupRow farm={farm} />, wide: true },
   ].filter(Boolean)
 
   if (!rows.length) return null
@@ -112,8 +114,8 @@ function PlotDetailsCard({ farm }) {
     <Card aria-labelledby="plot-details-title">
       <SectionHeader id="plot-details-title" title="Plot details" />
       <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-3 text-left sm:grid-cols-2 lg:grid-cols-3">
-        {rows.map(({ label, value }) => (
-          <div key={label} className="min-w-0">
+        {rows.map(({ label, value, wide }) => (
+          <div key={label} className={`min-w-0 ${wide ? 'sm:col-span-2 lg:col-span-3' : ''}`}>
             <dt className="text-small text-ink-secondary">{label}</dt>
             <dd className="m-0 break-words text-body font-bold text-ink">{value}</dd>
           </div>
