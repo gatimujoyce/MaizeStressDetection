@@ -27,8 +27,14 @@ async def label_readings(readings, soil_type):
     """The sensor model's label for each reading, in order, or None if the real models are not available."""
     if not readings:
         return []
+    from app.services.readings_util import is_complete
+    complete = [i for i, r in enumerate(readings) if is_complete(r)]   # readings missing a value get no label
     try:
-        return await asyncio.to_thread(_classify, readings, soil_type)
+        labels = await asyncio.to_thread(_classify, [readings[i] for i in complete], soil_type) if complete else []
+        result = [None] * len(readings)
+        for i, label in zip(complete, labels):
+            result[i] = label
+        return result
     except InferenceUnavailableError:
         return None
     except Exception:

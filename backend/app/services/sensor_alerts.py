@@ -13,7 +13,8 @@ from app.services.nutrient_rules import NUTRIENT_STRESSES, NUTRIENTS, plan_nutri
 from app.services.growth_stage import allow_nutrient_alerts, apply_stage, stage_key
 from app.services.inference import InferenceUnavailableError
 from app.services.sms import send_sms
-from app.services.silent_sensor import close_silence_alert
+from app.services.readings_util import is_complete
+from app.services.silent_sensor import close_silence_alert, close_npk_silence_alert
 from app.services.sms_log import record_sms
 
 log = logging.getLogger(__name__)
@@ -22,8 +23,11 @@ WINDOW = timedelta(hours=24)
 
 async def evaluate_reading(db, reading):
     farm_id, recorded_at = reading.farm_id, reading.recorded_at   # read now: a commit below expires the reading
+    has_npk = any(getattr(reading, f, None) is not None for f in ("nitrogen_mg_kg", "phosphorus_mg_kg", "potassium_mg_kg"))
     try:
         await close_silence_alert(db, farm_id, recorded_at)   # the sensor is talking again
+        if has_npk:
+            await close_npk_silence_alert(db, farm_id, recorded_at)
     except Exception:
         log.exception("Could not close the silent-sensor alert for farm %s", farm_id)
         await db.rollback()
@@ -61,7 +65,9 @@ async def _evaluate(db, reading):
                SensorReading.recorded_at <= now)
         .order_by(SensorReading.recorded_at))).scalars().all()
     window = [{"timestamp": r.recorded_at, "soil_moisture": r.soil_moisture, "temperature": r.temperature,
-               "humidity": r.humidity, "leaf_wetness": r.leaf_wetness} for r in rows]
+               "humidity": r.humidity, "leaf_wetness": r.leaf_wetness} for r in rows if is_complete(r)]
+    if not window:
+        return                                       # the sensor model needs all four values; none of these readings has them
     soil_type = getattr(farm.soil_type, "value", farm.soil_type)
     result = await sensor_window_status(window, soil_type, now)
     if result is None:

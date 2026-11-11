@@ -11,6 +11,7 @@ const STRESS_TITLES = {
   low_phosphorus: 'Low phosphorus',
   low_potassium: 'Low potassium',
   sensor_silent: 'Sensor not reporting',
+  npk_silent: 'NPK sensor not reporting',
 }
 
 export default function AlertCard({ alert, farmId, arrived = false }) {

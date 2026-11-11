@@ -74,6 +74,18 @@ function timeAgo(value, now) {
   return `${days} ${days === 1 ? 'day' : 'days'} ago`
 }
 
+// A tile for a sensor that sent no value in the latest reading.
+function SafeTile({ value, title, ...rest }) {
+  if (Number.isFinite(value)) return <ReadingTile title={title} value={value} {...rest} />
+  return (
+    <div className="rounded-card border border-control bg-surface p-4">
+      <h3 className="m-0 text-small font-bold text-ink-secondary">{title}</h3>
+      <p className="mb-0 mt-2 text-body text-ink">Not reporting</p>
+      <p className="mb-0 mt-1 text-caption text-ink-secondary">This sensor sent no value in the latest reading.</p>
+    </div>
+  )
+}
+
 function PlotDetailsCard({ farm }) {
   if (!farm) return null
 
@@ -157,7 +169,7 @@ export default function FarmerDashboard() {
   const soilType = SOIL_PROFILES[selectedFarm?.soil_type] ? selectedFarm.soil_type : 'loam'
   const soilProfile = SOIL_PROFILES[soilType]
   const soilScale = moistureScale(soilType)
-  const humidityZone = readings ? zoneFor(humidityScale(), readings.humidity) : null
+  const humidityZone = readings && Number.isFinite(readings.humidity) ? zoneFor(humidityScale(), readings.humidity) : null
 
   if (!farmsLoading && !hasFarms) return <Navigate to="/onboarding" replace />
 
@@ -222,21 +234,21 @@ export default function FarmerDashboard() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <ReadingTile
+            <SafeTile
               title="Soil moisture"
               value={readings.soil_moisture}
               unit="%"
               scale={soilScale}
               caption={`Good for ${soilProfile.label}: ${soilScale.goodRange[0]}-${soilScale.goodRange[1]}%`}
             />
-            <ReadingTile
+            <SafeTile
               title="Temperature"
               value={readings.temperature}
               unit="°C"
               scale={temperatureScale()}
               caption="Comfortable: 18-29°C. Heat stress from 32°C."
             />
-            <ReadingTile
+            <SafeTile
               title="Air humidity"
               value={readings.humidity}
               unit="%"
