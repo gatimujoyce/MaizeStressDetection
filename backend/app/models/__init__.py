@@ -86,10 +86,14 @@ class SensorReading(Base):
     __tablename__ = "sensor_readings"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     farm_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("farms.id"), nullable=False)
-    soil_moisture: Mapped[float] = mapped_column(Float, nullable=False)
-    temperature: Mapped[float] = mapped_column(Float, nullable=False)
-    humidity: Mapped[float] = mapped_column(Float, nullable=False)
-    leaf_wetness: Mapped[float] = mapped_column(Float, nullable=False)
+    # The four core values are optional: a sensor box sends what its working sensors measured (leaf wetness is worked out
+    # from temperature and humidity when it is missing).
+    soil_moisture: Mapped[float | None] = mapped_column(Float, nullable=True)
+    temperature: Mapped[float | None] = mapped_column(Float, nullable=True)
+    humidity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    leaf_wetness: Mapped[float | None] = mapped_column(Float, nullable=True)
+    battery_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
+    firmware: Mapped[str | None] = mapped_column(String, nullable=True)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     source: Mapped[SourceEnum] = mapped_column(SAEnum(SourceEnum), nullable=False, default=SourceEnum.simulated)
     # Optional NPK sensor values in mg/kg; only plots with has_npk_sensor send them.

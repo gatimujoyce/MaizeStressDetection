@@ -11,6 +11,7 @@ from sqlalchemy.future import select
 
 from app.core.deps import get_db, require_farmer
 from app.models import Alert, ChannelEnum, Checkin, Farm, Prediction, SensorReading, User
+from app.services.readings_util import complete_reading
 from app.schemas.predictions import PredictionResponse
 from app.services.fusion import compute_severity
 from app.services.inference import (
@@ -112,7 +113,7 @@ async def checkin_and_predict(
 
     sensor_result = await db.execute(
         select(SensorReading)
-        .where(SensorReading.farm_id == farm_id)
+        .where(SensorReading.farm_id == farm_id, complete_reading())   # the sensor model needs all four values
         .order_by(desc(SensorReading.recorded_at))
         .limit(1)
     )
@@ -132,7 +133,7 @@ async def checkin_and_predict(
         window_start = datetime.now(timezone.utc) - timedelta(hours=24)
         window_result = await db.execute(
             select(SensorReading)
-            .where(SensorReading.farm_id == farm_id, SensorReading.recorded_at >= window_start)
+            .where(SensorReading.farm_id == farm_id, SensorReading.recorded_at >= window_start, complete_reading())
             .order_by(SensorReading.recorded_at)
         )
         window_readings = [

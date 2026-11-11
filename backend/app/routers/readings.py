@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from app.core.deps import get_db, require_farmer
 from app.models import Alert, SensorReading, Farm, SourceEnum, User
 from app.schemas.readings import SensorReadingCreate, SensorReadingResponse
+from app.services.readings_util import complete_reading, leaf_wetness_from
 from app.services.nutrient_rules import LEVELS_BY_FIELD, NPK_FIELDS
 
 router = APIRouter(prefix="/farms/{farm_id}/readings", tags=["readings"])
@@ -35,6 +36,8 @@ async def store_reading(db: AsyncSession, farm: Farm, reading_in: SensorReadingC
     """Check and save one reading for a plot, then run the alert checks. Used by the dashboard and by sensor boxes."""
     farm_id = farm.id
     data = reading_in.model_dump()
+    if data.get("leaf_wetness") is None:
+        data["leaf_wetness"] = leaf_wetness_from(data.get("temperature"), data.get("humidity"))   # None if either is missing
     if not farm.has_npk_sensor and any(data.get(f) is not None for f in NPK_FIELDS):
         raise HTTPException(
             status_code=422,
@@ -140,7 +143,8 @@ async def classify_latest(
     from app.services.inference import InferenceUnavailableError
     from app.services.real_inference import classify_latest_reading
     farm = await check_farm_access(farm_id, current_user.id, db)
-    result = await db.execute(select(SensorReading).where(SensorReading.farm_id == farm_id).order_by(desc(SensorReading.recorded_at)).limit(1))
+    result = await db.execute(select(SensorReading).where(SensorReading.farm_id == farm_id, complete_reading())
+                              .order_by(desc(SensorReading.recorded_at)).limit(1))   # the model needs all four values
     reading = result.scalar_one_or_none()
     if not reading:
         raise HTTPException(status_code=404, detail="No readings found")

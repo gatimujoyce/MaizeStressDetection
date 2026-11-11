@@ -63,6 +63,8 @@ def status_segments(readings, labels, start, end, step):
     size = int(step.total_seconds())
     per_bucket = {}
     for reading, label in zip(readings, labels):
+        if label is None:
+            continue                                   # no label: the reading was missing a sensor value
         t = _utc(reading["recorded_at"])
         if start <= t <= end:
             per_bucket.setdefault(int(t.timestamp()) // size * size, []).append(label if label in STRESS_LABELS else "normal")

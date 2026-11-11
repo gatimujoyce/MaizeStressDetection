@@ -42,8 +42,9 @@ function adaptAlertResponse(alert) {
 }
 
 function adaptReadingResponse(reading) {
+    // A box with a dead sensor sends the other values only, so one working value is enough.
     const tileFields = ['soil_moisture', 'temperature', 'humidity']
-    const hasValidTileValues = tileFields.every((field) =>
+    const hasValidTileValues = tileFields.some((field) =>
         Number.isFinite(reading?.[field]),
     )
     if (!hasValidTileValues) {
