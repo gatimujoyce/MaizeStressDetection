@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import date, datetime
 from app.models import ModelNameEnum
 from app.schemas.farms import FarmResponse, FarmUpdate
 from app.schemas.predictions import FeedbackResponse
@@ -80,3 +80,27 @@ class SmsLogEntry(BaseModel):
     farm_name: Optional[str] = None
     farmer_id: Optional[uuid.UUID] = None
     farmer_name: Optional[str] = None
+
+class SensorInstalled(BaseModel):
+    has_npk_sensor: Optional[bool] = None
+
+class SensorRequestEntry(BaseModel):
+    farm_id: uuid.UUID
+    farm_name: str
+    location: str
+    soil_type: Optional[str] = None
+    size_acres: Optional[float] = None
+    planting_date: Optional[date] = None
+    water_source: Optional[str] = None
+    seed_variety: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    has_npk_sensor: bool = False
+    status: str = "requested"   # requested (new), in_progress, installed (completed)
+    requested_at: Optional[datetime] = None
+    contacted_at: Optional[datetime] = None
+    installed_at: Optional[datetime] = None
+    note: Optional[str] = None
+    farmer_id: uuid.UUID
+    farmer_name: str
+    farmer_phone: str

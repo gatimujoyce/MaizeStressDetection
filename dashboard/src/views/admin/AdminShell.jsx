@@ -12,11 +12,12 @@ const ICON_PATHS = {
   models: <><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" /></>,
   retraining: <><path d="M20 12a8 8 0 1 1-2.3-5.7" /><path d="M20 4v5h-5" /></>,
   sms: <><rect x="6" y="2" width="12" height="20" rx="2" /><path d="M10 18h4" /></>,
+  sensors: <><circle cx="12" cy="18" r="1.5" /><path d="M8.5 14.5a5 5 0 0 1 7 0M5 11a10 10 0 0 1 14 0" /></>,
   audit: <><path d="M6 3h9l3 3v15H6z" /><path d="M9 11h6M9 15h6" /></>,
 }
 
 const NAV_ITEMS = [
-  ['overview', 'Overview'], ['farms', 'Farms'], ['users', 'Users'],
+  ['overview', 'Overview'], ['farms', 'Farms'], ['sensors', 'Sensor requests'], ['users', 'Users'],
   ['feedback', 'Feedback'], ['models', 'Models'], ['retraining', 'Retraining'], ['sms', 'SMS log'], ['audit', 'Activity log'],
 ]
 

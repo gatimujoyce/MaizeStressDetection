@@ -4,7 +4,7 @@ from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 import asyncio
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
 
@@ -15,7 +15,7 @@ from app.schemas.farms import FarmCreate, FarmResponse
 from app.schemas.predictions import FeedbackResponse
 from app.schemas.admin import ModelVersionResponse, ModelVersionUpdate, RetrainingJobResponse, RetrainRequest
 from app.schemas.admin import AdminUserCreate, AdminFarmResponse, AdminFeedbackResponse, SmsLogEntry
-from app.schemas.admin import AdminUserUpdate, AdminFarmUpdate, AuditLogEntry
+from app.schemas.admin import AdminUserUpdate, AdminFarmUpdate, AuditLogEntry, SensorInstalled, SensorRequestEntry
 from app.core.security import get_password_hash
 from app.core.utils import normalize_ke_phone
 from app.services.audit import record_admin_action
@@ -339,3 +339,97 @@ async def get_audit_log(
 ):
     res = await db.execute(select(AdminAuditLog).order_by(desc(AdminAuditLog.created_at)).limit(limit))
     return res.scalars().all()
+
+
+# ── Sensor setup requests: farmers ask, an administrator visits, then marks the plot installed ─────────────────────────
+
+@router.get("/sensor-requests", response_model=List[SensorRequestEntry])
+async def admin_sensor_requests(current_admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Plots waiting for a sensor visit, oldest request first, with what the installer needs to know."""
+    res = await db.execute(
+        select(Farm, User).join(User, User.id == Farm.user_id)
+        .where(Farm.sensor_requested_at.is_not(None), Farm.sensor_status.in_(("requested", "in_progress", "installed")),
+               Farm.deleted_at.is_(None))
+        .order_by(Farm.sensor_requested_at))
+    return [
+        SensorRequestEntry(
+            farm_id=farm.id, farm_name=farm.name, location=farm.location, soil_type=_text(farm.soil_type),
+            size_acres=farm.size_acres, planting_date=farm.planting_date, water_source=farm.water_source,
+            seed_variety=farm.seed_variety, latitude=farm.latitude, longitude=farm.longitude,
+            has_npk_sensor=farm.has_npk_sensor, status=farm.sensor_status, requested_at=farm.sensor_requested_at,
+            contacted_at=farm.sensor_contacted_at, installed_at=farm.sensor_installed_at, note=farm.sensor_request_note,
+            farmer_id=owner.id, farmer_name=owner.name, farmer_phone=owner.phone)
+        for farm, owner in res.all()
+    ]
+
+
+@router.post("/farms/{farm_id}/sensor-installed", response_model=AdminFarmResponse)
+async def admin_sensor_installed(
+    farm_id: uuid.UUID,
+    body: Optional[SensorInstalled] = None,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Installation is done: the plot leaves the request list. The admin can say here whether it also has an NPK sensor."""
+    farm, owner = await _load_farm(db, farm_id)
+    owner_name, owner_phone = owner.name, owner.phone
+    label = f"{farm.name} ({owner_name})"
+    changes = {}
+    if farm.sensor_status != "installed":
+        changes["sensor_status"] = [farm.sensor_status, "installed"]
+        farm.sensor_status = "installed"
+        farm.sensor_installed_at = datetime.now(timezone.utc)
+    npk = body.has_npk_sensor if body else None
+    if npk is not None and npk != farm.has_npk_sensor:
+        changes["has_npk_sensor"] = [_text(farm.has_npk_sensor), _text(npk)]
+        if not npk:
+            await _close_nutrient_alerts(db, farm.id)
+        farm.has_npk_sensor = npk
+    if changes:
+        record_admin_action(db, current_admin, "farm.sensor_installed", "farm", farm.id, label, changes)
+        await db.commit()
+        await db.refresh(farm)
+    return _admin_farm(farm, owner_name, owner_phone)
+
+
+@router.post("/farms/{farm_id}/sensor-request/cancel", response_model=AdminFarmResponse)
+async def admin_cancel_sensor_request(
+    farm_id: uuid.UUID,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove a request that will not go ahead (the farmer changed their mind, wrong plot, and so on)."""
+    farm, owner = await _load_farm(db, farm_id)
+    owner_name, owner_phone = owner.name, owner.phone
+    if farm.sensor_status in ("requested", "in_progress"):
+        label = f"{farm.name} ({owner_name})"
+        previous = farm.sensor_status
+        farm.sensor_status = "none"
+        farm.sensor_requested_at = None
+        farm.sensor_contacted_at = None
+        farm.sensor_request_note = None
+        record_admin_action(db, current_admin, "farm.sensor_request_cancelled", "farm", farm.id, label,
+                            {"sensor_status": [previous, "none"]})
+        await db.commit()
+        await db.refresh(farm)
+    return _admin_farm(farm, owner_name, owner_phone)
+
+
+@router.post("/farms/{farm_id}/sensor-request/contact", response_model=AdminFarmResponse)
+async def admin_sensor_contacted(
+    farm_id: uuid.UUID,
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Contact with the farmer has begun: the request moves from New to In progress."""
+    farm, owner = await _load_farm(db, farm_id)
+    owner_name, owner_phone = owner.name, owner.phone
+    if farm.sensor_status == "requested":
+        label = f"{farm.name} ({owner_name})"
+        farm.sensor_status = "in_progress"
+        farm.sensor_contacted_at = datetime.now(timezone.utc)
+        record_admin_action(db, current_admin, "farm.sensor_contact_started", "farm", farm.id, label,
+                            {"sensor_status": ["requested", "in_progress"]})
+        await db.commit()
+        await db.refresh(farm)
+    return _admin_farm(farm, owner_name, owner_phone)

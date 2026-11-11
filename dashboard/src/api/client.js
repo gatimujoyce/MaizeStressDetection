@@ -264,3 +264,21 @@ export const getAdminSmsLog = () =>
     httpClient.get('/admin/sms-log')
 
 export const getGrowthStage = (farmId) => httpClient.get(`/farms/${farmId}/growth-stage`)
+
+export const requestSensor = (farmId, note) =>
+    httpClient.post(`/farms/${farmId}/sensor-request`, { note: note || null }).then(mapFarmResponse)
+
+export const cancelSensorRequest = (farmId) =>
+    httpClient.delete(`/farms/${farmId}/sensor-request`).then(mapFarmResponse)
+
+export const getAdminSensorRequests = () =>
+    httpClient.get('/admin/sensor-requests')
+
+export const markAdminSensorInstalled = (farmId, hasNpkSensor) =>
+    httpClient.post(`/admin/farms/${farmId}/sensor-installed`, hasNpkSensor === undefined ? {} : { has_npk_sensor: hasNpkSensor })
+
+export const cancelAdminSensorRequest = (farmId) =>
+    httpClient.post(`/admin/farms/${farmId}/sensor-request/cancel`)
+
+export const markAdminSensorContacted = (farmId) =>
+    httpClient.post(`/admin/farms/${farmId}/sensor-request/contact`)

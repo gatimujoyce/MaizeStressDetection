@@ -43,6 +43,11 @@ class FarmResponse(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     has_npk_sensor: bool = False
+    sensor_status: str = "none"
+    sensor_requested_at: Optional[datetime] = None
+    sensor_installed_at: Optional[datetime] = None
+    sensor_contacted_at: Optional[datetime] = None
+    sensor_request_note: Optional[str] = None
     deleted_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
@@ -67,3 +72,6 @@ class FarmHistoryResponse(BaseModel):
     predictions: list[PredictionResponse] = Field(
         description="Predictions ordered newest first."
     )
+
+class SensorRequestCreate(BaseModel):
+    note: Optional[str] = Field(default=None, max_length=300)

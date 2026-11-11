@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import desc
 import uuid
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 
 from app.core.deps import get_db, require_farmer
@@ -15,6 +15,7 @@ from app.schemas.farms import (
     FarmResponse,
     FarmStatusResponse,
     FarmHistoryResponse,
+    SensorRequestCreate,
 )
 
 router = APIRouter(prefix="/farms", tags=["farms"])
@@ -25,7 +26,8 @@ async def create_farm(
     current_user: User = Depends(require_farmer),
     db: AsyncSession = Depends(get_db)
 ):
-    new_farm = Farm(id=uuid.uuid4(), user_id=current_user.id, **farm_in.model_dump())
+    # The NPK sensor setting belongs to the administrator who installs the sensor, so a farmer cannot set it here.
+    new_farm = Farm(id=uuid.uuid4(), user_id=current_user.id, **farm_in.model_dump(exclude={"has_npk_sensor"}))
     db.add(new_farm)
     try:
         await db.commit()
@@ -172,6 +174,48 @@ async def growth_stage(
     if stage is None:
         return {"known": False}
     return {"known": True, **stage}
+
+@router.post("/{id}/sensor-request", response_model=FarmResponse)
+async def request_sensor(
+    id: uuid.UUID,
+    body: Optional[SensorRequestCreate] = None,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    """The farmer asks for a sensor to be set up on this plot. An administrator sees the request and arranges the visit."""
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    if farm.sensor_status == "installed":
+        raise HTTPException(status_code=409, detail="This plot already has a sensor.")
+    if farm.sensor_status == "none":
+        farm.sensor_status = "requested"
+        farm.sensor_requested_at = datetime.now(timezone.utc)
+    farm.sensor_request_note = ((body.note if body else None) or "").strip() or None
+    await db.commit()
+    await db.refresh(farm)
+    return farm
+
+@router.delete("/{id}/sensor-request", response_model=FarmResponse)
+async def cancel_sensor_request(
+    id: uuid.UUID,
+    current_user: User = Depends(require_farmer),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Farm).where(Farm.id == id, Farm.user_id == current_user.id, Farm.deleted_at.is_(None)))
+    farm = result.scalar_one_or_none()
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    if farm.sensor_status == "installed":
+        raise HTTPException(status_code=409, detail="This plot already has a sensor.")
+    farm.sensor_status = "none"
+    farm.sensor_requested_at = None
+    farm.sensor_contacted_at = None
+    farm.sensor_request_note = None
+    await db.commit()
+    await db.refresh(farm)
+    return farm
 
 @router.delete("/{id}", response_model=dict)
 async def delete_farm(
