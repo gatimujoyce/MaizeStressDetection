@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useAdminSensorRequests, useCancelAdminSensorRequestMutation, useMarkSensorContactedMutation, useMarkSensorInstalledMutation } from '../../api/hooks'
 import Badge from '../../components/ui/Badge'
-import Card, { SectionHeader } from '../../components/ui/Card'
 import DataTable from '../../components/ui/DataTable'
 import Modal from '../../components/ui/Modal'
 import Notice from '../../components/ui/Notice'
-import Skeleton from '../../components/ui/Skeleton'
+import Segmented from '../../components/ui/Segmented'
 import { buttonClass, linkClass } from '../../components/ui/styles'
+import { formatDay } from '../../content/dates'
+import TableCard from './TableCard'
 
-const day = (value) => (value ? new Date(value).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set')
+const day = (value) => formatDay(value) || 'Not set'
 const words = (value) => (value ? String(value).replaceAll('_', ' ') : 'Not recorded')
 
 // A request moves New -> In progress (contact with the farmer has begun) -> Completed (sensor installed).
@@ -31,7 +32,7 @@ function ConfirmDialog({ request, mode, onClose }) {
         <p className="m-0 text-body text-ink">
           Mark the sensor at <strong>{request.farm_name}</strong> ({request.farmer_name}) as installed. It moves to Completed.
         </p>
-        <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 text-small font-bold text-ink">
+        <label className="mt-4 flex min-h-11 cursor-pointer items-center gap-2 text-small font-bold text-ink">
           <input type="checkbox" checked={npk} onChange={(event) => setNpk(event.target.checked)} className="h-4 w-4 min-h-0 accent-brand" />
           This plot also has an NPK (soil nutrient) sensor
         </label>
@@ -59,28 +60,6 @@ function ConfirmDialog({ request, mode, onClose }) {
   )
 }
 
-function Tabs({ value, onChange, counts }) {
-  return (
-    <div role="radiogroup" aria-label="Request stage" className="mb-4 flex flex-wrap gap-2">
-      {TABS.map((tab) => {
-        const selected = tab.key === value
-        return (
-          <button
-            key={tab.key}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onChange(tab.key)}
-            className={`min-h-11 rounded-control border-[1.5px] px-4 text-small font-bold ${selected ? 'border-brand bg-brand text-white' : 'border-control bg-surface text-ink'}`}
-          >
-            {tab.label} <span className="font-normal">({counts[tab.key] ?? 0})</span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 export default function SensorRequestsPanel() {
   const requests = useAdminSensorRequests()
   const contact = useMarkSensorContactedMutation()
@@ -96,9 +75,9 @@ export default function SensorRequestsPanel() {
     render: (r) => (
       <>
         <span className="block text-ink">{tab === 'installed' ? day(r.installed_at) : day(r.requested_at)}</span>
-        {tab === 'installed' && <span className="mt-0.5 block text-caption text-ink-secondary">Requested {day(r.requested_at)}</span>}
-        {tab !== 'requested' && r.contacted_at && <span className="mt-0.5 block text-caption text-ink-secondary">Contact began {day(r.contacted_at)}</span>}
-        {r.note && <span className="mt-0.5 block max-w-56 text-caption text-ink-secondary">“{r.note}”</span>}
+        {tab === 'installed' && <span className="block text-caption text-ink-secondary">Requested {day(r.requested_at)}</span>}
+        {tab !== 'requested' && r.contacted_at && <span className="block text-caption text-ink-secondary">Contact began {day(r.contacted_at)}</span>}
+        {r.note && <span className="block max-w-56 text-caption text-ink-secondary">“{r.note}”</span>}
       </>
     ),
   }
@@ -109,7 +88,7 @@ export default function SensorRequestsPanel() {
       render: (r) => (
         <>
           <span className="block font-bold text-ink">{r.farmer_name}</span>
-          <a href={`tel:${r.farmer_phone}`} className={`mt-0.5 block text-caption tabular-nums ${linkClass}`}>{r.farmer_phone}</a>
+          <a href={`tel:${r.farmer_phone}`} className={`block text-caption tabular-nums ${linkClass}`}>{r.farmer_phone}</a>
         </>
       ),
     },
@@ -118,9 +97,9 @@ export default function SensorRequestsPanel() {
       render: (r) => (
         <>
           <span className="block font-bold text-ink">{r.farm_name}</span>
-          <span className="mt-0.5 block text-caption text-ink-secondary">{r.location}{r.size_acres ? ` · ${r.size_acres} acres` : ''}</span>
+          <span className="block text-caption text-ink-secondary">{r.location}{r.size_acres ? ` · ${r.size_acres} acres` : ''}</span>
           {r.latitude != null && r.longitude != null && (
-            <span className="mt-0.5 block text-caption tabular-nums text-ink-secondary">{r.latitude.toFixed(5)}, {r.longitude.toFixed(5)}</span>
+            <span className="block text-caption tabular-nums text-ink-secondary">{r.latitude.toFixed(5)}, {r.longitude.toFixed(5)}</span>
           )}
         </>
       ),
@@ -130,15 +109,15 @@ export default function SensorRequestsPanel() {
       render: (r) => (
         <>
           <span className="block capitalize text-ink">{words(r.soil_type)}</span>
-          <span className="mt-0.5 block text-caption text-ink-secondary">Planted: {day(r.planting_date)}</span>
-          <span className="mt-0.5 block text-caption text-ink-secondary">Water: {r.water_source || 'Not recorded'} · Seed: {r.seed_variety || 'Not recorded'}</span>
+          <span className="block text-caption text-ink-secondary">Planted: {day(r.planting_date)}</span>
+          <span className="block text-caption text-ink-secondary">Water: {r.water_source || 'Not recorded'} · Seed: {r.seed_variety || 'Not recorded'}</span>
         </>
       ),
     },
     stageColumn,
   ]
   if (tab === 'installed') {
-    columns.push({ key: 'npk', label: 'NPK sensor', render: (r) => (r.has_npk_sensor ? <Badge tone="healthy" size="sm" icon={false}>Yes</Badge> : <span className="text-ink-secondary">No</span>) })
+    columns.push({ key: 'npk', label: 'NPK sensor', render: (r) => (r.has_npk_sensor ? <Badge tone="healthy" icon={false}>Yes</Badge> : <span className="text-ink-secondary">No</span>) })
   } else {
     columns.push({
       key: 'actions', label: '',
@@ -155,27 +134,34 @@ export default function SensorRequestsPanel() {
   }
 
   return (
-    <Card aria-labelledby="sensor-requests-title">
-      <SectionHeader
-        id="sensor-requests-title"
-        title="Sensor setup requests"
-        aside={<Badge tone={counts.requested ? 'warning' : 'neutral'} size="sm" icon={false}>{counts.requested ?? 0} new</Badge>}
-      />
-      {requests.isError && <Notice tone="critical" className="mb-4"><p>Sensor requests could not be loaded.</p></Notice>}
-      {contact.isError && <Notice tone="critical" className="mb-4"><p>Could not update that request. Please try again.</p></Notice>}
-      <Tabs value={tab} onChange={setTab} counts={counts} />
-      {requests.isLoading ? <Skeleton label="Loading" className="h-24" /> : (
-        <DataTable
-          key={tab}
-          caption={`${current.label} sensor requests`}
-          rows={rows}
-          rowKey={(request) => request.farm_id}
-          initialSort={{ key: 'stage', dir: tab === 'installed' ? 'desc' : 'asc' }}
-          empty={current.empty}
-          columns={columns}
+    <TableCard
+      id="sensor-requests-title"
+      title="Sensor setup requests"
+      aside={<Badge tone={counts.requested ? 'warning' : 'neutral'} icon={false}>{counts.requested ?? 0} new</Badge>}
+      query={requests}
+      errorText="Sensor requests could not be loaded."
+      toolbar={(
+        <Segmented
+          label="Request stage"
+          options={TABS.map((item) => ({ key: item.key, label: `${item.label} (${counts[item.key] ?? 0})` }))}
+          value={tab}
+          onChange={setTab}
+          block
         />
       )}
+      notices={contact.isError && <Notice tone="critical"><p>Could not update that request. Please try again.</p></Notice>}
+    >
+      <DataTable
+        flush
+        key={tab}
+        caption={`${current.label} sensor requests`}
+        rows={rows}
+        rowKey={(request) => request.farm_id}
+        initialSort={{ key: 'stage', dir: tab === 'installed' ? 'desc' : 'asc' }}
+        empty={current.empty}
+        columns={columns}
+      />
       {dialog && <ConfirmDialog key={`${dialog.mode}-${dialog.request.farm_id}`} request={dialog.request} mode={dialog.mode} onClose={() => setDialog(null)} />}
-    </Card>
+    </TableCard>
   )
 }

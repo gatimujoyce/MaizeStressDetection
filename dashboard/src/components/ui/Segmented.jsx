@@ -35,7 +35,7 @@ export default function Segmented({ label, options, value, onChange, block = fal
             aria-checked={selected}
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(option.key)}
-            className={`min-h-11 flex-1 cursor-pointer whitespace-nowrap rounded-control px-3 text-small font-bold transition-colors duration-fast ease-out ${focusRing} ${
+            className={`min-h-11 min-w-0 flex-1 cursor-pointer rounded-control px-2 py-1 text-center text-small font-bold leading-tight transition-colors duration-fast ease-out ${focusRing} ${
               selected ? 'bg-brand text-white' : 'bg-transparent text-ink hover:bg-app-bg'
             }`}
           >

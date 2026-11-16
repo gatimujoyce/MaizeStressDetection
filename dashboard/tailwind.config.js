@@ -71,17 +71,15 @@ export default {
                 small: ['15px', { lineHeight: '1.45' }],
                 caption: ['13px', { lineHeight: '1.4' }],
                 figure: ['28px', { lineHeight: '1.1', fontWeight: '700' }],
-                // Older names, kept only until the admin screens move to the scale above (phase 2). Not for new code.
-                display: ['26px', { lineHeight: '1.25', fontWeight: '700' }],
-                title: ['19px', { lineHeight: '1.35', fontWeight: '700' }],
-                heading: ['17px', { lineHeight: '1.4', fontWeight: '700' }],
-                stat: ['28px', { lineHeight: '1.1', fontWeight: '700' }],
             },
-            // Spacing steps used on the farmer screens: 1 (4px), 2 (8px), 3 (12px), 4 (16px), 6 (24px), 8 (32px), 12 (48px).
+            // Spacing steps used on every screen: 1 (4px), 2 (8px), 3 (12px), 4 (16px), 6 (24px), 8 (32px), 12 (48px).
             // The named steps below are the page rhythm; use them instead of picking numbers per screen.
             spacing: {
                 gutter: '16px', // page side padding on phones
                 stack: '32px', // between sections on a page
+            },
+            minWidth: {
+                table: '45rem', // wide admin tables scroll inside their box below this width
             },
             maxWidth: {
                 farmer: '48rem', // 768px: one readable column on every farmer screen
