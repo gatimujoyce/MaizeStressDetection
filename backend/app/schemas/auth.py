@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, StringConstraints
+from typing import Annotated, Optional
 from app.models import RoleEnum
 import uuid
 
@@ -28,8 +28,11 @@ class TokenPayload(BaseModel):
     sub: Optional[str] = None
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    phone: Optional[str] = None
+    """What signed-in people may change about themselves: only their name. The phone number and role are
+    managed by an administrator, so any other field is refused (422) instead of being silently ignored."""
+    model_config = ConfigDict(extra="forbid")
+
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=60)]
 
 class PhoneRequest(BaseModel):
     phone: str

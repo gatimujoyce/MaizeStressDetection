@@ -172,24 +172,11 @@ async def read_profile(current_user: User = Depends(get_current_user)):
 @router.patch("/me", response_model=UserResponse)
 async def update_profile(
     user_in: UserUpdate,
-    current_user: User = Depends(require_farmer),
+    current_user: User = Depends(require_farmer),  # farmers and administrators; blocked while a temporary password is in use
     db: AsyncSession = Depends(get_db)
 ):
-    update_data = user_in.model_dump(exclude_unset=True)
-    if "phone" in update_data:
-        normalized_phone = normalize_ke_phone(update_data["phone"])
-        
-        if normalized_phone != current_user.phone:
-            # Check for conflict
-            result = await db.execute(select(User).where(User.phone == normalized_phone))
-            if result.scalar_one_or_none():
-                raise HTTPException(status_code=400, detail="Phone already registered")
-        
-        update_data["phone"] = normalized_phone
-
-    for k, v in update_data.items():
-        setattr(current_user, k, v)
-        
+    # Only the name can change here (UserUpdate refuses every other field).
+    current_user.name = user_in.name
     db.add(current_user)
     await db.commit()
     await db.refresh(current_user)

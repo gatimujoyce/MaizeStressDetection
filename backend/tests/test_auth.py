@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi import HTTPException
+from pydantic import ValidationError
 import uuid
 from app.routers.auth import register, login, update_profile
 from app.schemas.auth import UserCreate, UserUpdate
@@ -47,18 +48,20 @@ async def test_login_cross_format():
     params = dict(query.compile().params)
     assert "+254712345678" in params.values()
 
-@pytest.mark.asyncio
-async def test_update_profile_duplicate_phone():
-    mock_db = AsyncMock()
-    current_user = User(id=uuid.uuid4(), phone="+254799999999")
-    mock_result = MagicMock()
-    mock_result.scalar_one_or_none.return_value = User() # Conflict found
-    mock_db.execute.return_value = mock_result
+def test_update_profile_cannot_change_phone():
+    # The profile update takes a name only; a phone number is refused, not looked up.
+    with pytest.raises(ValidationError):
+        UserUpdate(name="Valid Name", phone="0711111111")
+    with pytest.raises(ValidationError):
+        UserUpdate(phone="0711111111")
 
-    update_in = UserUpdate(phone="0711111111")
-    
-    with pytest.raises(HTTPException) as exc:
-        await update_profile(update_in, current_user=current_user, db=mock_db)
-        
-    assert exc.value.status_code == 400
-    assert exc.value.detail == "Phone already registered"
+
+@pytest.mark.asyncio
+async def test_update_profile_sets_trimmed_name():
+    mock_db = AsyncMock()
+    mock_db.add = MagicMock()
+    current_user = User(id=uuid.uuid4(), name="Old", phone="+254799999999")
+    result = await update_profile(UserUpdate(name="  New Name  "), current_user=current_user, db=mock_db)
+    assert result.name == "New Name"
+    assert result.phone == "+254799999999"
+    mock_db.execute.assert_not_called()

@@ -216,10 +216,10 @@ async def test_admin_temporary_password_flow(setup):
         assert signed_in.status_code == 200 and signed_in.json()["must_change_password"] is True
         headers = {"Authorization": f"Bearer {signed_in.json()['access_token']}"}
         assert (await ac.get("/auth/me", headers=headers)).json()["must_change_password"] is True
-        assert (await ac.patch("/auth/me", headers=headers, json={"name": "X"})).status_code == 403  # blocked until a new password is chosen
+        assert (await ac.patch("/auth/me", headers=headers, json={"name": "New Name"})).status_code == 403  # blocked until a new password is chosen
         changed = await ac.post("/auth/change-password", headers=headers, json={"current_password": temporary, "new_password": "myownchoice1"})
         assert changed.status_code == 200
-        assert (await ac.patch("/auth/me", headers=headers, json={"name": "X"})).status_code == 200
+        assert (await ac.patch("/auth/me", headers=headers, json={"name": "New Name"})).status_code == 200
 
         log = await ac.get("/admin/sms-log", headers=admin_headers)
         assert temporary not in log.text and "Temporary password sent (hidden)" in log.text
