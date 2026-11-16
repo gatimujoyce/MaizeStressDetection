@@ -10,6 +10,11 @@ export function useRegisterMutation() {
     return useMutation({ mutationFn: (data) => client.register(data) })
 }
 
+// Change your own name. The caller reloads the signed-in profile afterwards (AuthContext's refreshProfile).
+export function useUpdateProfileMutation() {
+    return useMutation({ mutationFn: ({ name }) => client.updateProfile({ name }) })
+}
+
 // ── Farms ─────────────────────────────────────────────────────────────────────
 export function useFarmerFarm(farmerId) {
     return useQuery({

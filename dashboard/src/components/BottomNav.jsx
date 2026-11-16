@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Alerts', to: '/alerts', icon: BellIcon },
 ]
 
+// Section links on phones. The current section is marked by colour, weight and a bar above it.
 export default function BottomNav() {
   const { selectedFarmId } = useFarm()
   const { data: alerts = [] } = useAlerts(selectedFarmId)
@@ -17,9 +18,8 @@ export default function BottomNav() {
 
   return (
     <nav
-      aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-surface)] pb-0 sm:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      aria-label="Main"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface pb-[env(safe-area-inset-bottom,0px)] sm:hidden"
     >
       <div className="flex w-full items-stretch">
         {navItems.map(({ label, to, icon: Icon, end }) => (
@@ -28,26 +28,26 @@ export default function BottomNav() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex min-h-16 flex-1 flex-col items-center justify-center gap-1 py-2 text-small font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset ${
-                isActive ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-secondary)]'
+              `relative flex min-h-16 flex-1 flex-col items-center justify-center gap-1 py-2 text-small no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus ${
+                isActive ? 'font-bold text-brand' : 'text-ink-secondary'
               }`
             }
           >
-            {label === 'Check-in' ? (
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-brand)] text-white">
-                <Icon className="h-6 w-6" />
-              </span>
-            ) : (
-              <span className="relative">
-                <Icon className="h-6 w-6" />
-                {label === 'Alerts' && unreadCount > 0 && (
-                  <span aria-label={`${unreadCount} unread alerts`} className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-critical-text px-1 text-caption font-bold text-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </span>
+            {({ isActive }) => (
+              <>
+                {isActive && <span aria-hidden="true" className="absolute inset-x-4 top-0 h-1 rounded-full bg-brand" />}
+                <span className="relative">
+                  <Icon className="h-6 w-6" />
+                  {label === 'Alerts' && unreadCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-critical-text px-1 text-caption font-bold text-white">
+                      {unreadCount}
+                      <span className="sr-only"> unread</span>
+                    </span>
+                  )}
+                </span>
+                <span>{label}</span>
+              </>
             )}
-            <span>{label}</span>
           </NavLink>
         ))}
       </div>

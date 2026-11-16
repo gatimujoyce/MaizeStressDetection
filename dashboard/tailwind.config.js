@@ -52,22 +52,40 @@ export default {
                     'sans-serif',
                 ],
             },
+            // Two shapes only: containers (cards, dialogs, menus) and controls (buttons, fields, segments). Badges are pills.
             borderRadius: {
-                DEFAULT: '2px',
-                sm: '2px',
-                md: '4px',
                 control: 'var(--radius-control)',
                 card: 'var(--radius-card)',
             },
-            // One type scale for both audiences. Farmer screens use body (17px) and never go below small (15px).
+            // One type scale for both audiences, and two weights (400 and 700).
+            //   page     the page title (h1)
+            //   section  a section title (h2)
+            //   body     reading text, labels, and titles inside a section (with font-bold)
+            //   small    secondary lines, table cells, helper text. Farmer screens never go below this.
+            //   caption  table headers, axis labels, dense admin metadata
+            //   figure   a headline number (a reading, a count)
             fontSize: {
-                display: ['28px', { lineHeight: '1.2', fontWeight: '700' }],
-                title: ['21px', { lineHeight: '1.3', fontWeight: '700' }],
-                heading: ['17px', { lineHeight: '1.4', fontWeight: '700' }],
+                page: ['26px', { lineHeight: '1.25', fontWeight: '700' }],
+                section: ['19px', { lineHeight: '1.35', fontWeight: '700' }],
                 body: ['17px', { lineHeight: '1.5' }],
                 small: ['15px', { lineHeight: '1.45' }],
                 caption: ['13px', { lineHeight: '1.4' }],
-                stat: ['32px', { lineHeight: '1.1', fontWeight: '700' }],
+                figure: ['28px', { lineHeight: '1.1', fontWeight: '700' }],
+                // Older names, kept only until the admin screens move to the scale above (phase 2). Not for new code.
+                display: ['26px', { lineHeight: '1.25', fontWeight: '700' }],
+                title: ['19px', { lineHeight: '1.35', fontWeight: '700' }],
+                heading: ['17px', { lineHeight: '1.4', fontWeight: '700' }],
+                stat: ['28px', { lineHeight: '1.1', fontWeight: '700' }],
+            },
+            // Spacing steps used on the farmer screens: 1 (4px), 2 (8px), 3 (12px), 4 (16px), 6 (24px), 8 (32px), 12 (48px).
+            // The named steps below are the page rhythm; use them instead of picking numbers per screen.
+            spacing: {
+                gutter: '16px', // page side padding on phones
+                stack: '32px', // between sections on a page
+            },
+            maxWidth: {
+                farmer: '48rem', // 768px: one readable column on every farmer screen
+                admin: '80rem', // 1280px
             },
             boxShadow: {
                 raised: 'var(--shadow-raised)',

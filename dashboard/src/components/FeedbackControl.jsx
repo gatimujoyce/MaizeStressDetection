@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSubmitFeedbackMutation } from '../api/hooks'
+import { buttonClass, fieldClass, focusRing, labelClass, textareaClass } from './ui/styles'
 
 const MATCHED = [['yes', 'Yes, it matches'], ['partly', 'Partly'], ['no', 'No, it is different']]
 const ACTIONS = [['followed', 'Yes, I followed the advice'], ['other', 'I did something else'], ['none', 'Not yet']]
@@ -15,8 +16,9 @@ const FOUND = [
   ['not_sure', 'I am not sure'],
 ]
 
+// A choice is a toggle button: filled when picked, outlined otherwise.
 const choiceClass = (selected) =>
-  `min-h-12 flex-1 rounded-control border-2 border-brand px-4 py-2 text-small font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60 ${selected ? 'bg-brand text-white' : 'bg-surface text-brand hover:bg-brand-tint'}`
+  `min-h-12 flex-1 cursor-pointer rounded-control border-[1.5px] border-brand px-4 py-2 text-small font-bold transition-colors duration-fast disabled:opacity-60 ${focusRing} ${selected ? 'bg-brand text-white' : 'bg-surface text-brand hover:bg-brand-tint'}`
 
 function Choice({ id, legend, options, value, onChange, disabled }) {
   return (
@@ -59,13 +61,9 @@ export default function FeedbackControl({ predictionId, alertId }) {
 
   if (done) {
     return (
-      <div role="status" className="mt-3 flex items-center justify-between gap-3 rounded-control border border-border bg-surface px-3 py-2 text-small">
+      <div role="status" className="mt-3 flex flex-wrap items-center justify-between gap-3 text-small">
         <span className="text-ink-secondary">Thank you. We will ask how it went in about a week.</span>
-        <button
-          type="button"
-          onClick={() => setDone(false)}
-          className="min-h-12 rounded-control border-2 border-brand bg-surface px-4 py-2 text-small font-bold text-brand underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        >
+        <button type="button" onClick={() => setDone(false)} className={buttonClass({ variant: 'quiet', size: 'sm' })}>
           Change my answers
         </button>
       </div>
@@ -77,34 +75,32 @@ export default function FeedbackControl({ predictionId, alertId }) {
       <Choice id={`fb-matched-${id}`} legend="Does this match what you see in the field?" options={MATCHED} value={answers.matched} onChange={set('matched')} disabled={submit.isPending} />
       <Choice id={`fb-action-${id}`} legend="Have you done anything because of this advice?" options={ACTIONS} value={answers.action} onChange={set('action')} disabled={submit.isPending} />
       {(answers.matched === 'partly' || answers.matched === 'no') && (
-        <label className="flex flex-col gap-1 text-body font-bold text-ink">
-          What do you think it is?
+        <div>
+          <label htmlFor={`fb-found-${id}`} className={labelClass}>What do you think it is?</label>
           <select
+            id={`fb-found-${id}`}
             value={answers.found}
             onChange={(event) => set('found')(event.target.value)}
-            className="min-h-12 rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-normal text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className={fieldClass}
           >
             <option value="">Choose one (optional)</option>
             {FOUND.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
-        </label>
+        </div>
       )}
-      <label className="flex flex-col gap-1 text-body font-bold text-ink">
-        Anything else we should know? (optional)
+      <div>
+        <label htmlFor={`fb-comment-${id}`} className={labelClass}>Anything else we should know? (optional)</label>
         <textarea
+          id={`fb-comment-${id}`}
           rows={2}
           maxLength={500}
           value={answers.comment}
           onChange={(event) => set('comment')(event.target.value)}
-          className="rounded-control border-[1.5px] border-control bg-surface px-3 py-2 text-small font-normal text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className={textareaClass}
         />
-      </label>
+      </div>
       {submit.isError && <p role="alert" className="m-0 text-small text-critical-text">{submit.error?.message || 'Your answers could not be sent. Please try again.'}</p>}
-      <button
-        type="submit"
-        disabled={!ready || submit.isPending}
-        className="min-h-12 rounded-control border-2 border-brand bg-brand px-4 py-2 text-small font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
-      >
+      <button type="submit" disabled={!ready || submit.isPending} className={`${buttonClass()} sm:self-start`}>
         {submit.isPending ? 'Sending…' : 'Send my answers'}
       </button>
     </form>

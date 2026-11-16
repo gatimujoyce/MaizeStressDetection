@@ -20,7 +20,7 @@ export default function RangeMeter({ value, scale, unit, valueText }) {
       aria-valuetext={valueText}
       className="relative mb-3 mt-2 h-6"
     >
-      <div className="absolute inset-x-0 top-1/2 flex h-[14px] -translate-y-1/2 gap-0.5 overflow-hidden rounded-full border border-control">
+      <div className="absolute inset-x-0 top-1/2 flex h-3.5 -translate-y-1/2 gap-0.5 overflow-hidden rounded-full border border-control">
         {scale.zones.map((zone, index) => {
           const width = ((zone.to - zone.from) / (scale.max - scale.min)) * 100
           return (
@@ -35,12 +35,7 @@ export default function RangeMeter({ value, scale, unit, valueText }) {
       </div>
       <span
         aria-hidden="true"
-        className="absolute top-0 h-6 w-[3px] -translate-x-1/2 rounded-full bg-ink"
-        style={{ left: `${position}%` }}
-      />
-      <span
-        aria-hidden="true"
-        className="absolute top-0 h-0 w-0 -translate-x-1/2 border-x-[5px] border-t-[6px] border-x-transparent border-t-ink"
+        className="absolute top-0 h-6 w-1 -translate-x-1/2 rounded-full bg-ink ring-2 ring-surface"
         style={{ left: `${position}%` }}
       />
       <span className="sr-only">{unit}</span>

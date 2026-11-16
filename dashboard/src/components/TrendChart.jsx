@@ -1,68 +1,65 @@
 import { useState } from 'react'
-import { CheckIcon, ErrorIcon, InfoIcon, WarningIcon } from './Icons'
+import Badge from './ui/Badge'
 import Card, { SectionHeader } from './ui/Card'
-import { buttonClass, insetClass } from './ui/styles'
+import EmptyState from './ui/EmptyState'
+import Notice from './ui/Notice'
+import Skeleton from './ui/Skeleton'
+import { buttonClass } from './ui/styles'
 
-export default function TrendChart({ history = [] }) {
-  const [showFull, setShowFull] = useState(false)
-  const displayedHistory = showFull ? history : history.slice(0, 2)
+const SEVERITY_BADGES = {
+  healthy: { tone: 'healthy', label: 'Healthy' },
+  warning: { tone: 'warning', label: 'Stress' },
+  critical: { tone: 'critical', label: 'Critical' },
+  inconclusive: { tone: 'neutral', label: 'Inconclusive' },
+}
 
-  const getSeverityBadge = (sev) => {
-    if (sev === 'healthy') return { label: 'Healthy', Icon: CheckIcon, classes: 'text-healthy-text' }
-    if (sev === 'warning') return { label: 'Stress', Icon: WarningIcon, classes: 'text-warning-text' }
-    if (sev === 'critical') return { label: 'Critical', Icon: ErrorIcon, classes: 'text-critical-text' }
-    if (sev === 'inconclusive') return { label: 'Inconclusive', Icon: InfoIcon, classes: 'text-ink-secondary' }
-    return null
-  }
+const SHOWN_AT_FIRST = 5
 
-  const toneBadge = (result) => {
-    const tones = {
-      healthy: { Icon: CheckIcon, classes: 'text-healthy-text' },
-      warning: { Icon: WarningIcon, classes: 'text-warning-text' },
-      critical: { Icon: ErrorIcon, classes: 'text-critical-text' },
-      neutral: { Icon: InfoIcon, classes: 'text-ink-secondary' },
-    }
-    return { label: result.label, ...(tones[result.tone] || tones.neutral) }
-  }
+// Past photo check-ins for the plot, newest first, as one list. Lives on the Trends screen (id "photo-checks",
+// which the Home screen links to).
+export default function TrendChart({ history = [], isLoading = false, isError = false, onRetry, retrying = false }) {
+  const [showAll, setShowAll] = useState(false)
+  const shown = showAll ? history : history.slice(0, SHOWN_AT_FIRST)
 
   return (
-    <Card aria-labelledby="trend-title">
+    <Card id="photo-checks" aria-labelledby="photo-checks-title" className="scroll-mt-6">
       <SectionHeader
-        id="trend-title"
+        id="photo-checks-title"
         title="Photo check-ins"
-        as="h3"
-        aside={history.length > 2 && (
+        aside={history.length > SHOWN_AT_FIRST && (
           <button
             type="button"
-            onClick={() => setShowFull(!showFull)}
-            aria-expanded={showFull}
+            onClick={() => setShowAll((value) => !value)}
+            aria-expanded={showAll}
             className={buttonClass({ variant: 'quiet', size: 'sm' })}
           >
-            {showFull ? 'Show Recent Only' : 'See Full History'}
+            {showAll ? 'Show recent only' : `Show all ${history.length}`}
           </button>
         )}
       />
-
-      {displayedHistory.length === 0 ? (
-        <p className="m-0 text-small text-ink-secondary">No photo check-ins yet.</p>
+      {isLoading ? (
+        <Skeleton label="Loading photo check-ins" className="h-32" />
+      ) : isError ? (
+        <Notice tone="critical" onRetry={onRetry} retrying={retrying}>
+          <p>Could not load your photo check-ins.</p>
+        </Notice>
+      ) : shown.length === 0 ? (
+        <EmptyState>
+          <p>No photo check-ins yet. Each photo you check appears here with its result.</p>
+        </EmptyState>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {displayedHistory.map((item, idx) => {
-            const badge = item.result ? toneBadge(item.result) : getSeverityBadge(item.severity)
+        <ul className="m-0 list-none divide-y divide-border p-0">
+          {shown.map((item, idx) => {
+            const badge = item.result
+              ? { tone: item.result.tone || 'neutral', label: item.result.label }
+              : SEVERITY_BADGES[item.severity]
             return (
-              <li key={idx} className={`flex items-center justify-between gap-3 ${insetClass}`}>
+              <li key={item.prediction_id ?? idx} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
-                  <strong className="block text-small text-ink">{item.date}</strong>
-                  {item.stage && (
-                    <span className="text-small text-ink-secondary">Stage: {item.stage}</span>
-                  )}
+                  <p className="m-0 text-body font-bold text-ink">{item.date}</p>
+                  {item.stage && <p className="m-0 text-small text-ink-secondary">Stage: {item.stage}</p>}
                 </div>
-                {badge && (
-                  <span className={`flex shrink-0 items-center gap-1.5 text-small font-bold ${badge.classes}`}>
-                    <badge.Icon size={16} />
-                    <span>{badge.label}</span>
-                  </span>
-                )}
+                {badge && <Badge tone={badge.tone}>{badge.label}</Badge>}
               </li>
             )
           })}

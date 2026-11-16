@@ -3,14 +3,13 @@ import BottomNav from './BottomNav'
 import OfflineNotice from './OfflineNotice'
 import { useAuth } from '../auth/AuthContext'
 import { useLocation } from 'react-router-dom'
-import { useState } from 'react'
 import PasswordGate from './PasswordGate'
-import ChangePasswordDialog from './ChangePasswordDialog'
 
+// The farmer frame: top bar, the page (each view sets its own width with <Page>), and the bottom bar on phones.
+// Administrators get their own shell (AdminShell), and the sign-in screens bring their own layout.
 export default function Layout({ children }) {
   const { role, isAuthenticated } = useAuth()
   const { pathname } = useLocation()
-  const [changingPassword, setChangingPassword] = useState(false)
   const showBottomNav = isAuthenticated && role === 'farmer' && pathname !== '/onboarding'
   const isAuthScreen = pathname === '/login' || pathname === '/register'
   const isAdmin = isAuthenticated && role === 'admin'
@@ -20,19 +19,16 @@ export default function Layout({ children }) {
       {isAuthenticated && !isAdmin && <NavBar />}
       {isAuthScreen || isAdmin ? children : (
         <main
-          className={`mx-auto max-w-6xl px-4 pt-6 sm:pt-8 ${
-            showBottomNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:pb-10' : 'pb-10'
+          id="main-content"
+          className={`px-gutter pt-6 sm:px-6 sm:pt-8 ${
+            showBottomNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] sm:pb-12' : 'pb-12'
           }`}
         >
-          {isAuthenticated && <OfflineNotice />}
-          {isAuthenticated && !isAdmin && (
-            <div className="mb-2 flex justify-end">
-              <button type="button" onClick={() => setChangingPassword(true)} className="min-h-11 text-small text-[var(--color-brand)] underline">
-                Change password
-              </button>
+          {isAuthenticated && (
+            <div className="mx-auto max-w-farmer empty:hidden [&>*]:mb-8">
+              <OfflineNotice />
             </div>
           )}
-          {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
           {children}
         </main>
       )}

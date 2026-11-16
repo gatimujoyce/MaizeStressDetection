@@ -1,21 +1,20 @@
 import { Link } from 'react-router-dom'
 import MaizePlant from './illustrations/MaizePlant'
+import Card from './ui/Card'
 import { buttonClass } from './ui/styles'
 
+// A plot with no photo checks yet. The one place on Home that keeps the illustration.
 export default function EmptyPlotState({ plotName }) {
   return (
-    <section className="flex flex-col items-center rounded-card bg-brand-tint p-6 text-center text-ink">
-      <MaizePlant variant="seedling" className="mb-4 w-36 mx-auto" />
-      <h2 className="mb-2 text-title">No checks yet for {plotName}</h2>
-      <p className="mb-5 mt-0 text-body">
+    <Card className="flex flex-col items-center text-center">
+      <MaizePlant variant="seedling" className="mx-auto mb-4 w-32" />
+      <h2 className="m-0 mb-2 text-section text-ink">No checks yet for {plotName}</h2>
+      <p className="m-0 mb-6 max-w-prose text-body text-ink-secondary">
         Take a photo of a maize leaf and we will tell you how your plant is doing.
       </p>
-      <Link
-        to="/check-in"
-        className={`${buttonClass({ block: true })} sm:w-auto`}
-      >
+      <Link to="/check-in" className={`${buttonClass({ block: true })} sm:w-auto`}>
         Take your first photo
       </Link>
-    </section>
+    </Card>
   )
 }

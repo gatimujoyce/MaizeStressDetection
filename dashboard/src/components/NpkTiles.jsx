@@ -1,52 +1,63 @@
 import { useLatestNpk } from '../api/hooks'
+import { timeAgo } from '../content/dates'
+import { SectionHeader } from './ui/Card'
+import Skeleton from './ui/Skeleton'
+import { buttonClass } from './ui/styles'
 
 const NAMES = { nitrogen: 'Nitrogen', phosphorus: 'Phosphorus', potassium: 'Potassium' }
 const SHORT = { nitrogen: 'N', phosphorus: 'P', potassium: 'K' }
 
-function ago(value) {
-  const minutes = Math.max(0, Math.round((Date.now() - Date.parse(value)) / 60000))
-  if (minutes < 2) return 'just now'
-  if (minutes < 90) return `${minutes} minutes ago`
-  const hours = Math.round(minutes / 60)
-  return hours < 48 ? `${hours} hours ago` : `${Math.round(hours / 24)} days ago`
-}
-
-// Soil nutrients from the plot's NPK sensor: the newest value of each, and whether it is under the warning level.
-// The warning levels are provisional, so the wording stays an early warning, not a lab result.
+// Soil nutrients from the plot's NPK sensor, as a group inside the Field readings card: the newest value of each,
+// and whether it is under the warning level. The warning levels are provisional, so the wording stays an early
+// warning, not a lab result. Shows nothing for a plot without an NPK sensor.
 export default function NpkTiles({ farm }) {
   const hasNpk = Boolean(farm?.has_npk_sensor ?? farm?.hasNpkSensor)
-  const { data } = useLatestNpk(farm?.id ?? farm?.farm_id, hasNpk)
-  if (!hasNpk || !data) return null
-  const byName = Object.fromEntries((data.items ?? []).map((item) => [item.name, item]))
+  const { data, isLoading, isError, isFetching, refetch } = useLatestNpk(farm?.id ?? farm?.farm_id, hasNpk)
+  if (!hasNpk) return null
+
+  const byName = Object.fromEntries((data?.items ?? []).map((item) => [item.name, item]))
   return (
-    <section aria-labelledby="npk-title" className="flex flex-col gap-3">
-      <div>
-        <h2 id="npk-title" className="m-0 text-title text-ink">Soil nutrients</h2>
-        <p className="m-0 mt-1 text-small text-ink-secondary">
-          From the NPK sensor, in mg/kg. This is an early warning, not a lab test.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {Object.keys(NAMES).map((name) => {
-          const item = byName[name]
-          return (
-            <div key={name} className="rounded-card border border-control bg-surface p-4">
-              <h3 className="m-0 text-small font-bold text-ink-secondary">{NAMES[name]} ({SHORT[name]})</h3>
-              {item ? (
-                <>
-                  <p className="mb-0 mt-2 text-title text-ink">{item.value} <span className="text-small text-ink-secondary">mg/kg</span></p>
-                  <p className={`mb-0 mt-1 text-small font-bold ${item.status === 'low' ? 'text-ink' : 'text-ink-secondary'}`}>
-                    {item.status === 'low' ? `Low: under ${item.low} mg/kg` : `OK: above ${item.low} mg/kg`}
-                  </p>
-                  <p className="mb-0 mt-1 text-caption text-ink-secondary">Last value {ago(item.recorded_at)}</p>
-                </>
-              ) : (
-                <p className="mb-0 mt-2 text-body text-ink">Not reporting</p>
-              )}
-            </div>
-          )
-        })}
-      </div>
+    <section aria-labelledby="npk-title">
+      <SectionHeader
+        id="npk-title"
+        as="h3"
+        title="Soil nutrients"
+        description="From the NPK sensor, in mg/kg. This is an early warning, not a lab test."
+      />
+      {isLoading ? (
+        <Skeleton label="Loading soil nutrients" className="h-20" />
+      ) : isError ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <p role="alert" className="m-0 text-small text-critical-text">Could not load soil nutrients.</p>
+          <button type="button" onClick={() => refetch()} disabled={isFetching} className={buttonClass({ variant: 'secondary', size: 'sm' })}>
+            {isFetching ? 'Retrying…' : 'Retry'}
+          </button>
+        </div>
+      ) : (
+        <dl className="m-0 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {Object.keys(NAMES).map((name) => {
+            const item = byName[name]
+            return (
+              <div key={name} className="flex flex-col gap-1">
+                <dt className="text-small font-bold text-ink-secondary">{NAMES[name]} ({SHORT[name]})</dt>
+                {item ? (
+                  <dd className="m-0 flex flex-col gap-1">
+                    <span className="text-section tabular-nums text-ink">
+                      {item.value} <span className="text-small font-normal text-ink-secondary">mg/kg</span>
+                    </span>
+                    <span className={`text-small ${item.status === 'low' ? 'font-bold text-ink' : 'text-ink-secondary'}`}>
+                      {item.status === 'low' ? `Low: under ${item.low} mg/kg` : `OK: above ${item.low} mg/kg`}
+                    </span>
+                    <span className="text-small text-ink-secondary">Last value {timeAgo(item.recorded_at)}</span>
+                  </dd>
+                ) : (
+                  <dd className="m-0 text-body text-ink">Not reporting</dd>
+                )}
+              </div>
+            )
+          })}
+        </dl>
+      )}
     </section>
   )
 }

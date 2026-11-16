@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { cardClass, focusRing } from './ui/styles'
 
 const TIPS_COLLAPSED_KEY = 'msm_tips_collapsed'
 
@@ -52,9 +53,9 @@ export default function PhotoTips() {
     <details
       open={!isCollapsed}
       onToggle={handleToggle}
-      className="rounded-card border border-border bg-surface p-4"
+      className={cardClass}
     >
-      <summary className="flex min-h-12 cursor-pointer items-center rounded-control text-heading text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+      <summary className={`flex min-h-12 cursor-pointer items-center rounded-control text-section text-ink ${focusRing}`}>
         How to take a clear photo
       </summary>
       <div role="group" aria-label="Photo examples" className="mt-4 grid grid-cols-2 gap-3">
