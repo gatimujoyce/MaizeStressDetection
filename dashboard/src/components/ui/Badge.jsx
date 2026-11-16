@@ -9,7 +9,7 @@ const TONES = {
 
 const SIZES = {
   md: 'min-h-8 gap-2 px-3 text-small',
-  sm: 'min-h-6 gap-1.5 px-2.5 text-caption',
+  sm: 'min-h-6 gap-1 px-2 text-caption',
 }
 
 // The one status chip. Tone is always paired with an icon and a text label, never colour alone.

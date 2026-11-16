@@ -3,8 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createDeviceKey, getDeviceKey, revokeDeviceKey, useAdminManageMutation } from '../../api/adminManage'
 import Notice from '../../components/ui/Notice'
 import { buttonClass } from '../../components/ui/styles'
-
-const when = (value) => (value ? new Date(value).toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' }) : '')
+import { formatDateTime as when } from '../../content/dates'
 
 // The installer creates a key for a plot's sensor box and types it into the box. The full key is shown once, here.
 export default function DeviceKeySection({ farm }) {
@@ -44,7 +43,7 @@ export default function DeviceKeySection({ farm }) {
   }
 
   return (
-    <section aria-labelledby="device-key-title" className="mt-6 border-t border-control pt-4">
+    <section aria-labelledby="device-key-title" className="mt-6 border-t border-border pt-6">
       <h3 id="device-key-title" className="m-0 text-body font-bold text-ink">Sensor box key</h3>
       <p className="mb-3 mt-1 text-small text-ink-secondary">
         The sensor box at this plot sends its readings with this key. Create it when you install the box, then type it into the box.
@@ -66,7 +65,7 @@ export default function DeviceKeySection({ farm }) {
       )}
       {asking ? (
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-small text-ink">{hasKey && !fresh ? 'The old key will stop working straight away.' : 'Stop the box from sending readings?'}</span>
+          <span className="text-small text-ink">{asking === 'revoke' ? 'The sensor box will stop being able to send readings.' : 'The old key will stop working straight away.'}</span>
           <button type="button" disabled={busy} onClick={asking === 'revoke' ? handleRevoke : handleCreate} className={buttonClass({ size: 'sm' })}>
             {asking === 'revoke' ? 'Yes, revoke it' : 'Yes, make a new key'}
           </button>

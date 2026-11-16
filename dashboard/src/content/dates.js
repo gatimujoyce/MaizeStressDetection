@@ -11,6 +11,13 @@ export function formatDay(value) {
   return t === null ? '' : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(t)
 }
 
+// "12 Nov 2026, 14:05": the one date-and-time format in admin tables, so columns line up.
+export function formatDateTime(value) {
+  const t = timeOf(value)
+  if (t === null) return ''
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(t)
+}
+
 // "just now", "5 min ago", "3 hours ago", "2 days ago". Pass `now` from useNow() so it stays current.
 export function timeAgo(value, now = Date.now()) {
   const t = timeOf(value)

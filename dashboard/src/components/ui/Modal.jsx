@@ -56,7 +56,7 @@ export default function Modal({ title, onClose, dismissible = true, wide = false
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`max-h-[92vh] w-full overflow-y-auto rounded-t-card bg-surface p-5 shadow-raised sm:rounded-card sm:p-6 ${wide ? 'sm:max-w-3xl' : 'sm:max-w-md'} ${focusRing}`}
+        className={`max-h-[92vh] w-full overflow-y-auto rounded-t-card bg-surface p-4 shadow-raised sm:rounded-card sm:p-6 ${wide ? 'sm:max-w-3xl' : 'sm:max-w-md'} ${focusRing}`}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <h2 className="m-0 text-section text-ink">{title}</h2>

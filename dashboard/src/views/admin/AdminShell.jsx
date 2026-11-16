@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import UserMenu from '../../components/UserMenu'
 import { focusRing } from '../../components/ui/styles'
-import ChangePasswordDialog from '../../components/ChangePasswordDialog'
 
 const ICON_PATHS = {
   overview: <><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>,
@@ -21,6 +21,8 @@ const NAV_ITEMS = [
   ['feedback', 'Feedback'], ['models', 'Models'], ['retraining', 'Retraining'], ['sms', 'SMS log'], ['audit', 'Activity log'],
 ]
 
+const PROFILE_PATH = '/admin?view=profile'
+
 function NavIcon({ section }) {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -36,9 +38,8 @@ function NavItem({ section, label, activeSection, onNavigate }) {
       to={section === 'overview' ? '/admin' : `/admin?view=${section}`}
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
-      className={`relative flex min-h-11 items-center gap-3 rounded-control px-3 text-small font-bold no-underline transition-colors duration-fast ${focusRing} ${active ? 'bg-brand-tint text-brand' : 'text-ink-secondary hover:bg-app-bg hover:text-ink'}`}
+      className={`flex min-h-11 items-center gap-3 rounded-control px-3 text-small font-bold no-underline transition-colors duration-fast ${focusRing} ${active ? 'bg-brand-tint text-brand' : 'text-ink-secondary hover:bg-app-bg hover:text-ink'}`}
     >
-      {active && <span aria-hidden="true" className="absolute inset-y-2 left-0 w-1 rounded-full bg-brand" />}
       <NavIcon section={section} />
       <span>{label}</span>
     </Link>
@@ -47,17 +48,18 @@ function NavItem({ section, label, activeSection, onNavigate }) {
 
 const isWide = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
 
+// The admin frame: sections in a sidebar (beside the page from 1024px, over it on smaller screens),
+// a top bar with the menu button and the account menu, and the page at one width with one gutter.
 export default function AdminShell({ activeSection, children }) {
   const { name, phone, logout } = useAuth()
   const navigate = useNavigate()
-  // Open beside the content on wide screens; on phones it starts closed and opens over the content.
   const [sidebarVisible, setSidebarVisible] = useState(isWide)
-  const [changingPassword, setChangingPassword] = useState(false)
-  const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
+
+  const signOut = () => { logout(); navigate('/login', { replace: true }) }
   const closeOnNarrow = () => { if (!isWide()) setSidebarVisible(false) }
 
   useEffect(() => {
-    if (!sidebarVisible) return
+    if (!sidebarVisible) return undefined
     const onKey = (event) => { if (event.key === 'Escape' && !isWide()) setSidebarVisible(false) }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -72,11 +74,11 @@ export default function AdminShell({ activeSection, children }) {
               type="button"
               aria-label="Close menu"
               onClick={() => setSidebarVisible(false)}
-              className="fixed inset-0 z-20 min-h-0 rounded-none bg-ink/40 lg:hidden"
+              className="fixed inset-0 z-20 min-h-0 cursor-default rounded-none bg-ink/40 lg:hidden"
             />
             <aside className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-border bg-surface shadow-raised lg:sticky lg:top-0 lg:h-screen lg:shadow-none">
-              <Link to="/admin" onClick={closeOnNarrow} className={`flex items-baseline gap-2 px-5 pb-4 pt-6 text-ink no-underline ${focusRing}`}>
-                <span className="text-heading">Maize Monitor</span>
+              <Link to="/admin" onClick={closeOnNarrow} className={`flex min-h-16 items-center gap-2 px-6 text-ink no-underline ${focusRing}`}>
+                <span className="text-body font-bold text-brand">MaizeStressMonitor</span>
                 <span className="text-caption font-bold text-ink-secondary">Admin</span>
               </Link>
               <nav aria-label="Admin sections" className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-2">
@@ -84,45 +86,39 @@ export default function AdminShell({ activeSection, children }) {
                   <NavItem key={section} section={section} label={label} activeSection={activeSection} onNavigate={closeOnNarrow} />
                 ))}
               </nav>
-              <div className="border-t border-border p-4">
-                <p className="m-0 truncate text-small font-bold">{name || 'Administrator'}</p>
-                {phone && <p className="m-0 truncate text-caption text-ink-secondary">{phone}</p>}
-                <button type="button" onClick={() => setChangingPassword(true)} className={`mt-3 min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-left text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
-                  Change password
-                </button>
-                <button type="button" onClick={handleLogout} className={`mt-2 min-h-11 w-full rounded-control border-[1.5px] border-control bg-surface px-3 text-left text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
-                  Log out
+              <div className="flex flex-col gap-1 border-t border-border p-3">
+                <Link
+                  to={PROFILE_PATH}
+                  onClick={closeOnNarrow}
+                  aria-current={activeSection === 'profile' ? 'page' : undefined}
+                  className={`flex min-h-11 flex-col justify-center rounded-control px-3 py-2 no-underline transition-colors duration-fast ${focusRing} ${activeSection === 'profile' ? 'bg-brand-tint' : 'hover:bg-app-bg'}`}
+                >
+                  <span className="truncate text-small font-bold text-ink">{name || 'Administrator'}</span>
+                  <span className="truncate text-caption text-ink-secondary">Profile{phone ? ` · ${phone}` : ''}</span>
+                </Link>
+                <button type="button" onClick={signOut} className={`min-h-11 w-full cursor-pointer rounded-control bg-transparent px-3 text-left text-small font-bold text-ink-secondary hover:bg-app-bg hover:text-ink ${focusRing}`}>
+                  Sign out
                 </button>
               </div>
             </aside>
           </>
         )}
         <div className="min-w-0 flex-1">
-          <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface px-4 sm:px-6">
-            <div className="flex min-w-0 items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSidebarVisible((visible) => !visible)}
-                aria-label={sidebarVisible ? 'Hide menu' : 'Show menu'}
-                aria-expanded={sidebarVisible}
-                className={`flex h-11 w-11 min-h-11 items-center justify-center rounded-control border-[1.5px] border-control bg-surface text-ink hover:bg-app-bg ${focusRing}`}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  {sidebarVisible ? <path d="M15 6l-6 6 6 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-                </svg>
-              </button>
-              <span className="truncate text-small text-ink-secondary">
-                Admin <span aria-hidden="true" className="mx-1">/</span> <span className="font-bold text-ink">{NAV_ITEMS.find(([key]) => key === activeSection)?.[1]}</span>
-              </span>
-            </div>
-            {!sidebarVisible && (
-              <button type="button" onClick={handleLogout} className={`min-h-11 rounded-control border-[1.5px] border-control bg-surface px-3 text-small font-bold text-ink hover:bg-app-bg ${focusRing}`}>
-                Log out
-              </button>
-            )}
-          </div>
-          <main id="main-content" className="mx-auto w-full max-w-[1440px] p-4 sm:p-6 lg:p-8">{children}</main>
-          {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
+          <header className="sticky top-0 z-10 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-surface px-4 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setSidebarVisible((visible) => !visible)}
+              aria-label={sidebarVisible ? 'Hide menu' : 'Show menu'}
+              aria-expanded={sidebarVisible}
+              className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-control border-[1.5px] border-control bg-surface text-ink hover:bg-app-bg ${focusRing}`}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                {sidebarVisible ? <path d="M15 6l-6 6 6 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+              </svg>
+            </button>
+            <UserMenu profilePath={PROFILE_PATH} />
+          </header>
+          <main id="main-content" className="mx-auto w-full max-w-admin px-4 py-6 sm:px-6 sm:py-8 lg:px-8">{children}</main>
         </div>
       </div>
     </div>
