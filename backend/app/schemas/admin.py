@@ -47,6 +47,8 @@ class AdminFarmUpdate(FarmUpdate):
 class AuditLogEntry(BaseModel):
     id: uuid.UUID
     created_at: datetime
+    # Who made the change. Null if that administrator's account was later removed; admin_name keeps the name either way.
+    admin_id: Optional[uuid.UUID] = None
     admin_name: str
     action: str
     target_type: str
