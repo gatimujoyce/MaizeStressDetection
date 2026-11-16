@@ -138,14 +138,14 @@ export default function StatusTimeline({ rangeKey, start, end, sensor, checkins 
                         </defs>
                         {['Sensor model', 'Disease (leaf photo)', 'Nutrient (leaf photo)'].map((name, lane) => (
                             <g key={name}>
-                                <text x={PAD_X} y={laneTop(lane) - 6} fontSize="12" fontWeight="700" fill="var(--color-text-secondary)">{name}</text>
+                                <text x={PAD_X} y={laneTop(lane) - 6} fontSize="13" fontWeight="700" fill="var(--color-text-secondary)">{name}</text>
                                 <rect x={PAD_X} y={laneTop(lane)} width={innerW} height={TRACK_H} rx="6" fill="var(--color-bg)" stroke="var(--color-border)" />
                             </g>
                         ))}
                         {ticks.map((tick) => (
                             <g key={tick.t}>
                                 <line x1={x(tick.t)} x2={x(tick.t)} y1={laneTop(0)} y2={laneTop(2) + TRACK_H} stroke="var(--color-border)" strokeDasharray="2 4" />
-                                <text x={x(tick.t)} y={height - 6} textAnchor="middle" fontSize="12" fill="var(--color-text-secondary)">{tick.label}</text>
+                                <text x={x(tick.t)} y={height - 6} textAnchor="middle" fontSize="13" fill="var(--color-text-secondary)">{tick.label}</text>
                             </g>
                         ))}
                         {model.stretches.map((s, i) => {
@@ -157,7 +157,7 @@ export default function StatusTimeline({ rangeKey, start, end, sensor, checkins 
                                     <rect x={x1} y={laneTop(0)} width={w} height={TRACK_H} rx="6" fill={tone.fill} stroke={tone.stroke} />
                                     {s.status !== 'normal' && <rect x={x1} y={laneTop(0)} width={w} height={TRACK_H} rx="6" fill={`url(#${hatchId})`} />}
                                     {w > 78 && (
-                                        <text x={x1 + w / 2} y={laneTop(0) + 17} textAnchor="middle" fontSize="12" fontWeight="700" fill={tone.stroke}>
+                                        <text x={x1 + w / 2} y={laneTop(0) + 17} textAnchor="middle" fontSize="13" fontWeight="700" fill={tone.stroke}>
                                             {SHORT_NAMES[s.status] || 'Normal'}
                                         </text>
                                     )}
@@ -175,8 +175,8 @@ export default function StatusTimeline({ rangeKey, start, end, sensor, checkins 
                                         <text x={c.px} y={cy + 4.5} textAnchor="middle" fontSize="13" fontWeight="700" fill={tone.stroke}>{tone.glyph}</text>
                                         {many && (
                                             <g>
-                                                <circle cx={c.px + 10} cy={cy - 10} r="8" fill="var(--color-text-primary)" />
-                                                <text x={c.px + 10} y={cy - 6.5} textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff">{c.items.length}</text>
+                                                <circle cx={c.px + 10} cy={cy - 10} r="9" fill="var(--color-text-primary)" />
+                                                <text x={c.px + 10} y={cy - 5.5} textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--color-surface)">{c.items.length}</text>
                                             </g>
                                         )}
                                     </g>
@@ -193,7 +193,7 @@ export default function StatusTimeline({ rangeKey, start, end, sensor, checkins 
                 <p className="m-0 mt-1 text-small text-ink-secondary">The sensor model is not running right now, so its row is empty.</p>
             )}
             <details className="mt-3">
-                <summary className="min-h-11 cursor-pointer py-2 text-small font-bold text-ink">Show these as a list</summary>
+                <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-control text-small font-bold text-brand underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">Show these as a list</summary>
                 {rows.length === 0 ? (
                     <p className="m-0 text-small text-ink-secondary">Nothing to show in this period yet.</p>
                 ) : (

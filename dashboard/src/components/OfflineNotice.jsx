@@ -18,7 +18,7 @@ export default function OfflineNotice() {
 
   if (!isOffline) return null
   return (
-    <Notice tone="neutral" className="mb-6">
+    <Notice tone="neutral">
       <p>You are offline. Showing the last data saved on your phone.</p>
     </Notice>
   )

@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFarm } from '../farm/FarmContext'
+import Modal from './ui/Modal'
+import { buttonClass, focusRing } from './ui/styles'
 
 function ChevronDownIcon() {
   return (
@@ -18,128 +20,79 @@ function CheckIcon() {
   )
 }
 
-function PlusIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  )
-}
-
 function formatAcres(acres) {
   if (acres === null || acres === undefined || acres === '') return ''
   return `${acres} ${Number(acres) === 1 ? 'acre' : 'acres'}`
 }
 
+// "My plots": choose which plot the screens show, or add another.
 export default function PlotSwitcher() {
   const { farms, selectedFarmId, selectFarm } = useFarm()
   const navigate = useNavigate()
-  const triggerRef = useRef(null)
-  const dialogRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (isOpen && !dialog.open) dialog.showModal()
-    if (!isOpen && dialog.open) dialog.close()
-  }, [isOpen])
-
-  const closeDialog = () => {
-    setIsOpen(false)
-    requestAnimationFrame(() => triggerRef.current?.focus())
-  }
-
-  const handleDialogClick = (event) => {
-    if (event.target === dialogRef.current) closeDialog()
-  }
 
   return (
     <>
       <button
-        ref={triggerRef}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
-        className="flex min-h-12 items-center justify-center gap-2 rounded-control border-2 border-brand bg-surface px-4 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        className={buttonClass({ variant: 'secondary' })}
       >
         My plots
         <ChevronDownIcon />
       </button>
 
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="your-plots-title"
-        onCancel={() => setIsOpen(false)}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') closeDialog()
-        }}
-        onClick={handleDialogClick}
-        onClose={() => {
-          setIsOpen(false)
-          requestAnimationFrame(() => triggerRef.current?.focus())
-        }}
-        className="fixed inset-x-0 bottom-0 top-auto m-0 max-h-[80vh] w-full max-w-none overflow-y-auto rounded-t-card border-0 bg-surface p-5 text-ink backdrop:bg-black/40 sm:inset-0 sm:m-auto sm:max-w-md sm:rounded-card shadow-raised"
-      >
-        <div className="flex flex-col gap-5">
-          <header className="flex items-center justify-between gap-3">
-            <h2 id="your-plots-title" className="m-0 text-title">Your plots</h2>
+      {isOpen && (
+        <Modal title="Your plots" onClose={() => setIsOpen(false)}>
+          <div className="flex flex-col gap-4">
+            <ul className="m-0 list-none divide-y divide-border overflow-hidden rounded-card border border-border p-0">
+              {farms.map((farm) => {
+                const selected = farm.farm_id === selectedFarmId
+                const details = [farm.county, formatAcres(farm.sizeAcres)].filter(Boolean).join(' · ')
+                return (
+                  <li key={farm.farm_id}>
+                    <button
+                      type="button"
+                      aria-current={selected ? 'true' : undefined}
+                      onClick={() => {
+                        selectFarm(farm.farm_id)
+                        setIsOpen(false)
+                      }}
+                      className={`flex min-h-14 w-full cursor-pointer items-center justify-between gap-3 rounded-none px-4 py-3 text-left ${focusRing} ${
+                        selected ? 'bg-brand-tint' : 'bg-surface hover:bg-app-bg'
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-body font-bold text-ink">{farm.farm_name}</span>
+                        {details && <span className="mt-1 block text-small font-normal text-ink-secondary">{details}</span>}
+                      </span>
+                      {selected && (
+                        <span className="flex shrink-0 items-center gap-1 text-small font-bold text-brand">
+                          <CheckIcon />
+                          Selected
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+
             <button
               type="button"
-              onClick={closeDialog}
-              className="min-h-12 rounded-control px-4 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              onClick={() => {
+                setIsOpen(false)
+                navigate('/plots/new')
+              }}
+              className={buttonClass({ variant: 'secondary', block: true })}
             >
-              Close
+              Add another plot
             </button>
-          </header>
-
-          <ul className="m-0 flex list-none flex-col gap-2 p-0">
-            {farms.map((farm) => {
-              const selected = farm.farm_id === selectedFarmId
-              const details = [farm.county, formatAcres(farm.sizeAcres)].filter(Boolean).join(' - ')
-              return (
-                <li key={farm.farm_id}>
-                  <button
-                    type="button"
-                    aria-current={selected ? 'true' : undefined}
-                    onClick={() => {
-                      selectFarm(farm.farm_id)
-                      closeDialog()
-                    }}
-                    className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-control border px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
-                      selected ? 'border-2 border-brand bg-brand-tint' : 'border-border bg-surface'
-                    }`}
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-body font-bold">{farm.farm_name}</span>
-                      {details && <span className="mt-1 block text-body text-ink-secondary">{details}</span>}
-                    </span>
-                    {selected && (
-                      <span className="flex shrink-0 items-center gap-1 text-body font-bold text-brand">
-                        <CheckIcon />
-                        Selected
-                      </span>
-                    )}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-
-          <button
-            type="button"
-            onClick={() => {
-              closeDialog()
-              navigate('/plots/new')
-            }}
-            className="flex min-h-12 items-center justify-center gap-2 rounded-control border-2 border-brand bg-surface px-4 text-body font-bold text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            <PlusIcon />
-            Add another plot
-          </button>
-        </div>
-      </dialog>
+          </div>
+        </Modal>
+      )}
     </>
   )
 }

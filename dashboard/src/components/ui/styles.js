@@ -5,7 +5,7 @@ const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:o
 
 const BUTTON_VARIANTS = {
   primary: 'bg-brand text-white hover:bg-brand-hover',
-  secondary: 'border-2 border-brand bg-surface text-brand hover:bg-brand-tint',
+  secondary: 'border-[1.5px] border-brand bg-surface text-brand hover:bg-brand-tint',
   // Text-style action: keeps the 44px height but sits flush with surrounding text.
   quiet: 'bg-transparent !px-0 text-brand underline underline-offset-4',
 }
@@ -19,7 +19,7 @@ const BUTTON_SIZES = {
 
 export function buttonClass({ variant = 'primary', size = 'md', block = false } = {}) {
   return [
-    'inline-flex items-center justify-center gap-2 rounded-control font-bold no-underline',
+    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-control font-bold no-underline',
     'transition-colors duration-fast ease-out disabled:cursor-not-allowed disabled:opacity-60',
     focusRing,
     BUTTON_VARIANTS[variant],
@@ -30,11 +30,17 @@ export function buttonClass({ variant = 'primary', size = 'md', block = false } 
 
 export const linkClass = `font-bold text-brand underline underline-offset-4 ${focusRing}`
 
+// Text inputs, selects and textareas. Pair with labelClass on the <label>.
 export const fieldClass = `min-h-12 w-full rounded-control border-[1.5px] border-control bg-surface px-4 text-body text-ink ${focusRing}`
 
-export const cardClass = 'rounded-card border border-border bg-surface p-4 sm:p-5'
+export const textareaClass = `w-full rounded-control border-[1.5px] border-control bg-surface px-4 py-3 text-body text-ink ${focusRing}`
 
-// Tinted inner panel inside a card (e.g. "What to do", a reading cell).
+export const labelClass = 'mb-2 block text-body font-bold text-ink'
+
+// The one container style. Padding follows the spacing scale: 16px on phones, 24px from 640px.
+export const cardClass = 'rounded-card border border-border bg-surface p-4 sm:p-6'
+
+// Tinted inner panel. Admin screens only, until phase 2 moves them off it; farmer screens use dividers instead.
 export const insetClass = 'rounded-control bg-app-bg p-3'
 
 export { focusRing }

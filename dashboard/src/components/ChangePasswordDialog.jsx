@@ -5,8 +5,9 @@ import { changePassword } from '../api/authFlow'
 import { useAuth } from '../auth/AuthContext'
 import AuthField from './AuthField'
 import Modal from './ui/Modal'
+import Notice from './ui/Notice'
+import { buttonClass } from './ui/styles'
 
-const buttonBase = 'min-h-12 rounded-control px-4 py-2 font-bold transition-colors disabled:opacity-60'
 
 // Change your own password. With forced = true (a temporary password) it cannot be closed until a new one is chosen.
 export default function ChangePasswordDialog({ forced = false, onClose }) {
@@ -46,25 +47,25 @@ export default function ChangePasswordDialog({ forced = false, onClose }) {
         <Modal title={title} onClose={onClose} dismissible={!forced}>
             {done ? (
                 <div className="flex flex-col gap-4">
-                    <div role="status" className="px-3 py-2 bg-[var(--color-healthy-bg)] text-[var(--color-healthy-text)] rounded-control text-small">Your password was changed.</div>
-                    <button type="button" onClick={onClose} className={`${buttonBase} bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand-hover)]`}>Done</button>
+                    <Notice tone="positive"><p>Your password was changed.</p></Notice>
+                    <button type="button" onClick={onClose} className={buttonClass({ block: true })}>Done</button>
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     {forced && (
-                        <p className="m-0 text-small text-[var(--color-text-secondary)]">
+                        <p className="m-0 text-small text-ink-secondary">
                             You signed in with a temporary password. Enter it below as the current password, then choose a new one that only you know.
                         </p>
                     )}
-                    {error && <div role="alert" className="px-3 py-2 bg-[var(--color-critical-bg)] text-[var(--color-critical-text)] rounded-control text-small">{error}</div>}
+                    {error && <Notice tone="critical"><p>{error}</p></Notice>}
                     <AuthField id="cp-current" label={forced ? 'Temporary password' : 'Current password'} type="password" autoComplete="current-password" value={form.current} onChange={set('current')} visible={show} onToggleVisibility={() => setShow((value) => !value)} />
                     <AuthField id="cp-new" label="New password" type="password" autoComplete="new-password" hint="At least 8 characters." value={form.next} onChange={set('next')} visible={show} onToggleVisibility={() => setShow((value) => !value)} />
                     <AuthField id="cp-confirm" label="Confirm new password" type="password" autoComplete="new-password" value={form.confirm} onChange={set('confirm')} visible={show} onToggleVisibility={() => setShow((value) => !value)} />
                     <div className="flex flex-wrap gap-3">
-                        <button type="submit" disabled={busy} className={`${buttonBase} flex-1 bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand-hover)]`}>{busy ? 'Saving…' : 'Save new password'}</button>
+                        <button type="submit" disabled={busy} className={`${buttonClass()} flex-1`}>{busy ? 'Saving…' : 'Save new password'}</button>
                         {forced
-                            ? <button type="button" onClick={() => { logout(); navigate('/login', { replace: true }) }} className={`${buttonBase} border-[1.5px] border-control bg-surface text-ink`}>Log out</button>
-                            : <button type="button" onClick={onClose} className={`${buttonBase} border-[1.5px] border-control bg-surface text-ink`}>Cancel</button>}
+                            ? <button type="button" onClick={() => { logout(); navigate('/login', { replace: true }) }} className={buttonClass({ variant: 'secondary' })}>Sign out</button>
+                            : <button type="button" onClick={onClose} className={buttonClass({ variant: 'secondary' })}>Cancel</button>}
                     </div>
                 </form>
             )}

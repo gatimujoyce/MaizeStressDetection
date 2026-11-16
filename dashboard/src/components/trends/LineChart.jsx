@@ -1,8 +1,10 @@
 import { useId, useMemo, useState } from 'react'
 import useWidth from './useWidth'
 
-const HEIGHT = 190
-const PAD = { top: 12, right: 12, bottom: 26, left: 42 }
+const HEIGHT = 200
+// Room on top for the unit label, on the left for the value ticks, below for the time ticks.
+const PAD = { top: 24, right: 12, bottom: 26, left: 40 }
+const AXIS_TEXT = { fontSize: 13, fill: 'var(--color-text-secondary)' }
 
 function niceScale(min, max) {
     let lo = min
@@ -24,7 +26,9 @@ function niceScale(min, max) {
 
 // A plain SVG line chart. points: [{ t (ms), v }], spans: [{ start, end (ms) }] are the periods an alert was open.
 // A line breaks where readings stop for longer than gapMs, so a silent sensor shows as a gap and not as a straight line.
-export default function LineChart({ points, spans = [], start, end, gapMs, xTicks, label, formatValue, formatMoment }) {
+// One colour per meaning: the teal line is the reading, the hatched band is a time an alert was open.
+// axisUnit labels the value axis ("%", "°C", "mg/kg"); formatTick prints the plain numbers on it.
+export default function LineChart({ points, spans = [], start, end, gapMs, xTicks, label, axisUnit, formatValue, formatTick = String, formatMoment }) {
     const [ref, width] = useWidth()
     const [activeIndex, setActiveIndex] = useState(null)
     const hatchId = useId()
@@ -92,7 +96,7 @@ export default function LineChart({ points, spans = [], start, end, gapMs, xTick
                 onPointerDown={(e) => pick(e.clientX)}
                 onPointerMove={(e) => pick(e.clientX)}
                 onMouseLeave={() => setActiveIndex(null)}
-                className="w-full touch-pan-y rounded-card outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                className="w-full touch-pan-y rounded-control outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
             >
                 {geometry && (
                     <svg width={width} height={HEIGHT} aria-hidden="true" className="block">
@@ -108,16 +112,21 @@ export default function LineChart({ points, spans = [], start, end, gapMs, xTick
                                 <rect key={i} x={x1} y={PAD.top} width={x2 - x1} height={geometry.innerH} fill={`url(#${hatchId})`} />
                             ) : null
                         })}
+                        {axisUnit && (
+                            <text x={PAD.left - 6} y={12} textAnchor="end" fontWeight="700" {...AXIS_TEXT}>
+                                {axisUnit}
+                            </text>
+                        )}
                         {geometry.ticks.map((v) => (
                             <g key={v}>
                                 <line x1={PAD.left} x2={PAD.left + geometry.innerW} y1={geometry.y(v)} y2={geometry.y(v)} stroke="var(--color-border)" strokeWidth="1" />
-                                <text x={PAD.left - 6} y={geometry.y(v) + 4} textAnchor="end" fontSize="12" fill="var(--color-text-secondary)">
-                                    {formatValue(v, true)}
+                                <text x={PAD.left - 6} y={geometry.y(v) + 4} textAnchor="end" {...AXIS_TEXT}>
+                                    {formatTick(v)}
                                 </text>
                             </g>
                         ))}
                         {xTicks.map((tick) => (
-                            <text key={tick.t} x={geometry.x(tick.t)} y={HEIGHT - 6} textAnchor="middle" fontSize="12" fill="var(--color-text-secondary)">
+                            <text key={tick.t} x={geometry.x(tick.t)} y={HEIGHT - 6} textAnchor="middle" {...AXIS_TEXT}>
                                 {tick.label}
                             </text>
                         ))}
@@ -139,7 +148,7 @@ export default function LineChart({ points, spans = [], start, end, gapMs, xTick
                         {activePoint && (
                             <>
                                 <line x1={activePoint.x} x2={activePoint.x} y1={PAD.top} y2={PAD.top + geometry.innerH} stroke="var(--color-text-secondary)" strokeWidth="1" strokeDasharray="3 3" />
-                                <circle cx={activePoint.x} cy={activePoint.y} r="5" fill="var(--color-brand)" stroke="#fff" strokeWidth="2" />
+                                <circle cx={activePoint.x} cy={activePoint.y} r="5" fill="var(--color-brand)" stroke="var(--color-surface)" strokeWidth="2" />
                             </>
                         )}
                     </svg>

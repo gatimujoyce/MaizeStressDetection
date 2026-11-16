@@ -265,6 +265,17 @@ export function login({ phone, password }) {
   return Promise.reject(new Error('Phone number or password is incorrect'))
 }
 
+// Same rules as PATCH /auth/me: the name only, trimmed, 2 to 60 characters.
+export function updateProfile({ name }) {
+  const trimmed = String(name ?? '').trim()
+  if (trimmed.length < 2 || trimmed.length > 60) {
+    const error = new Error('Your name must be between 2 and 60 characters.')
+    error.status = 422
+    return Promise.reject(error)
+  }
+  return Promise.resolve({ id: 'farmer-1', name: trimmed, phone: '+254712000001', role: 'farmer', must_change_password: false })
+}
+
 export function register({ name, phone, password }) {
   return new Promise((resolve, reject) => {
     if (!name || !phone || !password) {

@@ -1,77 +1,48 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useFarmHistory, useReadingTrend } from '../../api/hooks'
 import { CheckIcon, WarningIcon } from '../../components/Icons'
 import TrendChart from '../../components/TrendChart'
-import ReadingTrendCard, { FIELD_ORDER, NPK_FIELD_ORDER } from '../../components/trends/ReadingTrendCard'
+import ReadingTrendCard from '../../components/trends/ReadingTrendCard'
 import StatusTimeline from '../../components/trends/StatusTimeline'
+import { FIELD_ORDER, NPK_FIELD_ORDER } from '../../components/trends/trendFields'
 import { RANGES } from '../../components/trends/trendTime'
 import Card, { SectionHeader } from '../../components/ui/Card'
+import EmptyState from '../../components/ui/EmptyState'
 import Notice from '../../components/ui/Notice'
+import Page from '../../components/ui/Page'
 import PageHeader from '../../components/ui/PageHeader'
+import Segmented from '../../components/ui/Segmented'
 import Skeleton from '../../components/ui/Skeleton'
 import GrowthStageCard from '../../components/GrowthStageCard'
+import { stressTitle } from '../../content/alertTitles'
 import { useFarm } from '../../farm/FarmContext'
 
-const STRESS_TITLES = {
-    heat_stress: 'Heat stress',
-    drought_stress: 'Drought stress',
-    waterlogging_risk: 'Waterlogging risk',
-    low_nitrogen: 'Low nitrogen',
-    low_phosphorus: 'Low phosphorus',
-    low_potassium: 'Low potassium',
-    sensor_silent: 'Sensor not reporting',
-    npk_silent: 'NPK sensor not reporting',
-}
 const STALE_HOURS = 3
-
-function RangeTabs({ value, onChange }) {
-    return (
-        <div role="radiogroup" aria-label="Time range" className="flex gap-2">
-            {RANGES.map((range) => {
-                const selected = range.key === value
-                return (
-                    <button
-                        key={range.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        onClick={() => onChange(range.key)}
-                        className={`min-h-11 flex-1 rounded-card border px-3 text-body font-bold ${
-                            selected ? 'border-brand bg-brand text-white' : 'border-border bg-surface text-ink'
-                        }`}
-                    >
-                        {range.label}
-                    </button>
-                )
-            })}
-        </div>
-    )
-}
 
 function Overview({ trend, rangeLabel }) {
     const everything = [...trend.alerts, ...(trend.nutrient_alerts ?? [])]
     const open = everything.filter((a) => !a.end)
     const past = everything.filter((a) => a.end)
-    const titleOf = (a) => STRESS_TITLES[a.stress_class] || 'Field alert'
     const when = (iso) => new Date(iso).toLocaleString('en-KE', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
 
     return (
         <Card aria-labelledby="overview-title">
-            <SectionHeader id="overview-title" title="Anything unusual?" as="h2" />
+            <SectionHeader id="overview-title" title="Anything unusual?" />
             {open.length > 0 ? (
                 <ul className="m-0 flex list-none flex-col gap-2 p-0">
                     {open.map((a) => (
                         <li key={a.id} className="flex items-start gap-2 text-body font-bold text-warning-text">
-                            <WarningIcon size={20} />
+                            <span aria-hidden="true" className="mt-1 flex shrink-0"><WarningIcon size={18} /></span>
                             <span>
-                                {titleOf(a)}, ongoing since {when(a.start)}. See the Alerts tab.
+                                {stressTitle(a.stress_class)}, ongoing since {when(a.start)}. See the Alerts tab.
                             </span>
                         </li>
                     ))}
                 </ul>
             ) : (
                 <p className="m-0 flex items-start gap-2 text-body text-ink">
-                    <span className="text-healthy-text"><CheckIcon size={20} /></span>
+                    <span aria-hidden="true" className="mt-1 flex shrink-0 text-healthy-text"><CheckIcon size={18} /></span>
                     <span>No alert is open for your plot right now.</span>
                 </p>
             )}
@@ -90,24 +61,43 @@ function Overview({ trend, rangeLabel }) {
 
 export default function TrendsPage() {
     const { selectedFarmId, selectedFarm } = useFarm()
+    const { hash } = useLocation()
     const [rangeKey, setRangeKey] = useState('7d')
-    const rangeLabel = RANGES.find((r) => r.key === rangeKey).label
+    const range = RANGES.find((r) => r.key === rangeKey)
     const { data: trend, isLoading, isError, isFetching, refetch } = useReadingTrend(selectedFarmId, rangeKey)
-    const { data: history = [] } = useFarmHistory(selectedFarmId)
-
+    const history = useFarmHistory(selectedFarmId)
     const hasReadings = trend && trend.latest_at
     const stale = hasReadings && trend.hours_since_latest >= STALE_HOURS
-    const thin = hasReadings && trend.hours_of_data < RANGES.find((r) => r.key === rangeKey).ms / 3600e3 / 2
+    const thin = hasReadings && trend.hours_of_data < range.ms / 3600e3 / 2
+    const hasNpkSensor = Boolean(selectedFarm?.hasNpkSensor)
+
+    // "Past photo checks" on Home links here; scroll to the list once the charts above it have their height.
+    useEffect(() => {
+        if (hash !== '#photo-checks' || isLoading || history.isLoading) return
+        document.getElementById('photo-checks')?.scrollIntoView({ block: 'start' })
+    }, [hash, isLoading, history.isLoading])
 
     return (
-        <div className="mx-auto flex max-w-4xl flex-col gap-6">
-            <PageHeader title="Field Trends" subtitle={`Plot: ${selectedFarm?.farm_name || 'Your field'}`} />
-            <GrowthStageCard />
-            <RangeTabs value={rangeKey} onChange={setRangeKey} />
-
+        <Page>
+            <PageHeader
+                title="Field trends"
+                subtitle={
+                    <>
+                        <p className="m-0">{selectedFarm?.farm_name || 'Your field'}</p>
+                        <GrowthStageCard />
+                    </>
+                }
+            />
+            <Segmented
+                label="Time range"
+                options={RANGES.map((r) => ({ key: r.key, label: r.label }))}
+                value={rangeKey}
+                onChange={setRangeKey}
+                block
+            />
             {isLoading ? (
-                <div className="flex flex-col gap-3">
-                    <Skeleton label="Loading trends…" className="h-24" />
+                <div className="flex flex-col gap-4">
+                    <Skeleton label="Loading trends" className="h-24" />
                     <Skeleton className="h-64" />
                     <Skeleton className="h-64" />
                 </div>
@@ -116,61 +106,76 @@ export default function TrendsPage() {
                     <p>Could not load your field trends.</p>
                 </Notice>
             ) : !hasReadings ? (
-                <Notice tone="info">
-                    <p>No sensor readings yet. Trends will appear here once your sensors start reporting.</p>
-                </Notice>
+                <Card>
+                    <EmptyState title="No sensor readings yet">
+                        <p>Trends will appear here once your sensors start reporting.</p>
+                    </EmptyState>
+                </Card>
             ) : (
                 <>
-                    {stale && (
-                        <Notice tone="warning">
-                            <p>
-                                No new readings for {Math.round(trend.hours_since_latest)} hours. The charts show the last readings we received.
-                            </p>
-                        </Notice>
+                    {(stale || thin) && (
+                        <div className="flex flex-col gap-3">
+                            {stale && (
+                                <Notice tone="warning">
+                                    <p>
+                                        No new readings for {Math.round(trend.hours_since_latest)} hours. The charts show the last readings we received.
+                                    </p>
+                                </Notice>
+                            )}
+                            {thin && (
+                                <Notice tone="neutral">
+                                    <p>We only have {Math.round(trend.hours_of_data)} hours of readings in this period so far, so the charts are short.</p>
+                                </Notice>
+                            )}
+                        </div>
                     )}
-                    {thin && (
-                        <Notice tone="info">
-                            <p>We only have {Math.round(trend.hours_of_data)} hours of readings in this period so far, so the charts are short.</p>
-                        </Notice>
-                    )}
-                    <Overview trend={trend} rangeLabel={rangeLabel} />
+                    <Overview trend={trend} rangeLabel={range.label} />
                     <Card aria-labelledby="status-title">
-                        <SectionHeader id="status-title" title="Status over time" as="h2" />
+                        <SectionHeader id="status-title" title="Status over time" />
                         <StatusTimeline
                             rangeKey={rangeKey}
                             start={Date.parse(trend.from)}
                             end={Date.parse(trend.to)}
                             sensor={trend.sensor_status}
-                            checkins={history}
+                            checkins={history.data ?? []}
                         />
                     </Card>
+                    <section aria-labelledby="readings-title">
+                        <SectionHeader id="readings-title" title="Sensor readings" />
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {FIELD_ORDER.map((field) => (
+                                <ReadingTrendCard key={field} field={field} trend={trend} rangeKey={rangeKey} />
+                            ))}
+                        </div>
+                    </section>
+                </>
+            )}
+            {(trend?.has_npk_sensor && hasReadings) ? (
+                <section aria-labelledby="npk-title">
+                    <SectionHeader id="npk-title" title="Soil nutrients (NPK sensor)" />
                     <div className="grid gap-4 md:grid-cols-2">
-                        {FIELD_ORDER.map((field) => (
+                        {NPK_FIELD_ORDER.map((field) => (
                             <ReadingTrendCard key={field} field={field} trend={trend} rangeKey={rangeKey} />
                         ))}
                     </div>
-                    {trend.has_npk_sensor && (
-                        <section aria-labelledby="npk-title" className="flex flex-col gap-3">
-                            <h2 id="npk-title" className="m-0 text-heading">Soil nutrients (NPK sensor)</h2>
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {NPK_FIELD_ORDER.map((field) => (
-                                    <ReadingTrendCard key={field} field={field} trend={trend} rangeKey={rangeKey} />
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                </>
+                </section>
+            ) : selectedFarm && !hasNpkSensor && (
+                <section aria-labelledby="npk-off-title">
+                    <SectionHeader
+                        id="npk-off-title"
+                        title="Soil nutrient sensor"
+                        description="No NPK sensor is set up for this plot. To add one, contact your administrator."
+                        className="!mb-0"
+                    />
+                </section>
             )}
-
-            {selectedFarm && !selectedFarm.hasNpkSensor && (
-                <Card aria-labelledby="npk-off-title">
-                    <SectionHeader id="npk-off-title" title="Soil nutrient sensor" as="h2" />
-                    <p className="m-0 text-body text-ink-secondary">
-                        No NPK sensor is set up for this plot. To add one, contact your administrator.
-                    </p>
-                </Card>
-            )}
-            <TrendChart history={history} />
-        </div>
+            <TrendChart
+                history={history.data ?? []}
+                isLoading={history.isLoading}
+                isError={history.isError}
+                onRetry={() => history.refetch()}
+                retrying={history.isFetching}
+            />
+        </Page>
     )
 }

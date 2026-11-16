@@ -8,6 +8,7 @@ import { adaptFarmStatus, adaptPredictionResponse } from './statusAdapter'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
 const realApi = {
+    profile: true,
     status: true,
     farmerFarm: false,
     farms: false,
@@ -91,6 +92,12 @@ export const register = (data) =>
 
 export const getCurrentUser = () =>
     httpClient.get('/auth/me')
+
+// Change your own name (2 to 60 characters). The phone number and role are managed by an administrator.
+// Like the other account calls (/auth/me, sign-in) it goes to the backend in mock mode too, so the new name
+// stays consistent with the profile the app loads.
+export const updateProfile = ({ name }) =>
+    shouldUseMock('profile') ? mock.updateProfile({ name }) : httpClient.patch('/auth/me', { name })
 
 // ── Farms ─────────────────────────────────────────────────────────────────────
 export const getFarmerFarm = (farmerId) =>

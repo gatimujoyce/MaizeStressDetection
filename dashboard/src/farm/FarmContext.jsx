@@ -32,6 +32,8 @@ export function FarmProvider({ children }) {
     [isFarmer, farmsQuery.data]
   )
   const isLoading = isFarmer && farmsQuery.isLoading
+  const isError = isFarmer && farmsQuery.isError
+  const retryFarms = farmsQuery.refetch
   const hasFarms = farms.length > 0
   const [preferredFarmId, setPreferredFarmId] = useState(readSelectedFarmId)
   const selectedFarmId = farms.some((farm) => farm.farm_id === preferredFarmId)
@@ -47,7 +49,7 @@ export function FarmProvider({ children }) {
 
   return (
     <FarmContext.Provider
-      value={{ farms, selectedFarm, selectedFarmId, selectFarm, isLoading, hasFarms }}
+      value={{ farms, selectedFarm, selectedFarmId, selectFarm, isLoading, isError, retryFarms, hasFarms }}
     >
       {children}
     </FarmContext.Provider>

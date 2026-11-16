@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useCancelSensorRequestMutation, useRequestSensorMutation } from '../api/hooks'
-import { buttonClass } from './ui/styles'
+import { buttonClass, labelClass, textareaClass } from './ui/styles'
 
 const when = (value) => (value ? new Date(value).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' }) : '')
 
@@ -14,12 +14,12 @@ export default function SensorSetupRow({ farm }) {
   const status = farm.sensor_status || 'none'
 
   if (status === 'installed') {
-    return <span className="font-normal">Sensor installed. Readings appear on your dashboard.</span>
+    return <span>Sensor installed. Readings appear on your dashboard.</span>
   }
 
   if (status === 'in_progress') {
     return (
-      <div className="flex flex-col items-start gap-2 font-normal">
+      <div className="flex flex-col items-start gap-2">
         <span>An administrator has been in touch and is arranging the sensor visit.</span>
         <button type="button" disabled={cancel.isPending} onClick={() => cancel.mutate(farmId)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>
           Cancel request
@@ -31,7 +31,7 @@ export default function SensorSetupRow({ farm }) {
 
   if (status === 'requested') {
     return (
-      <div className="flex flex-col items-start gap-2 font-normal">
+      <div className="flex flex-col items-start gap-2">
         <span>Sensor setup requested on {when(farm.sensor_requested_at)}. An administrator will contact you to arrange a visit.</span>
         <button type="button" disabled={cancel.isPending} onClick={() => cancel.mutate(farmId)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>
           Cancel request
@@ -43,7 +43,7 @@ export default function SensorSetupRow({ farm }) {
 
   if (!asking) {
     return (
-      <div className="flex flex-col items-start gap-2 font-normal">
+      <div className="flex flex-col items-start gap-2">
         <span>Photo checks only. Sensors can be set up on your plot by an administrator.</span>
         <button type="button" onClick={() => setAsking(true)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>Request sensor setup</button>
       </div>
@@ -52,23 +52,22 @@ export default function SensorSetupRow({ farm }) {
 
   return (
     <form
-      className="flex w-full flex-col items-start gap-2 font-normal"
+      className="flex w-full flex-col items-start gap-2"
       onSubmit={(event) => {
         event.preventDefault()
         request.mutate({ farmId, note }, { onSuccess: () => { setAsking(false); setNote('') } })
       }}
     >
-      <label className="flex w-full flex-col gap-1 text-small text-ink">
-        Anything the installer should know? (optional)
+      <label htmlFor="sensor-note" className={`${labelClass} !mb-0`}>Anything the installer should know? (optional)</label>
         <textarea
+          id="sensor-note"
           value={note}
           onChange={(event) => setNote(event.target.value)}
           maxLength={300}
           rows={3}
           placeholder="For example: best days to visit, or how to find the plot"
-          className="w-full rounded-control border-[1.5px] border-control bg-surface px-3 py-2 text-small text-ink"
+          className={textareaClass}
         />
-      </label>
       <div className="flex gap-2">
         <button type="submit" disabled={request.isPending} className={buttonClass({ size: 'sm' })}>Send request</button>
         <button type="button" onClick={() => setAsking(false)} className={buttonClass({ variant: 'secondary', size: 'sm' })}>Not now</button>

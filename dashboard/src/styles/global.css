@@ -38,11 +38,11 @@
   --color-control-border: #7C8782;
   --color-focus: var(--color-brand);
 
-  /* Shape: controls (buttons, inputs, chips) and cards. Nothing else. */
-  --radius-control: 12px;
-  --radius-card: 16px;
+  /* Shape: controls (buttons, inputs, segments) and containers (cards, dialogs, menus). Nothing else. */
+  --radius-control: 8px;
+  --radius-card: 12px;
 
-  /* Only dialogs and sheets float. Cards are flat with a border. */
+  /* Only dialogs, sheets and menus float. Cards are flat with a border. */
   --shadow-raised: 0 12px 32px -8px rgb(20 32 29 / 0.28);
 
   /* Motion explains a change; it never decorates. */
@@ -78,23 +78,25 @@ h4 {
 }
 
 
+/* Defaults for any control a screen did not style itself. Screens use buttonClass / fieldClass from components/ui/styles. */
 button {
   font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  min-height: 48px;
+  font-size: inherit;
+  font-weight: 700;
+  min-height: 44px;
   min-width: 44px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
 }
 
 input,
 select,
 textarea {
+  font-family: inherit;
   font-size: 16px;
   min-height: 48px;
   border: 1.5px solid var(--color-control-border);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--color-surface);
   color: var(--color-text-primary);
 }

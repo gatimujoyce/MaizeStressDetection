@@ -19,7 +19,7 @@ export default function Notice({ tone = 'neutral', role: roleOverride, title, ch
         <Icon size={18} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-        {title && <p className="m-0 text-heading">{title}</p>}
+        {title && <p className="m-0 text-body font-bold">{title}</p>}
         {children && <div className="text-small text-ink [&_p]:m-0">{children}</div>}
         {(onRetry || action) && (
           <div className="mt-2 flex flex-wrap gap-3">

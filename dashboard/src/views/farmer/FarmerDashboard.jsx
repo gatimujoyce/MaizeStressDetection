@@ -1,5 +1,5 @@
 import { Link, Navigate } from 'react-router-dom'
-import { useAlerts, useFarmHistory, useFarmStatus, useLatestReadingClassification, useLatestReadings } from '../../api/hooks'
+import { useAlerts, useFarmStatus, useLatestReadingClassification, useLatestReadings } from '../../api/hooks'
 import AlertCard from '../../components/AlertCard'
 import AttentionAlert from '../../components/AttentionAlert'
 import EmptyPlotState from '../../components/EmptyPlotState'
@@ -9,16 +9,20 @@ import PlotSwitcher from '../../components/PlotSwitcher'
 import ReadingTile from '../../components/ReadingTile'
 import NpkTiles from '../../components/NpkTiles'
 import SensorSetupRow from '../../components/SensorSetupRow'
-import TrendChart from '../../components/TrendChart'
 import VerdictPanel from '../../components/VerdictPanel'
+import { AlertList } from '../../components/ui/AlertRow'
 import Card, { SectionHeader } from '../../components/ui/Card'
+import DescriptionList from '../../components/ui/DescriptionList'
+import EmptyState from '../../components/ui/EmptyState'
 import Notice from '../../components/ui/Notice'
+import Page from '../../components/ui/Page'
 import PageHeader from '../../components/ui/PageHeader'
 import Skeleton from '../../components/ui/Skeleton'
 import { buttonClass, linkClass } from '../../components/ui/styles'
 import useArrivals from '../../components/ui/useArrivals'
 import useNow from '../../components/ui/useNow'
 import { getFusedPredictionCopy } from '../../content/farmerCopy'
+import { formatDay, timeAgo } from '../../content/dates'
 import { humidityScale, moistureScale, SOIL_PROFILES, temperatureScale, zoneFor } from '../../content/sensorModel'
 import { useFarm } from '../../farm/FarmContext'
 
@@ -64,91 +68,121 @@ function getDaysSince(date) {
 
 const STALE_AFTER_MS = 3 * 60 * 60 * 1000
 
-function timeAgo(value, now) {
-  const t = Date.parse(value)
-  if (Number.isNaN(t)) return null
-  const minutes = Math.max(0, Math.round((now - t) / 60000))
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes} min ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`
-  const days = Math.floor(hours / 24)
-  return `${days} ${days === 1 ? 'day' : 'days'} ago`
-}
-
-// A tile for a sensor that sent no value in the latest reading.
-function SafeTile({ value, title, ...rest }) {
-  if (Number.isFinite(value)) return <ReadingTile title={title} value={value} {...rest} />
-  return (
-    <div className="rounded-card border border-control bg-surface p-4">
-      <h3 className="m-0 text-small font-bold text-ink-secondary">{title}</h3>
-      <p className="mb-0 mt-2 text-body text-ink">Not reporting</p>
-      <p className="mb-0 mt-1 text-caption text-ink-secondary">This sensor sent no value in the latest reading.</p>
-    </div>
-  )
-}
-
-function PlotDetailsCard({ farm }) {
+function PlotDetails({ farm }) {
   if (!farm) return null
 
-  const farmName = getDisplayValue(farm.farm_name)
   const county = getDisplayValue(farm.county)
   const soilType = formatSoilType(farm.soil_type)
   const size = getDisplayValue(farm.sizeAcres)
   const plantingDate = parsePlantingDate(farm.plantingDate)
   const waterSource = getDisplayValue(farm.waterSource)
   const seedVariety = getDisplayValue(farm.seedVariety)
-  const rows = [
-    farmName && { label: 'Plot name', value: farmName },
+  const items = [
     county && { label: 'County', value: county },
     soilType && { label: 'Soil type', value: soilType },
-    size && {
-      label: 'Size',
-      value: `${size} ${Number(size) === 1 ? 'acre' : 'acres'}`,
-    },
+    size && { label: 'Size', value: `${size} ${Number(size) === 1 ? 'acre' : 'acres'}` },
     plantingDate && {
       label: 'Planting date',
       value: (
-        <span className="flex flex-wrap items-baseline gap-x-2">
-          <span>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(plantingDate)}</span>
-          <span className="text-small font-normal text-ink-secondary">
-            {getDaysSince(plantingDate)} days since planting
-          </span>
-        </span>
+        <>
+          {formatDay(plantingDate)}
+          <span className="block text-small text-ink-secondary">{getDaysSince(plantingDate)} days since planting</span>
+        </>
       ),
     },
     waterSource && { label: 'Water source', value: waterSource },
     seedVariety && { label: 'Seed variety', value: seedVariety },
-    { label: 'Sensors', value: <SensorSetupRow farm={farm} />, wide: true },
+    { label: 'Sensors', value: <SensorSetupRow farm={farm} /> },
   ].filter(Boolean)
-
-  if (!rows.length) return null
 
   return (
     <Card aria-labelledby="plot-details-title">
       <SectionHeader id="plot-details-title" title="Plot details" />
-      <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-3 text-left sm:grid-cols-2 lg:grid-cols-3">
-        {rows.map(({ label, value, wide }) => (
-          <div key={label} className={`min-w-0 ${wide ? 'sm:col-span-2 lg:col-span-3' : ''}`}>
-            <dt className="text-small text-ink-secondary">{label}</dt>
-            <dd className="m-0 break-words text-body font-bold text-ink">{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <DescriptionList items={items} />
+    </Card>
+  )
+}
+
+function FieldReadings({ farm, farmId }) {
+  const now = useNow()
+  const { data: readings, isLoading, isError, isFetching, refetch } = useLatestReadings(farmId)
+  const { data: classification = null } = useLatestReadingClassification(farmId)
+  const soilType = SOIL_PROFILES[farm?.soil_type] ? farm.soil_type : 'loam'
+  const soilProfile = SOIL_PROFILES[soilType]
+  const soilScale = moistureScale(soilType)
+  const humidityZone = readings && Number.isFinite(readings.humidity) ? zoneFor(humidityScale(), readings.humidity) : null
+  const readingIsStale = readings?.recorded_at && now - Date.parse(readings.recorded_at) > STALE_AFTER_MS
+
+  const description = readings
+    ? [
+      readings.recorded_at ? `Last reading ${timeAgo(readings.recorded_at, now)}.` : '',
+      classification?.title ? `The sensor model reads it as: ${classification.title}.` : '',
+    ].filter(Boolean).join(' ')
+    : undefined
+
+  return (
+    <Card divided aria-labelledby="field-readings-title">
+      <div>
+        <SectionHeader id="field-readings-title" title="Field readings" description={description} className="!mb-0" />
+        {readingIsStale && (
+          <Notice tone="neutral" className="mt-4">
+            <p>The sensor has not reported for a while. These numbers may be out of date.</p>
+          </Notice>
+        )}
+      </div>
+      {isError ? (
+        <Notice tone="critical" onRetry={() => refetch()} retrying={isFetching}>
+          <p>Could not load field readings.</p>
+        </Notice>
+      ) : readings ? (
+        <div className="motion-reveal grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <ReadingTile
+            title="Soil moisture"
+            value={readings.soil_moisture}
+            unit="%"
+            scale={soilScale}
+            caption={`Good for ${soilProfile.label}: ${soilScale.goodRange[0]}-${soilScale.goodRange[1]}%`}
+          />
+          <ReadingTile
+            title="Temperature"
+            value={readings.temperature}
+            unit="°C"
+            scale={temperatureScale()}
+            caption="Comfortable: 18-29°C. Heat stress from 32°C."
+          />
+          <ReadingTile
+            title="Air humidity"
+            value={readings.humidity}
+            unit="%"
+            scale={humidityScale()}
+            caption="Usual range: 30-80%."
+            note={humidityZone?.label === 'Humid' ? 'Humid air helps leaf diseases spread.' : undefined}
+          />
+        </div>
+      ) : isLoading ? (
+        <div aria-busy="true" className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <Skeleton label="Loading field readings" className="h-36" />
+          <Skeleton className="h-36" />
+          <Skeleton className="h-36" />
+        </div>
+      ) : (
+        <EmptyState>
+          <p>No sensor readings recorded for this plot yet.</p>
+        </EmptyState>
+      )}
+      <NpkTiles farm={farm} />
     </Card>
   )
 }
 
 export default function FarmerDashboard() {
   const { selectedFarmId, selectedFarm, isLoading: farmsLoading, hasFarms } = useFarm()
-  const { data: status = null } = useFarmStatus(selectedFarmId)
   const {
-    data: readings,
-    isLoading: readingsLoading,
-    isError: readingsError,
-    isFetching: readingsFetching,
-    refetch: retryReadings,
-  } = useLatestReadings(selectedFarmId)
+    data: status = null,
+    isError: statusError,
+    isFetching: statusFetching,
+    refetch: retryStatus,
+  } = useFarmStatus(selectedFarmId)
   const {
     data: alerts = [],
     isLoading: alertsLoading,
@@ -157,134 +191,69 @@ export default function FarmerDashboard() {
     isFetching: alertsFetching,
     refetch: retryAlerts,
   } = useAlerts(selectedFarmId)
-  const { data: history = [] } = useFarmHistory(selectedFarmId)
-  const { data: classification = null } = useLatestReadingClassification(selectedFarmId)
-  const now = useNow()
   const ongoingSensorAlerts = alerts.filter((a) => a.source === 'sensor' && !a.resolved_at)
   const newestFirst = [...alerts].sort((a, b) => (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0))
   // Ongoing alerts are shown once, at the top; the recent list holds the rest.
   const recentAlerts = newestFirst.filter((a) => !ongoingSensorAlerts.includes(a)).slice(0, 3)
   const hiddenAlertCount = alerts.length - ongoingSensorAlerts.length - recentAlerts.length
   const arrived = useArrivals(alerts.map((a) => a.alert_id), alertsLoaded)
-  const readingAge = readings?.recorded_at ? now - Date.parse(readings.recorded_at) : null
-  const readingIsStale = readingAge !== null && readingAge > STALE_AFTER_MS
-  const soilType = SOIL_PROFILES[selectedFarm?.soil_type] ? selectedFarm.soil_type : 'loam'
-  const soilProfile = SOIL_PROFILES[soilType]
-  const soilScale = moistureScale(soilType)
-  const humidityZone = readings && Number.isFinite(readings.humidity) ? zoneFor(humidityScale(), readings.humidity) : null
+  const plotName = selectedFarm?.farm_name || status?.farm_name
 
   if (!farmsLoading && !hasFarms) return <Navigate to="/onboarding" replace />
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={selectedFarm?.farm_name || status?.farm_name || 'Your field'}
-        aside={<PlotSwitcher />}
-      />
-      <GrowthStageCard />
+    <Page>
+      <PageHeader title={plotName || 'Your field'} subtitle={<GrowthStageCard />} aside={<PlotSwitcher />} />
+
       <FollowUpCard />
 
-      {readingIsStale && (
-        <Notice tone="neutral">
-          <p>The sensor has not reported for a while. These numbers may be out of date.</p>
-        </Notice>
-      )}
-
       {ongoingSensorAlerts.length > 0 && (
-        <section aria-labelledby="attention-title" className="flex flex-col gap-3">
-          <h2 id="attention-title" className="m-0 text-title text-ink">Needs attention now</h2>
-          {ongoingSensorAlerts.map((alert) => (
-            <AttentionAlert
-              key={alert.alert_id}
-              alert={alert}
-              farmId={selectedFarmId}
-              titleSuffix=" in your plot"
-              showAllLink
-              arrived={arrived(alert.alert_id)}
-            />
-          ))}
+        <section aria-labelledby="attention-title">
+          <SectionHeader id="attention-title" title="Needs attention now" />
+          <AlertList>
+            {ongoingSensorAlerts.map((alert) => (
+              <AttentionAlert
+                key={alert.alert_id}
+                alert={alert}
+                farmId={selectedFarmId}
+                titleSuffix=" in your plot"
+                showAllLink
+                arrived={arrived(alert.alert_id)}
+              />
+            ))}
+          </AlertList>
         </section>
       )}
 
-      {status?.has_data === false ? (
-        <EmptyPlotState plotName={selectedFarm?.farm_name || status?.farm_name || 'this plot'} />
-      ) : (
-        <VerdictPanel
-          status={status}
-          action={getFusedPredictionCopy(status?.fused_prediction).action}
-        />
-      )}
-
-      {status?.has_data !== false && (
-        <Link to="/check-in" className={`${buttonClass({ block: true })} sm:w-auto sm:self-start sm:px-8`}>
-          Check my maize
-        </Link>
-      )}
-
-      {readingsError ? (
-        <Notice tone="critical" onRetry={() => retryReadings()} retrying={readingsFetching}>
-          <p>Could not load field readings.</p>
+      {statusError ? (
+        <Notice tone="critical" onRetry={() => retryStatus()} retrying={statusFetching}>
+          <p>Could not load the latest status of this plot.</p>
         </Notice>
-      ) : readings && (
-        <section aria-labelledby="field-readings-title" className="motion-reveal flex flex-col gap-3">
-          <div>
-            <h2 id="field-readings-title" className="m-0 text-title text-ink">
-              Field readings
-            </h2>
-            <p className="m-0 mt-1 text-small text-ink-secondary">
-              {readings.recorded_at ? `Last reading ${timeAgo(readings.recorded_at, now)}.` : ''}
-              {classification?.title ? ` The sensor model reads it as: ${classification.title}.` : ''}
-            </p>
+      ) : status?.has_data === false ? (
+        <EmptyPlotState plotName={plotName || 'this plot'} />
+      ) : (
+        <VerdictPanel status={status} action={getFusedPredictionCopy(status?.fused_prediction).action}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <Link to="/check-in" className={`${buttonClass({ block: true })} sm:w-auto sm:px-8`}>
+              Check my maize
+            </Link>
+            <Link to="/trends#photo-checks" className={`inline-flex min-h-11 items-center self-center text-small sm:self-auto ${linkClass}`}>
+              Past photo checks
+            </Link>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <SafeTile
-              title="Soil moisture"
-              value={readings.soil_moisture}
-              unit="%"
-              scale={soilScale}
-              caption={`Good for ${soilProfile.label}: ${soilScale.goodRange[0]}-${soilScale.goodRange[1]}%`}
-            />
-            <SafeTile
-              title="Temperature"
-              value={readings.temperature}
-              unit="°C"
-              scale={temperatureScale()}
-              caption="Comfortable: 18-29°C. Heat stress from 32°C."
-            />
-            <SafeTile
-              title="Air humidity"
-              value={readings.humidity}
-              unit="%"
-              scale={humidityScale()}
-              caption="Usual range: 30-80%."
-              note={humidityZone?.label === 'Humid' ? 'Humid air helps leaf diseases spread.' : undefined}
-            />
-          </div>
-        </section>
+        </VerdictPanel>
       )}
-      <NpkTiles farm={selectedFarm} />
-      {!readings && readingsLoading && status?.has_data === true && (
-        <section aria-label="Loading field readings" aria-busy="true" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {[1, 2, 3].map((card) => (
-            <Skeleton key={card} className="h-48" />
-          ))}
-        </section>
-      )}
-      {!readings && !readingsLoading && !readingsError && selectedFarmId && (
-        <p className="m-0 text-small text-ink-secondary">
-          No sensor readings recorded for this plot yet.
-        </p>
-      )}
+
+      <FieldReadings farm={selectedFarm} farmId={selectedFarmId} />
 
       {status?.has_data !== false && !(alerts.length > 0 && recentAlerts.length === 0) && (
-        <section className="flex flex-col gap-3" aria-labelledby="alerts-title">
+        <section aria-labelledby="alerts-title">
           <SectionHeader
             id="alerts-title"
             title="Alerts"
-            className="!mb-0"
             aside={hiddenAlertCount > 0 && (
               <Link to="/alerts" className={`inline-flex min-h-11 items-center text-small ${linkClass}`}>
-                See all {alerts.length} alerts →
+                See all {alerts.length} alerts
               </Link>
             )}
           />
@@ -295,11 +264,11 @@ export default function FarmerDashboard() {
               <p>Could not load alerts.</p>
             </Notice>
           ) : alerts.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <AlertList>
               {recentAlerts.map((alert) => (
                 <AlertCard key={alert.alert_id} alert={alert} farmId={selectedFarmId} arrived={arrived(alert.alert_id)} />
               ))}
-            </div>
+            </AlertList>
           ) : (
             <p className="m-0 text-body text-ink-secondary">
               No alerts right now. Your maize looks fine.
@@ -308,9 +277,7 @@ export default function FarmerDashboard() {
         </section>
       )}
 
-      <TrendChart history={history} />
-
-      <PlotDetailsCard farm={selectedFarm} />
-    </div>
+      <PlotDetails farm={selectedFarm} />
+    </Page>
   )
 }

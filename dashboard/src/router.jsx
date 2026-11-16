@@ -7,6 +7,7 @@ import NewCheckin from './views/farmer/NewCheckin'
 import Onboarding from './views/farmer/Onboarding'
 import Result from './views/farmer/Result'
 import TrendsPage from './views/farmer/TrendsPage'
+import ProfilePage from './views/farmer/ProfilePage'
 import Login from './views/auth/Login'
 import Register from './views/auth/Register'
 import RoleGuard from './components/RoleGuard'
@@ -69,6 +70,14 @@ export default function AppRouter() {
             element={
               <RoleGuard allowedRole="farmer">
                 <TrendsPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RoleGuard allowedRole="farmer">
+                <ProfilePage />
               </RoleGuard>
             }
           />

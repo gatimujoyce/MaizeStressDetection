@@ -1,46 +1,16 @@
 import { useMemo } from 'react'
 import Card, { SectionHeader } from '../ui/Card'
 import LineChart from './LineChart'
+import { describeChange, FIELDS, formatNumber } from './trendFields'
 import { buildTicks, formatMoment, RANGES } from './trendTime'
 
-const FIELDS = {
-    soil_moisture: { title: 'Soil moisture', unit: '%', decimals: 0, tolerance: 1.5 },
-    temperature: { title: 'Temperature', unit: ' °C', decimals: 1, tolerance: 0.5 },
-    humidity: { title: 'Humidity', unit: '%', decimals: 0, tolerance: 2 },
-    // The sensor's value is the dew point gap (air temperature minus dew point): SMALL means damp air and wet leaves, so the
-    // card says so in words instead of showing a score that rises as the leaves dry.
-    leaf_wetness: {
-        title: 'Leaf dampness', unit: ' \u00b0C', decimals: 1, tolerance: 0.5,
-        note: 'This is the gap between air temperature and dew point. A small gap means damp air and wet leaves; below 3 \u00b0C the leaves are likely wet. The 3 \u00b0C line is provisional.',
-        wording: { up: 'Drier than the day before', down: 'Damper than the day before' },
-    },
-    nitrogen_mg_kg: { title: 'Nitrogen', unit: ' mg/kg', decimals: 0, tolerance: 2, alertClass: 'low_nitrogen' },
-    phosphorus_mg_kg: { title: 'Phosphorus', unit: ' mg/kg', decimals: 0, tolerance: 1, alertClass: 'low_phosphorus' },
-    potassium_mg_kg: { title: 'Potassium', unit: ' mg/kg', decimals: 0, tolerance: 5, alertClass: 'low_potassium' },
-}
-
-const number = (value, decimals) => Number(value).toFixed(decimals).replace(/\.0+$/, '')
-
-export const FIELD_ORDER = ['soil_moisture', 'temperature', 'humidity', 'leaf_wetness']
-export const NPK_FIELD_ORDER = ['nitrogen_mg_kg', 'phosphorus_mg_kg', 'potassium_mg_kg']
-
-export function describeChange(change, field) {
-    const { tolerance, decimals, unit, wording } = FIELDS[field]
-    if (change === null || change === undefined) return null
-    if (Math.abs(change) < tolerance) return { arrow: '→', text: 'About the same as the day before' }
-    const size = `${number(Math.abs(change), decimals)}${unit.trim() === '%' ? ' points' : unit}`
-    return change > 0
-        ? { arrow: '↑', text: wording ? wording.up : `${size} higher than the day before` }
-        : { arrow: '↓', text: wording ? wording.down : `${size} lower than the day before` }
-}
-
+// One reading over the chosen range: the latest value, how it moved since the day before, and the chart.
 export default function ReadingTrendCard({ field, trend, rangeKey }) {
     const cfg = FIELDS[field]
     const range = RANGES.find((r) => r.key === rangeKey)
     const start = Date.parse(trend.from)
     const end = Date.parse(trend.to)
     const gapMs = trend.bucket_minutes * 60e3 * 2.5
-
     const points = useMemo(
         () => trend.points.filter((p) => p[field] !== null && p[field] !== undefined).map((p) => ({ t: Date.parse(p.t), v: p[field] })),
         [trend.points, field],
@@ -53,22 +23,22 @@ export default function ReadingTrendCard({ field, trend, rangeKey }) {
         return alerts.map((a) => ({ start: Date.parse(a.start), end: a.end ? Date.parse(a.end) : null }))
     }, [trend.alerts, trend.nutrient_alerts, cfg.alertClass])
     const xTicks = useMemo(() => buildTicks(rangeKey, start, end), [rangeKey, start, end])
-
     const latest = trend.summary[field].latest
     const change = describeChange(trend.summary[field].change, field)
-    const format = (value, axis = false) => `${number(value, axis ? Math.min(cfg.decimals, 1) : cfg.decimals)}${cfg.unit}`
+    const format = (value) => `${formatNumber(value, cfg.decimals)}${cfg.unit}`
+    const formatTick = (value) => formatNumber(value, Math.min(cfg.decimals, 1))
     const titleId = `trend-${field}`
     const warningLevel = cfg.alertClass ? trend.nutrient_levels?.[field] : undefined
 
     return (
-        <Card aria-labelledby={titleId}>
-            <SectionHeader id={titleId} title={cfg.title} as="h3" />
+        <Card aria-labelledby={titleId} className="flex flex-col">
+            <SectionHeader id={titleId} title={cfg.title} as="h3" className="!mb-2" />
             {latest === null || latest === undefined ? (
-                <p className="m-0 text-body text-ink-secondary">No readings yet.</p>
+                <p className="m-0 mb-3 text-body text-ink-secondary">No readings yet.</p>
             ) : (
                 <>
-                    <p className="m-0 text-display font-bold text-ink">{format(latest)}</p>
-                    <p className="m-0 mb-3 text-small text-ink-secondary">
+                    <p className="m-0 text-figure tabular-nums text-ink">{format(latest)}</p>
+                    <p className="m-0 mb-3 mt-1 text-small text-ink-secondary">
                         {change ? (
                             <>
                                 <span aria-hidden="true">{change.arrow} </span>
@@ -86,23 +56,27 @@ export default function ReadingTrendCard({ field, trend, rangeKey }) {
                     Warning level: {warningLevel} mg/kg. This level is provisional and has not been reviewed by an agronomist.
                 </p>
             )}
-            {points.length === 0 ? (
-                <p className="m-0 text-small text-ink-secondary">
-                    No readings in the last {range.label}.
-                </p>
-            ) : (
-                <LineChart
-                    points={points}
-                    spans={spans}
-                    start={start}
-                    end={end}
-                    gapMs={gapMs}
-                    xTicks={xTicks}
-                    label={`${cfg.title}, last ${range.label}`}
-                    formatValue={format}
-                    formatMoment={(ms) => formatMoment(ms, rangeKey)}
-                />
-            )}
+            <div className="mt-auto">
+                {points.length === 0 ? (
+                    <p className="m-0 text-small text-ink-secondary">
+                        No readings in the last {range.label}.
+                    </p>
+                ) : (
+                    <LineChart
+                        points={points}
+                        spans={spans}
+                        start={start}
+                        end={end}
+                        gapMs={gapMs}
+                        xTicks={xTicks}
+                        label={`${cfg.title}, last ${range.label}`}
+                        axisUnit={cfg.unit.trim()}
+                        formatValue={format}
+                        formatTick={formatTick}
+                        formatMoment={(ms) => formatMoment(ms, rangeKey)}
+                    />
+                )}
+            </div>
         </Card>
     )
 }
