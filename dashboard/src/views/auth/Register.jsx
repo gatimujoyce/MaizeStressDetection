@@ -99,7 +99,7 @@ export default function Register() {
 
                 {step === 'details' ? (
                     <form onSubmit={sendCode} className="flex flex-col gap-4">
-                        <AuthField id="name" label="Full name" autoComplete="name" value={form.name} error={errors.name} onChange={handleChange('name')} placeholder="Jane Doe or John Doe" />
+                        <AuthField id="name" label="Full name" autoComplete="name" value={form.name} error={errors.name} onChange={handleChange('name')} placeholder="Firstname Lastname" />
                         <AuthField id="phone" label="Phone number" type="tel" prefix="+254" inputMode="numeric" maxLength={16} autoComplete="tel-national" value={form.phone} error={errors.phone} onChange={handleChange('phone')} placeholder="712345678" hint="We will text a code to this number." />
                         <AuthField id="password" label="Password" type="password" autoComplete="new-password" hint="At least 8 characters." value={form.password} error={errors.password} onChange={handleChange('password')} visible={visiblePasswords.password} onToggleVisibility={() => togglePasswordVisibility('password')} />
                         <AuthField id="confirm" label="Confirm password" type="password" autoComplete="new-password" value={form.confirm} error={errors.confirm} onChange={handleChange('confirm')} visible={visiblePasswords.confirm} onToggleVisibility={() => togglePasswordVisibility('confirm')} />
