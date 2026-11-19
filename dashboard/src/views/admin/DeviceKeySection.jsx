@@ -5,6 +5,33 @@ import Notice from '../../components/ui/Notice'
 import { buttonClass } from '../../components/ui/styles'
 import { formatDateTime as when } from '../../content/dates'
 
+// navigator.clipboard only exists on secure pages (https or localhost). When the dashboard is opened by its
+// network address over http it is missing, so fall back to copying from a hidden text box.
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch { /* Try the fallback below. */ }
+  }
+  const box = document.createElement('textarea')
+  box.value = text
+  box.setAttribute('readonly', '')
+  box.style.position = 'fixed'
+  box.style.top = '0'
+  box.style.left = '0'
+  box.style.opacity = '0'
+  document.body.appendChild(box)
+  box.select()
+  box.setSelectionRange(0, text.length)
+  let ok = false
+  try {
+    ok = document.execCommand('copy')
+  } catch { /* ok stays false */ }
+  document.body.removeChild(box)
+  return ok
+}
+
 // The installer creates a key for a plot's sensor box and types it into the box. The full key is shown once, here.
 export default function DeviceKeySection({ farm }) {
   const qc = useQueryClient()
@@ -13,6 +40,7 @@ export default function DeviceKeySection({ farm }) {
   const revoke = useAdminManageMutation(revokeDeviceKey)
   const [fresh, setFresh] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
   const [asking, setAsking] = useState(false)
   const busy = create.isPending || revoke.isPending
   const failure = create.error || revoke.error || (info.isError && info.error)
@@ -21,6 +49,7 @@ export default function DeviceKeySection({ farm }) {
   async function handleCreate() {
     setAsking(false)
     setCopied(false)
+    setCopyFailed(false)
     try {
       setFresh(await create.mutateAsync({ id: farm.id }))
       qc.invalidateQueries({ queryKey: ['admin', 'deviceKey', farm.id] })
@@ -36,10 +65,10 @@ export default function DeviceKeySection({ farm }) {
   }
 
   async function copy() {
-    try {
-      await navigator.clipboard.writeText(fresh.key)
-      setCopied(true)
-    } catch { /* The key is also shown on screen to copy by hand. */ }
+    setCopied(false)
+    setCopyFailed(false)
+    if (await copyText(fresh.key)) setCopied(true)
+    else setCopyFailed(true)
   }
 
   return (
@@ -54,6 +83,7 @@ export default function DeviceKeySection({ farm }) {
           <p className="m-0 font-bold">Copy this key now. It is shown only once.</p>
           <p className="my-2 break-all rounded-control bg-surface px-3 py-2 font-mono text-small text-ink" data-testid="new-device-key">{fresh.key}</p>
           <button type="button" onClick={copy} className={buttonClass({ variant: 'secondary', size: 'sm' })}>{copied ? 'Copied' : 'Copy key'}</button>
+          {copyFailed && <p className="mb-0 mt-2 text-small text-ink">This browser would not copy it. Select the key above and copy it by hand.</p>}
         </Notice>
       )}
       {!info.isLoading && (
