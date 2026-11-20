@@ -77,6 +77,7 @@ export default function NewCheckin() {
     const [errorState, setErrorState] = useState(null)
     const [errorMsg, setErrorMsg] = useState('')
     const fileInputRef = useRef(null)
+    const cameraInputRef = useRef(null)
     const previewRef = useRef(null)
     const previewTransferred = useRef(false)
     const navigate = useNavigate()
@@ -131,6 +132,7 @@ export default function NewCheckin() {
         setPreview(null)
         setErrorState(null)
         if (fileInputRef.current) fileInputRef.current.value = ''
+        if (cameraInputRef.current) cameraInputRef.current.value = ''
     }
 
     const handleSubmit = async () => {
@@ -215,20 +217,47 @@ export default function NewCheckin() {
                     <div className="flex flex-col items-center gap-4 rounded-control border-[1.5px] border-dashed border-control p-6 text-center focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
                         <CameraIcon className="h-8 w-8 text-brand" />
                         <p className="m-0 text-body text-ink-secondary">
-                            Tap below to take a photo or select an image from your gallery.
+                            Take a new photo of the leaf, or choose one you already have.
                         </p>
-                        <label htmlFor="photo-input" className={`${buttonClass({ block: true })} cursor-pointer`}>
-                            Take or choose a photo
-                        </label>
-                        <input
-                            ref={fileInputRef}
-                            id="photo-input"
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-                            capture="environment"
-                            onChange={handleFileChange}
-                            className="sr-only"
-                        />
+                        {/* Two inputs: `capture` makes Android open the camera only, so the
+                            gallery needs its own input without it. The camera button is shown
+                            only on touch devices (phones, tablets); desktops ignore `capture`. */}
+                        <div className="flex w-full flex-col gap-3">
+                            <div className="hidden [@media(pointer:coarse)]:block">
+                                <label htmlFor="photo-camera-input" className={`${buttonClass({ block: true })} cursor-pointer`}>
+                                    Take a photo
+                                </label>
+                                <input
+                                    ref={cameraInputRef}
+                                    id="photo-camera-input"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                                    capture="environment"
+                                    onChange={handleFileChange}
+                                    className="sr-only"
+                                />
+                            </div>
+                            <label
+                                htmlFor="photo-input"
+                                className={`${buttonClass({ block: true })} cursor-pointer [@media(pointer:coarse)]:hidden`}
+                            >
+                                Choose a photo
+                            </label>
+                            <label
+                                htmlFor="photo-input"
+                                className={`${buttonClass({ variant: 'secondary', block: true })} hidden cursor-pointer [@media(pointer:coarse)]:inline-flex`}
+                            >
+                                Choose from gallery
+                            </label>
+                            <input
+                                ref={fileInputRef}
+                                id="photo-input"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                                onChange={handleFileChange}
+                                className="sr-only"
+                            />
+                        </div>
                     </div>
                 ) : (
                     <div className="motion-reveal flex flex-col gap-4">
