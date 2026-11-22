@@ -1,0 +1,17 @@
+{
+  "model_file": "C:\\Users\\USER\\OneDrive\\Documents\\Desktop\\final_project\\Development\\models\\core_classifier\\disease_best.keras",
+  "date": "2026-11-22T16:22:17Z",
+  "test_dir": "C:\\Users\\USER\\OneDrive\\Documents\\Desktop\\final_project\\Development\\data\\processed\\disease_v2\\test_bangladesh",
+  "n": 46,
+  "tf_version": "2.21.0",
+  "class_names": [
+    "common_rust",
+    "gray_leaf_spot",
+    "healthy",
+    "northern_leaf_blight"
+  ],
+  "task": "disease",
+  "preprocess": "efficientnet",
+  "img_size": 224,
+  "run_name": "disease_v1_bdtest"
+}
