@@ -156,7 +156,9 @@ def test_load_runtime_detects_a_wrong_hash(tmp_path):
         m = json.loads(dest.read_text(encoding="utf-8"))
         for key in ("file", "no_stage_file"):
             if key in m:
-                (dest.parent / m[key]).write_bytes(b"x")
+                target = dest.parent / m[key]
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(b"x")
     with pytest.raises(RuntimeUnavailable, match="manifest hash"):
         load_runtime(tmp_path)
 

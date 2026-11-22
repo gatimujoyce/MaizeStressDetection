@@ -1,10 +1,10 @@
 {
   "name": "disease",
   "task": "disease",
-  "file": "disease_best.keras",
-  "sha256": "14789a72957ec68bb73874e9b184b2e61b7dca68f0795354dcbec9f8e753acb4",
+  "file": "v2/disease_v2.keras",
+  "sha256": "7f31e466e0f4e7666ffddb89e56de28d4a8f622a01548fd2130206fc6bb21a4a",
   "bytes": 33420901,
-  "weights_location": "MyDrive/maize-project/models/core_classifier/checkpoints/disease_best.keras",
+  "weights_location": "MyDrive/maize-project/models/core_classifier/v2/disease_v2.keras",
   "tf_version": "2.21.0",
   "enabled": true,
   "input": {
@@ -20,23 +20,29 @@
   ],
   "thresholds": {
     "t_disease": 0.6,
-    "t_disease_validation_selected": 0.55,
+    "t_disease_validation_selected": null,
     "t_disease_rule": {
       "split": "validation",
       "grid": "0.50 to 0.95 in steps of 0.05",
       "min_accuracy_on_accepted": 0.97,
       "sick_accepted_as_healthy": 0
     },
-    "t_disease_table": "results/disease_best/disease_v1_val/threshold_table.csv",
+    "t_disease_table": null,
     "fusion_bands": {
       "strong_min": 0.8,
       "weak_min": 0.6
     },
-    "note": "fusion applies t_disease, the RAP bound below which a result is uncertain. t_disease_validation_selected is the operating point chosen on the validation split by the pre-stated rule, and fusion overrides it with the stricter value"
+    "note": "fusion applies t_disease = 0.60, the RAP bound below which a result is uncertain. For disease-v2 the threshold was not re-selected on validation (fixed before training); 0.60 is kept."
   },
   "evidence": [
-    "results/disease_best/disease_v1_test/metrics.json",
-    "results/disease_best/disease_v1_val/predictions.csv"
+    "results/disease_v2/disease_v2_test/metrics.json",
+    "results/disease_v2/disease_v2_bdtest/metrics.json",
+    "results/disease_best/disease_v1_bdtest/metrics.json",
+    "results/disease_v2_decision.json",
+    "docs/disease_v2_rules.md"
   ],
-  "version": "disease-v1"
+  "version": "disease-v2",
+  "training_data": "PlantVillage maize train/val + Bangladesh field photos (RAW_Image, 4 classes), grouped split; data/processed/disease_v2/split_report.json",
+  "selection_note": "Pre-set rules 2 and 3 failed; v2 was adopted as a documented deviation because it beats v1 on every overall measure on both test sets (see docs/disease_v2_rules.md, Decision).",
+  "previous_version": "manifest_v1.json"
 }

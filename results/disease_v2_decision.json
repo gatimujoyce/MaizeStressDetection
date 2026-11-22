@@ -1,0 +1,146 @@
+{
+  "inputs": {
+    "v1_pv": "results\\disease_best\\disease_v1_test\\predictions.csv",
+    "v2_pv": "results\\disease_v2\\disease_v2_test\\predictions.csv",
+    "v1_bd": "results\\disease_best\\disease_v1_bdtest\\predictions.csv",
+    "v2_bd": "results\\disease_v2\\disease_v2_bdtest\\predictions.csv",
+    "out": "results/disease_v2_decision.json"
+  },
+  "summaries": {
+    "v1-pv": {
+      "n": 631,
+      "accuracy": 0.9223454833597464,
+      "per_class": {
+        "common_rust": {
+          "n": 197,
+          "correct": 191,
+          "recall": 0.9695431472081218
+        },
+        "gray_leaf_spot": {
+          "n": 87,
+          "correct": 71,
+          "recall": 0.8160919540229885
+        },
+        "healthy": {
+          "n": 175,
+          "correct": 174,
+          "recall": 0.9942857142857143
+        },
+        "northern_leaf_blight": {
+          "n": 172,
+          "correct": 146,
+          "recall": 0.8488372093023255
+        }
+      },
+      "macro_recall": 0.9071895062047876,
+      "sick_called_healthy_strong": {
+        "n_sick": 456,
+        "count": 0,
+        "rate": 0.0
+      }
+    },
+    "v2-pv": {
+      "n": 631,
+      "accuracy": 0.9350237717908082,
+      "per_class": {
+        "common_rust": {
+          "n": 197,
+          "correct": 195,
+          "recall": 0.9898477157360406
+        },
+        "gray_leaf_spot": {
+          "n": 87,
+          "correct": 74,
+          "recall": 0.8505747126436781
+        },
+        "healthy": {
+          "n": 175,
+          "correct": 174,
+          "recall": 0.9942857142857143
+        },
+        "northern_leaf_blight": {
+          "n": 172,
+          "correct": 147,
+          "recall": 0.8546511627906976
+        }
+      },
+      "macro_recall": 0.9223398263640327,
+      "sick_called_healthy_strong": {
+        "n_sick": 456,
+        "count": 0,
+        "rate": 0.0
+      }
+    },
+    "v1-bd": {
+      "n": 46,
+      "accuracy": 0.34782608695652173,
+      "per_class": {
+        "common_rust": {
+          "n": 5,
+          "correct": 0,
+          "recall": 0.0
+        },
+        "gray_leaf_spot": {
+          "n": 3,
+          "correct": 0,
+          "recall": 0.0
+        },
+        "healthy": {
+          "n": 29,
+          "correct": 7,
+          "recall": 0.2413793103448276
+        },
+        "northern_leaf_blight": {
+          "n": 9,
+          "correct": 9,
+          "recall": 1.0
+        }
+      },
+      "macro_recall": 0.3103448275862069,
+      "sick_called_healthy_strong": {
+        "n_sick": 17,
+        "count": 0,
+        "rate": 0.0
+      }
+    },
+    "v2-bd": {
+      "n": 46,
+      "accuracy": 0.6956521739130435,
+      "per_class": {
+        "common_rust": {
+          "n": 5,
+          "correct": 3,
+          "recall": 0.6
+        },
+        "gray_leaf_spot": {
+          "n": 3,
+          "correct": 1,
+          "recall": 0.3333333333333333
+        },
+        "healthy": {
+          "n": 29,
+          "correct": 25,
+          "recall": 0.8620689655172413
+        },
+        "northern_leaf_blight": {
+          "n": 9,
+          "correct": 3,
+          "recall": 0.3333333333333333
+        }
+      },
+      "macro_recall": 0.5321839080459769,
+      "sick_called_healthy_strong": {
+        "n_sick": 17,
+        "count": 0,
+        "rate": 0.0
+      }
+    }
+  },
+  "rules": {
+    "1 PlantVillage accuracy >= 87.2% and healthy recall >= 95%": true,
+    "2 Bangladesh macro recall >= 70% and no class below 50%": false,
+    "3 Bangladesh: v2 not lower than v1 in any class, and higher macro recall": false,
+    "4 Sick Bangladesh photos called healthy at >= 0.80: at most 5%": true
+  },
+  "decision": "v1 stays; v2 reported as an attempted improvement"
+}

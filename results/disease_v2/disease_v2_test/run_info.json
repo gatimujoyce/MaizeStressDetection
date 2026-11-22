@@ -1,0 +1,17 @@
+{
+  "model_file": "C:\\Users\\USER\\OneDrive\\Documents\\Desktop\\final_project\\Development\\models\\core_classifier\\v2\\disease_v2.keras",
+  "date": "2026-11-22T16:25:55Z",
+  "test_dir": "C:\\Users\\USER\\OneDrive\\Documents\\Desktop\\final_project\\Development\\data\\processed\\plantvillage_maize\\test",
+  "n": 631,
+  "tf_version": "2.21.0",
+  "class_names": [
+    "common_rust",
+    "gray_leaf_spot",
+    "healthy",
+    "northern_leaf_blight"
+  ],
+  "task": "disease",
+  "preprocess": "efficientnet",
+  "img_size": 224,
+  "run_name": "disease_v2_test"
+}

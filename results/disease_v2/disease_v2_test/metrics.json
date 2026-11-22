@@ -1,0 +1,104 @@
+{
+  "n": 631,
+  "accuracy": 0.9350237717908082,
+  "macro_precision": 0.914159149484536,
+  "macro_recall": 0.9223398263640326,
+  "macro_f1": 0.9173481058587899,
+  "weighted_precision": 0.937355204470077,
+  "weighted_recall": 0.9350237717908082,
+  "weighted_f1": 0.9355254034541638,
+  "per_class": [
+    {
+      "name": "common_rust",
+      "precision": 0.975,
+      "recall": 0.9898477157360406,
+      "f1": 0.982367758186398,
+      "support": 197
+    },
+    {
+      "name": "gray_leaf_spot",
+      "precision": 0.7628865979381443,
+      "recall": 0.8505747126436781,
+      "f1": 0.8043478260869565,
+      "support": 87
+    },
+    {
+      "name": "healthy",
+      "precision": 1.0,
+      "recall": 0.9942857142857143,
+      "f1": 0.997134670487106,
+      "support": 175
+    },
+    {
+      "name": "northern_leaf_blight",
+      "precision": 0.91875,
+      "recall": 0.8546511627906976,
+      "f1": 0.8855421686746988,
+      "support": 172
+    }
+  ],
+  "confusion_matrix": [
+    [
+      195,
+      0,
+      0,
+      2
+    ],
+    [
+      2,
+      74,
+      0,
+      11
+    ],
+    [
+      0,
+      1,
+      174,
+      0
+    ],
+    [
+      3,
+      22,
+      0,
+      147
+    ]
+  ],
+  "confidence_analysis": [
+    {
+      "threshold": 0.5,
+      "coverage": 0.9904912836767037,
+      "accuracy_on_accepted": 0.9392,
+      "deferred_share": 0.009508716323296355
+    },
+    {
+      "threshold": 0.6,
+      "coverage": 0.9334389857369255,
+      "accuracy_on_accepted": 0.9575551782682513,
+      "deferred_share": 0.06656101426307448
+    },
+    {
+      "threshold": 0.7,
+      "coverage": 0.9001584786053882,
+      "accuracy_on_accepted": 0.9630281690140845,
+      "deferred_share": 0.09984152139461172
+    },
+    {
+      "threshold": 0.8,
+      "coverage": 0.8478605388272583,
+      "accuracy_on_accepted": 0.9719626168224299,
+      "deferred_share": 0.15213946117274169
+    },
+    {
+      "threshold": 0.9,
+      "coverage": 0.7717908082408875,
+      "accuracy_on_accepted": 0.9897330595482546,
+      "deferred_share": 0.22820919175911253
+    }
+  ],
+  "mean_confidence_correct": 0.9387479304257086,
+  "mean_confidence_incorrect": 0.7025176243084233,
+  "task_extras": {
+    "diseased_called_healthy_rate": 0.0,
+    "healthy_called_diseased_rate": 0.005714285714285714
+  }
+}

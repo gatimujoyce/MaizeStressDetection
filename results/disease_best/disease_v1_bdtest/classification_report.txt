@@ -1,0 +1,10 @@
+                      precision    recall  f1-score   support
+
+         common_rust       0.00      0.00      0.00         5
+      gray_leaf_spot       0.00      0.00      0.00         3
+             healthy       0.88      0.24      0.38        29
+northern_leaf_blight       0.30      1.00      0.46         9
+
+            accuracy                           0.35        46
+           macro avg       0.29      0.31      0.21        46
+        weighted avg       0.61      0.35      0.33        46

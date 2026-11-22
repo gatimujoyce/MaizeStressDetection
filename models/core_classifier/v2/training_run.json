@@ -1,0 +1,41 @@
+{
+  "model_name": "disease_v2",
+  "data_dir": "/content/data/disease_v2",
+  "out_dir": "/content/drive/MyDrive/maize-project/models/core_classifier/v2",
+  "class_names": [
+    "common_rust",
+    "gray_leaf_spot",
+    "healthy",
+    "northern_leaf_blight"
+  ],
+  "train_counts": {
+    "common_rust": 991,
+    "gray_leaf_spot": 458,
+    "healthy": 879,
+    "northern_leaf_blight": 928
+  },
+  "val_counts": {
+    "common_rust": 198,
+    "gray_leaf_spot": 88,
+    "healthy": 181,
+    "northern_leaf_blight": 176
+  },
+  "hyperparameters": {
+    "epochs_head": 8,
+    "epochs_finetune": 12,
+    "batch_size": 32,
+    "img_size": 224,
+    "lr_head": 0.001,
+    "lr_finetune": 1e-05,
+    "unfreeze_layers": 40,
+    "seed": 42
+  },
+  "tensorflow_version": "2.21.0",
+  "best_val_accuracy": 0.9486780762672424,
+  "epochs_run": {
+    "phase1": 8,
+    "phase2": 7
+  },
+  "phase2_trainable_weight_tensors": 22,
+  "timestamp_utc": "2026-11-22T15:58:34.121162+00:00"
+}
